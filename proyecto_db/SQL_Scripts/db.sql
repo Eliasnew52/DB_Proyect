@@ -19,10 +19,11 @@ CREATE TABLE Producto (
     descripcion TEXT,
     stock_minimo INT NOT NULL,
     stock INT NOT NULL,
-    ultima_actualizacion TIMESTAMP NOT NULL,
+    ultima_actualizacion DATETIME NOT NULL DEFAULT GETDATE(),
     categoria_id INT,
     FOREIGN KEY (categoria_id) REFERENCES Categoria(id)
 );
+
 
 -- Crear tabla Empresa
 CREATE TABLE Empresa (
@@ -43,7 +44,7 @@ CREATE TABLE Proveedor (
 -- Crear tabla Compra
 CREATE TABLE Compra (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    fecha TIMESTAMP NOT NULL,
+    fecha DATETIME NOT NULL DEFAULT GETDATE(),
     total DECIMAL(10, 2) NOT NULL,
     proveedor_id INT,
     FOREIGN KEY (proveedor_id) REFERENCES Proveedor(id)
@@ -66,13 +67,13 @@ CREATE TABLE Cliente (
     nombre VARCHAR(100) NOT NULL,
     direccion TEXT,
     email VARCHAR(255),
-    INDEX (email)
+
 );
 
 -- Crear tabla Venta
 CREATE TABLE Venta (
     id INT IDENTITY(1,1) PRIMARY KEY,
-    fecha TIMESTAMP NOT NULL,
+    fecha DATETIME NOT NULL DEFAULT GETDATE(),
     total DECIMAL(10, 2) NOT NULL,
     forma_de_pago VARCHAR(100) NOT NULL,
     estado VARCHAR(100) NOT NULL,
@@ -107,7 +108,7 @@ CREATE TABLE MovimientoStock (
     producto_id INT,
     cantidad INT NOT NULL,
     tipo_movimiento VARCHAR(10) NOT NULL CHECK (tipo_movimiento IN ('Entrada', 'Salida')),
-    fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (producto_id) REFERENCES Producto(id)
 );
 
