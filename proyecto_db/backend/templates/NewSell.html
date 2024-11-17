@@ -1,0 +1,40 @@
+{% load static %}
+{% block content %}
+<h2>Registrar Nueva Venta</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <h3>Datos de la Venta</h3>
+    {{ venta_form.as_p }}
+    
+    <h3>Detalles de los Productos</h3>
+    <div id="formset-container">
+        {{ detalle_venta_formset.management_form }}
+        <table id="detalleventa-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Descuento</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in detalle_venta_formset %}
+                <tr class="detalleventa-form">
+                    <td>{{ form.producto }}</td>
+                    <td>{{ form.cantidad }}</td>
+                    <td>{{ form.precio_unitario }}</td>
+                    <td>{{ form.descuento }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <button type="button" id="add-form" class="btn btn-secondary">Añadir Producto</button>
+    <button type="submit" class="btn btn-primary">Registrar Venta</button>
+</form>
+
+<script src="{% static 'JavaScript/sell.js' %}" defer></script>
+{% endblock %}

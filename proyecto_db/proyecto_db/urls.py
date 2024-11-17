@@ -16,7 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from backend.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('products/add', NewProduct, name='NewProduct'),
+    path('products/buy', BuyProduct, name ='BuyProduct'),
+    path('products/sell', SellProduct, name ='SellProduct'),
+    #HACER LA FUNCION BUYPRODUCT EN VIEWS
 ]

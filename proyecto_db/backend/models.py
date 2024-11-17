@@ -1,67 +1,5 @@
 from django.db import models
-from django.db.models import Sum, F
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-class Cliente(models.Model):
-    nombre = models.CharField(max_length=100)
-    direccion = models.TextField()
-    email = models.EmailField()
-
-    def __str__(self):
-        return self.nombre
-
-class Producto(models.Model):
-    nombre = models.CharField(max_length=100)
-    precio_venta = models.DecimalField(max_digits=10, decimal_places=2)
-    precio_compra = models.DecimalField(max_digits=10, decimal_places=2)
-    descripcion = models.TextField()
-    stock_minimo = models.IntegerField()
-    stock = models.IntegerField()
-    ultima_actualizacion = models.DateTimeField(auto_now=True)
-    categoria = models.ForeignKey('Categoria', on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.nombre
-
-class Venta(models.Model):
-    fecha = models.DateTimeField(auto_now_add=True)
-    total = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    forma_de_pago = models.CharField(max_length=100)
-    estado = models.CharField(max_length=100)
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        # Recalcular el total después de guardar la venta
-        total = self.detalleventa_set.aggregate(
-            total=Sum(F('cantidad') * F('precio_unitario'))
-        )['total']
-        self.total = total if total else 0
-        super().save(update_fields=['total'])
-    
-    def __str__(self):
-        return f'Venta a: {self.cliente} Fecha: {self.fecha} - C${self.total}'
-
-class DetalleVenta(models.Model):
-    venta = models.ForeignKey(Venta, on_delete=models.CASCADE)
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    cantidad = models.IntegerField()
-    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        # Recalcular el total de la venta después de guardar el detalle
-        self.venta.save()
-
-@receiver(post_save, sender=DetalleVenta)
-def update_venta_total(sender, instance, **kwargs):
-    venta = instance.venta
-    total = venta.detalleventa_set.aggregate(
-        total=Sum(F('cantidad') * F('precio_unitario'))
-    )['total']
-    venta.total = total if total else 0
-    venta.save(update_fields=['total'])
+from datetime import timedelta
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100)
@@ -77,17 +15,42 @@ class Empresa(models.Model):
 
 class Proveedor(models.Model):
     nombre = models.CharField(max_length=100)
-    email = models.EmailField()
-    telefono = models.CharField(max_length=15)
+    email = models.EmailField(max_length=255, blank=True, null=True)
+    telefono = models.CharField(max_length=15, blank=True, null=True)
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.nombre
 
+class Producto(models.Model):
+    nombre = models.CharField(max_length=100)
+    precio_venta = models.DecimalField(max_digits=10, decimal_places=2)
+    precio_compra = models.DecimalField(max_digits=10, decimal_places=2)
+    descripcion = models.TextField(blank=True, null=True)
+    stock_minimo = models.IntegerField()
+    stock = models.IntegerField()
+    ultima_actualizacion = models.DateTimeField(auto_now_add=True)
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    proveedores = models.ManyToManyField(Proveedor, through='ProductoProveedor')
+
+    def __str__(self):
+        return self.nombre
+
+class ProductoProveedor(models.Model):
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)
+    fecha_suministro = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.producto.nombre} - {self.proveedor.nombre}"
+
 class Compra(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Compra {self.id} - {self.fecha}"
 
 class DetalleCompra(models.Model):
     compra = models.ForeignKey(Compra, on_delete=models.CASCADE)
@@ -95,8 +58,77 @@ class DetalleCompra(models.Model):
     cantidad = models.IntegerField()
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
 
-class FacturaVenta(models.Model):
+    def __str__(self):
+        return f"{self.producto.nombre} - {self.cantidad} unidades"
+
+class Cliente(models.Model):
+    nombre = models.CharField(max_length=100)
+    direccion = models.TextField(blank=True, null=True)
+    email = models.EmailField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return self.nombre
+
+class Venta(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
-    impuestos = models.DecimalField(max_digits=10, decimal_places=2)
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    forma_de_pago = models.CharField(max_length=100)
+    estado = models.CharField(max_length=100)
+    cliente = models.ForeignKey('Cliente', on_delete=models.CASCADE)
+    productos = models.ManyToManyField(Producto, through='DetalleVenta')
+
+    def __str__(self):
+        return f"Venta {self.id} - {self.fecha}"
+
+    def calcular_total(self):
+        detalles = DetalleVenta.objects.filter(venta=self)
+        total = sum((detalle.precio_unitario - detalle.descuento) * detalle.cantidad for detalle in detalles)
+        self.total = total
+        self.save()
+
+
+class DetalleVenta(models.Model):
+    venta = models.ForeignKey('Venta', on_delete=models.CASCADE)
+    producto = models.ForeignKey('Producto', on_delete=models.CASCADE)
+    cantidad = models.IntegerField()
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+    descuento = models.DecimalField(max_digits=10, decimal_places=2, default=0.0) 
+
+    def __str__(self):
+        return f"{self.producto.nombre} - {self.cantidad} unidades from {self.venta}"
+
+
+class FacturaVenta(models.Model):
+    numero_factura = models.CharField(max_length=50, unique=True)
+    fecha_emision = models.DateTimeField(auto_now_add=True)
+    fecha_vencimiento = models.DateTimeField()
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    descuento_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     monto_total = models.DecimalField(max_digits=10, decimal_places=2)
-    venta = models.ForeignKey(Venta, on_delete=models.CASCADE)
+    observaciones = models.TextField(blank=True, null=True)
+    venta = models.ForeignKey('Venta', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Factura {self.numero_factura} - {self.fecha_emision}"
+
+    def save(self, *args, **kwargs):
+        if not self.fecha_vencimiento:
+            self.fecha_vencimiento = self.fecha_emision + timedelta(days=30)
+        self.descuento_total = sum(detalle.descuento * detalle.cantidad for detalle in DetalleVenta.objects.filter(venta=self.venta))
+        self.monto_total = self.total - self.descuento_total
+        super(FacturaVenta, self).save(*args, **kwargs)
+
+
+class MovimientoStock(models.Model):
+    TIPO_MOVIMIENTO_CHOICES = [
+        ('Entrada', 'Entrada'),
+        ('Salida', 'Salida'),
+    ]
+
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    cantidad = models.IntegerField()
+    tipo_movimiento = models.CharField(max_length=10, choices=TIPO_MOVIMIENTO_CHOICES)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.tipo_movimiento} de {self.cantidad} unidades de {self.producto.nombre}"
