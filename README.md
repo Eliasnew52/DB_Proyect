@@ -1,4 +1,4 @@
-# README - Sistema de Gestión de Inventario y Ventas
+# README - Desarrollo de Base de Datos para el Sistema WEB de control de Inventario y Ventas del Negocio Librería Elisa
 
 Este sistema se encarga de gestionar productos, compras, ventas, proveedores, clientes, y el stock de una empresa. A continuación se explica cómo funcionan los modelos y su flujo de datos.
 
