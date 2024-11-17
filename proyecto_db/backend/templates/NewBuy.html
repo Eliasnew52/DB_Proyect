@@ -1,18 +1,39 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Registrar Compra</title>
-</head>
-<body>
-    <h1>Registrar Compra</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ compra_form.as_p }}
+{% load static %}
+{% block content %}
+<h2>Registrar Nueva Venta</h2>
+
+<form method="post">
+    {% csrf_token %}
+    <h3>Datos de la Compra</h3>
+    {{ compra_form.as_p }}
+    
+    <h3>Detalles de los Productos</h3>
+    <div id="formset-container">
         {{ detalle_compra_formset.management_form }}
-        {% for form in detalle_compra_formset %}
-            {{ form.as_p }}
-        {% endfor %}
-        <button type="submit">Guardar</button>
-    </form>
-</body>
-</html>
+        <table id="detallecompra-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+        
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in detalle_compra_formset %}
+                <tr class="detallecompra-form">
+                    <td>{{ form.producto }}</td>
+                    <td>{{ form.cantidad }}</td>
+                    <td>{{ form.precio_unitario }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <button type="button" id="add-form" class="btn btn-secondary">Añadir Producto</button>
+    <button type="submit" class="btn btn-primary">Registrar Compra</button>
+</form>
+
+<script src="{% static 'JavaScript/buy.js' %}" defer></script>
+{% endblock %}

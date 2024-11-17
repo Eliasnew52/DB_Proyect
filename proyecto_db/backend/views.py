@@ -61,6 +61,20 @@ def SellProduct(request):
         #print(detalle_venta_formset.management_form)
     return render(request, 'NewSell.html', {'venta_form': venta_form, 'detalle_venta_formset': detalle_venta_formset})
 
+#Inventory
+
+def Inventory(request):
+    items = Producto.objects.all()
+    
+    if request.method == 'POST':
+        pass
+    else:
+        return render(request, 'Inventory.html', {'items':items})
+
+#Product Edition
+def EditProduct(request,product):
+    pass
+    
 
 
 

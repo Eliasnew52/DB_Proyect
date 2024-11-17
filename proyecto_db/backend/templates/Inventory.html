@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% for item in items %}
+    <tr>
+        <td>{{ item.nombre }}</td>
+        <td>{{ item.precio_venta }}</td>
+        <td>{{ item.precio_compra }}</td>
+        <td>{{ item.stock }}</td>
+        <td>{{ item.stock_minimo }}</td>
+        <td>{{ item.ultima_actualizacion }}</td>
+        <td>{{ item.categoria }}</td>
+    </tr>
+    <br>
+    {% endfor %}
+</body>
+</html>
