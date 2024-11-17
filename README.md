@@ -1,78 +1,126 @@
-# DB_Proyect
-Repositorio del Proyecto Final de Bases de Datos
+# README - Sistema de Gestión de Inventario y Ventas
 
-# Flujo de Datos de la Base de Datos 📊
+Este sistema se encarga de gestionar productos, compras, ventas, proveedores, clientes, y el stock de una empresa. A continuación se explica cómo funcionan los modelos y su flujo de datos.
 
-Este documento describe el flujo de datos de nuestra base de datos para gestionar el inventario de una librería, incluyendo las compras, ventas y movimientos de stock de productos.
+---
 
-## 1. Categorías y Productos 🛒
+## Modelos 🛠️
 
-**Tabla `Categoria`**:
-- Define las categorías de los productos, como Cuadernos, Lápices y Bolígrafos.
+### 1. **Categoría** 🏷️
+- Representa las categorías a las que pertenece un producto.
+- Cada producto debe pertenecer a una categoría.
+  
+  **Relación**: Uno a muchos (una categoría puede tener muchos productos).
 
-**Tabla `Producto`**:
-- Almacena información sobre cada producto, incluyendo precios y stock actual.
-- Cada producto está vinculado a una categoría mediante `categoria_id`.
+### 2. **Empresa** 🏢
+- Representa a las empresas a las que pertenecen los proveedores.
+  
+  **Relación**: Uno a muchos (una empresa puede tener muchos proveedores).
 
-### Flujo de Datos:
-- **Inserción de Producto**: Cuando se crea un nuevo producto, se especifica su categoría y se introducen sus precios y stock inicial.
-- **Actualización de Producto**: Los detalles de un producto (por ejemplo, precio, stock) pueden actualizarse en cualquier momento.
+### 3. **Proveedor** 🚚
+- Representa a los proveedores que suministran productos.
+- Un proveedor está relacionado con una empresa y puede suministrar muchos productos.
+  
+  **Relación**: 
+  - Uno a muchos (un proveedor puede hacer muchas compras).
+  - Muchos a muchos con **Producto** a través de **ProductoProveedor**.
 
-## 2. Proveedores y Compras 🏢
+### 4. **Producto** 📦
+- Representa los productos vendidos en la tienda.
+- Cada producto tiene un precio de venta y un precio de compra, así como un stock actual y mínimo.
+- Los productos pueden pertenecer a una categoría y tienen proveedores asociados.
 
-**Tabla `Empresa`**:
-- Almacena información sobre las empresas proveedoras.
+  **Relación**:
+  - Muchos a uno con **Categoría**.
+  - Muchos a muchos con **Proveedor** a través de **ProductoProveedor**.
+  - Muchos a muchos con **Venta** a través de **DetalleVenta**.
 
-**Tabla `Proveedor`**:
-- Almacena información sobre los proveedores y su relación con las empresas.
+### 5. **ProductoProveedor** 🔄
+- Relaciona los productos con los proveedores que los suministran.
+- Incluye información como la fecha de suministro.
 
-**Tabla `Compra`**:
-- Registra cada compra realizada a un proveedor, incluyendo fecha y total.
+  **Relación**: Muchos a uno con **Producto** y **Proveedor**.
 
-**Tabla `DetalleCompra`**:
-- Registra los detalles de cada compra, como productos comprados y cantidades.
+### 6. **Compra** 🛒
+- Registra una compra realizada a un proveedor.
+- Incluye el total de la compra y la fecha en la que se realizó.
 
-### Flujo de Datos:
-- **Inserción de Compra**: Al realizar una compra, se crea un registro en `Compra`.
-- **Detalles de Compra**: Cada producto comprado se registra en `DetalleCompra` con su cantidad y precio.
-- **Actualización de Stock**: Un registro en `MovimientoStock` se crea para cada producto comprado, incrementando su stock.
+  **Relación**: Muchos a uno con **Proveedor**.
+  - Uno a muchos con **DetalleCompra**.
 
-## 3. Clientes y Ventas 🧾
+### 7. **DetalleCompra** 📋
+- Desglosa una compra, especificando qué productos fueron adquiridos, la cantidad y el precio unitario.
 
-**Tabla `Cliente`**:
-- Almacena información sobre los clientes.
+  **Relación**: Muchos a uno con **Compra** y **Producto**.
 
-**Tabla `Venta`**:
-- Registra cada venta realizada a un cliente, incluyendo fecha, total y forma de pago.
+### 8. **Cliente** 👤
+- Representa a los clientes que realizan compras en la tienda.
+- Contiene información básica como nombre, dirección y email.
 
-**Tabla `DetalleVenta`**:
-- Registra los detalles de cada venta, como productos vendidos y cantidades.
+  **Relación**: Uno a muchos con **Venta**.
 
-**Tabla `FacturaVenta`**:
-- Almacena información sobre las facturas de las ventas, incluyendo impuestos y montos totales.
+### 9. **Venta** 💰
+- Representa una venta realizada a un cliente.
+- Incluye detalles como la forma de pago y el estado de la venta.
+- Calcula el total de la venta mediante los productos vendidos y sus cantidades.
 
-### Flujo de Datos:
-- **Inserción de Venta**: Al realizar una venta, se crea un registro en `Venta`.
-- **Detalles de Venta**: Cada producto vendido se registra en `DetalleVenta` con su cantidad y precio.
-- **Actualización de Stock**: Un registro en `MovimientoStock` se crea para cada producto vendido, decrementando su stock.
+  **Relación**:
+  - Muchos a uno con **Cliente**.
+  - Muchos a muchos con **Producto** a través de **DetalleVenta**.
 
-## 4. Movimiento de Stock 🔄
+### 10. **DetalleVenta** 🧾
+- Desglosa una venta, especificando qué productos fueron vendidos, la cantidad y el precio unitario.
+- Puede incluir un descuento por producto.
 
-**Tabla `MovimientoStock`**:
-- Registra todos los movimientos de stock (entradas y salidas) de los productos.
-- Cada registro incluye el `producto_id`, la cantidad, el tipo de movimiento (Entrada/Salida), y la fecha.
+  **Relación**: Muchos a uno con **Venta** y **Producto**.
 
-### Flujo de Datos:
-- **Entrada de Stock**: Al registrar una compra en `DetalleCompra`, se inserta un registro en `MovimientoStock` como 'Entrada'.
-- **Salida de Stock**: Al registrar una venta en `DetalleVenta`, se inserta un registro en `MovimientoStock` como 'Salida'.
-- **Consulta de Stock**: El stock actual de un producto se calcula sumando todas las entradas y restando todas las salidas registradas en `MovimientoStock`.
+### 11. **FacturaVenta** 📜
+- Genera una factura para una venta, calculando el total, los descuentos y el monto total a pagar.
+- Incluye la fecha de emisión y de vencimiento.
 
-### Consulta del Stock Actual:
+  **Relación**: Muchos a uno con **Venta**.
 
-```sql
-SELECT p.id, p.nombre, 
-    SUM(CASE WHEN m.tipo_movimiento = 'Entrada' THEN m.cantidad ELSE 0 END) -
-    SUM(CASE WHEN m.tipo_movimiento = 'Salida' THEN m.cantidad ELSE 0 END) AS stock_actual
-FROM Producto p
-LEFT JOIN MovimientoStock m ON p.id = m.producto_id
-GROUP BY p.id, p.nombre;
+### 12. **MovimientoStock** 📉📈
+- Registra los movimientos de stock de los productos, ya sea por entrada (cuando se reciben productos) o salida (cuando se venden productos).
+- Cada movimiento afecta al stock de un producto específico.
+
+  **Relación**: Muchos a uno con **Producto**.
+
+---
+
+## Flujo de Datos 📊
+
+1. **Producto y Proveedor**: 
+   - Un proveedor suministra productos. Cada vez que un proveedor abastece productos, se registra en el modelo **ProductoProveedor**. Los productos pueden tener muchos proveedores, lo que facilita llevar un control de los suministros.
+
+2. **Compra**: 
+   - Cuando un proveedor hace una venta de productos, se registra en el modelo **Compra**. Esta incluye detalles como el total de la compra y el proveedor que la realizó.
+
+3. **DetalleCompra**: 
+   - Cada compra se desglosa en **DetalleCompra**, que especifica los productos adquiridos, las cantidades y precios unitarios.
+
+4. **Venta**:
+   - Los productos disponibles en el inventario se venden a los clientes. Cada venta se registra en el modelo **Venta**, con detalles como la forma de pago y el estado.
+   - **DetalleVenta** desglosa los productos vendidos en cada venta, incluyendo descuentos.
+
+5. **FacturaVenta**: 
+   - Para cada venta, se genera una **FacturaVenta** que incluye información sobre el total, los descuentos aplicados y el monto total a pagar. Esta factura se asocia directamente con una venta.
+
+6. **MovimientoStock**: 
+   - Cada vez que un producto se compra o se vende, se registra un **MovimientoStock** para ajustar el inventario. Se especifica si el movimiento es una "Entrada" o "Salida".
+
+---
+
+## Ejemplo de Flujo 🏃‍♂️
+
+1. **Proveedor** 💼 suministra un **Producto** 📦.
+2. Se realiza una **Compra** 🛒 del **Producto** a través del **Proveedor**.
+3. Se registra un **DetalleCompra** 📋 con los productos comprados.
+4. Cuando se vende el **Producto** 🏷️, se registra una **Venta** 💰 con los **Productos** vendidos.
+5. La **Venta** genera una **FacturaVenta** 📜.
+6. Se registra un **MovimientoStock** 📉 cuando el **Producto** se vende o una **Entrada** cuando se recibe del proveedor.
+
+---
+
+## Relación Visual 📈
+
