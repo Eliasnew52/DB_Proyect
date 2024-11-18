@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .forms import *
 from .models import *
 from .utils import Stock_Update
@@ -71,10 +71,20 @@ def Inventory(request):
     else:
         return render(request, 'Inventory.html', {'items':items})
 
-#Product Edition
-def EditProduct(request,product):
-    pass
+def EditProduct(request, product_id):
+    # Obtiene el producto o lanza 404 si no existe
+    product = get_object_or_404(Producto, id=product_id)
     
+    if request.method == 'POST':
+        form = ProductoEditForm(request.POST, instance=product)  # Asocia datos del POST al formulario
+        if form.is_valid():
+            form.save()  # Guarda los cambios en la base de datos
+            return redirect('Inventory')  # Redirige a la vista de inventario
+    else:
+        form = ProductoEditForm(instance=product)  # Precarga los datos del producto en el formulario
+
+    # Renderiza la página con el formulario
+    return render(request, 'EditProduct.html', {'product': product, 'form': form})
 
 
 

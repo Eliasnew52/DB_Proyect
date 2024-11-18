@@ -50,3 +50,19 @@ class VentaForm(forms.ModelForm):
 DetalleVentaFormSet = forms.inlineformset_factory(
     Venta, DetalleVenta, form=DetalleVentaForm, extra=1, can_delete=False
 )
+
+
+#Product Edit Form
+class ProductoEditForm(forms.ModelForm):
+    class Meta:
+        model = Producto
+        fields = [
+            'nombre',
+            'precio_venta',
+            'precio_compra',
+            'descripcion',
+            'stock_minimo',
+            'stock',
+            'categoria',
+            'proveedores'
+        ]

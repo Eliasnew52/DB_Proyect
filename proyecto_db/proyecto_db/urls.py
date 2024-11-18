@@ -23,6 +23,7 @@ urlpatterns = [
     path('products/add', NewProduct, name='NewProduct'),
     path('products/buy', BuyProduct, name ='BuyProduct'),
     path('products/sell', SellProduct, name ='SellProduct'),
-    path('products/inventory', Inventory, name='Inventory')
-    #HACER LA FUNCION BUYPRODUCT EN VIEWS
+    path('products/inventory', Inventory, name='Inventory'),
+    path('products/edit/<int:product_id>/', EditProduct, name='EditProduct'),
+    
 ]

@@ -20,7 +20,7 @@ class Proveedor(models.Model):
     empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.nombre
+        return f'{self.nombre} - {self.empresa}'
 
 class Producto(models.Model):
     nombre = models.CharField(max_length=100)
