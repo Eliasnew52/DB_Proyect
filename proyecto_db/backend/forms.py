@@ -14,7 +14,8 @@ class ProductoForm(forms.ModelForm):
             'stock_minimo',
             'stock',
             'categoria',
-            'proveedores'
+            'proveedores',
+            'imagen',
         ]
 
 
