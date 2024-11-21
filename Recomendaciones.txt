@@ -1,0 +1,8 @@
+Validacion de Compras y Ventas en Cajas
+
+EJ: Lapicero ,Si Venta es en Caja, Restar al Stock, la Cantidad de Caja - Modelo Producto
+Descuento Auto Aplicado si Cantidad Comprada es > Cantidad para Descuento - Agregar al Modelo Producto
+
+Filtro de Productos a Comprar en base al Proveedor
+
+Validar las Sustracciones al Stock, no sean mayores al Stock actual

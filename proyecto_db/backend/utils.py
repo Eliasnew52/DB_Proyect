@@ -22,6 +22,7 @@ def Stock_Update(compra, tipo):
             )
     elif tipo == 'Salida':
         Detalles = DetalleVenta.objects.filter(venta=compra)
+       
 
         #Iteramos en los Productos Comprados para Crear el Registro
         for Detalle in Detalles:

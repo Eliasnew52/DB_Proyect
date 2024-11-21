@@ -1,5 +1,6 @@
 from django.db import models
 from datetime import timedelta
+from cloudinary.models import CloudinaryField
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100)
@@ -32,6 +33,7 @@ class Producto(models.Model):
     ultima_actualizacion = models.DateTimeField(auto_now_add=True)
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
     proveedores = models.ManyToManyField(Proveedor, through='ProductoProveedor')
+    imagen= CloudinaryField('image', default='https://www.shutterstock.com/image-vector/default-ui-image-placeholder-wireframes-600nw-1037719192.jpg')
 
     def __str__(self):
         return self.nombre
