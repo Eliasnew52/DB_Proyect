@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}
+    Crear producto
+{% endblock title %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+      <h4>Crear producto</h4>
+      <h6>Crear un nuevo producto</h6>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-lg-3 col-sm-6 col-12">
+            <div class="form-group">
+              <label for="id_nombre">Nombre del producto</label>
+              {{ form.nombre|add_class:"form-control" }}
+            </div>
+          </div>
+          <div class="col-lg-3 col-sm-6 col-12">
+            <div class="form-group">
+              <label for="id_categoria">Categoría</label>
+              {{ form.categoria|add_class:"form-control select" }}
+            </div>
+          </div>
+          <div class="col-lg-3 col-sm-6 col-12">
+            <div class="form-group">
+              <label for="id_stock_minimo">Stock mínimo</label>
+              {{ form.stock_minimo|add_class:"form-control" }}
+            </div>
+          </div>
+          <div class="col-lg-3 col-sm-6 col-12">
+            <div class="form-group">
+              <label for="id_stock">Stock</label>
+              {{ form.stock|add_class:"form-control" }}
+            </div>
+          </div>
+          <div class="col-lg-12">
+            <div class="form-group">
+              <label for="id_descripcion">Descripción</label>
+              {{ form.descripcion|add_class:"form-control" }}
+            </div>
+          </div>
+          <div class="col-lg-3 col-sm-6 col-12">
+            <div class="form-group">
+              <label for="id_precio_compra">Precio de compra</label>
+              {{ form.precio_compra|add_class:"form-control" }}
+            </div>
+          </div>
+          <div class="col-lg-3 col-sm-6 col-12">
+            <div class="form-group">
+              <label for="id_precio_venta">Precio de venta</label>
+              {{ form.precio_venta|add_class:"form-control" }}
+            </div>
+          </div>
+          <div class="col-lg-12">
+            <div class="form-group">
+              <label for="id_proveedores">Proveedores</label>
+              {{ form.proveedores|add_class:"form-control select" }}
+            </div>
+          </div>
+          <div class="col-lg-12">
+            <button type="submit" class="btn btn-submit me-2">
+              Crear
+            </button>
+            <button type="submit" class="btn btn-cancel">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+</div>
+{% endblock content %}

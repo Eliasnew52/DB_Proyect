@@ -1,10 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView
+from django.urls import reverse_lazy
+from .models import Producto
+from .forms import ProductoForm
+
 from .forms import *
 from .models import *
 from .utils import Stock_Update
 
 all_products = Producto.objects.all()
 # Create your views here.
+
+class DashboardView(TemplateView):
+    template_name = 'dashboard/index.html'
 
 def NewProduct(request):
     if request.method =='POST':
@@ -86,6 +94,24 @@ def EditProduct(request, product_id):
     # Renderiza la página con el formulario
     return render(request, 'EditProduct.html', {'product': product, 'form': form})
 
+class ProductoListView(ListView):
+    model = Producto
+    template_name = 'dashboard/list_products.html'
+    context_object_name = 'productos'
 
+class ProductoCreateView(CreateView):
+    model = Producto
+    form_class = ProductoForm
+    template_name = 'dashboard/create_product.html'
+    success_url = reverse_lazy('producto-list')
 
+class ProductoUpdateView(UpdateView):
+    model = Producto
+    form_class = ProductoForm
+    template_name = 'producto_form.html'
+    success_url = reverse_lazy('producto-list')
 
+class ProductoDeleteView(DeleteView):
+    model = Producto
+    template_name = 'producto_confirm_delete.html'
+    success_url = reverse_lazy('producto-list')
