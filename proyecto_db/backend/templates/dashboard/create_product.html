@@ -14,69 +14,96 @@
     </div>
 </div>
 
-<div class="card">
+<form method="post" enctype="multipart/form-data">
+  <div class="card">
     <div class="card-body">
-      <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          <p>{{ form.non_field_errors }}</p>
+        </div>
+        {% endif %}
         <div class="row">
           <div class="col-lg-3 col-sm-6 col-12">
             <div class="form-group">
-              <label for="id_nombre">Nombre del producto</label>
-              {{ form.nombre|add_class:"form-control" }}
+              <label for="{{ form.nombre.id_for_label }}">Nombre del producto</label>
+              {% render_field form.nombre class="form-control" %}
+              <p style="color: red;">{{ form.nombre.errors }}</p>
             </div>
           </div>
           <div class="col-lg-3 col-sm-6 col-12">
             <div class="form-group">
-              <label for="id_categoria">Categoría</label>
-              {{ form.categoria|add_class:"form-control select" }}
+              <label for="{{ form.categoria.id_for_label }}">Categoría</label>
+              {% render_field form.categoria class="form-control" %}
+              <p style="color: red;">{{ form.categoria.errors }}</p>
             </div>
           </div>
           <div class="col-lg-3 col-sm-6 col-12">
             <div class="form-group">
-              <label for="id_stock_minimo">Stock mínimo</label>
-              {{ form.stock_minimo|add_class:"form-control" }}
+              <label for="{{ form.stock_minimo.id_for_label }}">Stock mínimo</label>
+              {% render_field form.stock_minimo class="form-control" %}
+              <p style="color: red;">{{ form.stock_minimo.errors }}</p>
             </div>
           </div>
           <div class="col-lg-3 col-sm-6 col-12">
             <div class="form-group">
-              <label for="id_stock">Stock</label>
-              {{ form.stock|add_class:"form-control" }}
+              <label for="{{ form.stock.id_for_label }}">Stock</label>
+              {% render_field form.stock class="form-control" %}
+              <p style="color: red;">{{ form.stock.errors }}</p>
             </div>
           </div>
           <div class="col-lg-12">
             <div class="form-group">
-              <label for="id_descripcion">Descripción</label>
-              {{ form.descripcion|add_class:"form-control" }}
+              <label for="{{ form.descripcion.id_for_label }}">Descripción</label>
+              {% render_field form.descripcion class="form-control" %}
+              <p style="color: red;">{{ form.descripcion.errors }}</p>
             </div>
           </div>
           <div class="col-lg-3 col-sm-6 col-12">
             <div class="form-group">
-              <label for="id_precio_compra">Precio de compra</label>
-              {{ form.precio_compra|add_class:"form-control" }}
+              <label for="{{ form.precio_compra.id_for_label }}">Precio de compra</label>
+              {% render_field form.precio_compra class="form-control" %}
+              <p style="color: red;">{{ form.precio_compra.errors }}</p>
             </div>
           </div>
           <div class="col-lg-3 col-sm-6 col-12">
             <div class="form-group">
-              <label for="id_precio_venta">Precio de venta</label>
-              {{ form.precio_venta|add_class:"form-control" }}
+              <label for="{{ form.precio_venta.id_for_label }}">Precio de venta</label>
+              {% render_field form.precio_venta class="form-control" %}
+              <p style="color: red;">{{ form.precio_venta.errors }}</p>
             </div>
           </div>
           <div class="col-lg-12">
             <div class="form-group">
-              <label for="id_proveedores">Proveedores</label>
-              {{ form.proveedores|add_class:"form-control select" }}
+              <label for="{{ form.proveedores.id_for_label }}">Proveedores</label>
+              {% render_field form.proveedores class="form-control" %}
+              <p style="color: red;">{{ form.proveedores.errors }}</p>
+            </div>
+          </div>
+          <div class="col-lg-12">
+            <div class="form-group">
+              <label for="{{ form.imagen.id_for_label }}">Imagen</label>
+              <div class="image-upload">
+                {% render_field form.imagen class="form-control" %}
+                <div class="image-uploads">
+                  <img src="{% static 'assets/img/icons/upload.svg' %}" alt="img" />
+                  <h4>Arrastrar y soltar un archivo para cargarlo</h4>
+                </div>
+              </div>
+              <p style="color: red;">{{ form.imagen.errors }}</p>
             </div>
           </div>
           <div class="col-lg-12">
             <button type="submit" class="btn btn-submit me-2">
               Crear
             </button>
-            <button type="submit" class="btn btn-cancel">
+            <a href="{% url 'dashboard' %}"  class="btn btn-cancel">
               Cancelar
-            </button>
+            </a>
           </div>
         </div>
-      </form>
-    </div>
-</div>
+      </div>
+  </div>
+</form>
 {% endblock content %}

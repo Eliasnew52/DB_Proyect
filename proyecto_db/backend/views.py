@@ -1,12 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView, DetailView
 from django.urls import reverse_lazy
-from .models import Producto
-from .forms import ProductoForm
 
 from .forms import *
 from .models import *
 from .utils import Stock_Update
+import os
+
 
 all_products = Producto.objects.all()
 # Create your views here.
@@ -94,6 +94,9 @@ def EditProduct(request, product_id):
     # Renderiza la página con el formulario
     return render(request, 'EditProduct.html', {'product': product, 'form': form})
 
+class SaleCreateView(TemplateView):
+    template_name = 'dashboard/create_sale.html'
+
 class ProductoListView(ListView):
     model = Producto
     template_name = 'dashboard/list_products.html'
@@ -103,15 +106,60 @@ class ProductoCreateView(CreateView):
     model = Producto
     form_class = ProductoForm
     template_name = 'dashboard/create_product.html'
-    success_url = reverse_lazy('producto-list')
+    success_url = reverse_lazy('list_product')
 
 class ProductoUpdateView(UpdateView):
     model = Producto
     form_class = ProductoForm
-    template_name = 'producto_form.html'
-    success_url = reverse_lazy('producto-list')
+    template_name = 'dashboard/update_product.html'
+    success_url = reverse_lazy('list_product')
+    context_object_name = 'product'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categorias'] = Categoria.objects.all()
+        if self.object.imagen:
+            image_path = self.object.imagen.path
+            context['image_size'] = os.path.getsize(image_path)
+        else:
+            context['image_size'] = None
+        return context
 
 class ProductoDeleteView(DeleteView):
     model = Producto
     template_name = 'producto_confirm_delete.html'
-    success_url = reverse_lazy('producto-list')
+    success_url = reverse_lazy('list_product')
+
+class CategoryListView(ListView):
+    model = Categoria
+    template_name = 'dashboard/list_categories.html'
+    context_object_name = 'categories'
+
+class CategoryCreateView(CreateView):
+    model = Categoria
+    form_class = CategoryForm
+    template_name = 'dashboard/create_category.html'
+    success_url = reverse_lazy('list_category')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super().form_valid(form)
+    
+class ProductoDetailView(DetailView):
+    model = Producto
+    template_name = 'dashboard/detail_product.html'
+    context_object_name = 'product'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.object.imagen:
+            image_path = self.object.imagen.path
+            context['image_size'] = os.path.getsize(image_path)
+        else:
+            context['image_size'] = None
+        return context
+
+class CategoryDetailView(DetailView):
+    model = Categoria
+    template_name = 'dashboard/detail_category.html'
+    context_object_name = 'category'

@@ -14,7 +14,8 @@ class ProductoForm(forms.ModelForm):
             'stock_minimo',
             'stock',
             'categoria',
-            'proveedores'
+            'proveedores', 
+            'imagen',
         ]
 
 
@@ -66,3 +67,8 @@ class ProductoEditForm(forms.ModelForm):
             'categoria',
             'proveedores'
         ]
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Categoria
+        exclude = ['created_by']

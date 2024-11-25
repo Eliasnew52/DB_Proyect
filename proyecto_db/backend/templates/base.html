@@ -26,18 +26,17 @@
     />
 
     <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}" />
-
     <link rel="stylesheet" href="{% static 'assets/css/animate.css' %}" />
-
+    <link rel="stylesheet" href="{% static 'assets/plugins/select2/css/select2.min.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/dataTables.bootstrap4.min.css' %}" />
-
+    <link rel="stylesheet" href="{% static 'assets/plugins/owlcarousel/owl.carousel.min.css' %}">
     <link
       rel="stylesheet"
       href="{% static 'assets/plugins/fontawesome/css/fontawesome.min.css' %}"
     />
     <link rel="stylesheet" href="{% static 'assets/plugins/fontawesome/css/all.min.css' %}" />
-
     <link rel="stylesheet" href="{% static 'assets/css/style.css' %}" />
+
   </head>
   <body>
     <div id="global-loader">
@@ -328,8 +327,8 @@
                 <ul>
                   <li><a href="{% url 'list_product' %}">Listar productos</a></li>
                   <li><a href="{% url 'create_product' %}">Crear producto</a></li>
-                  <li><a href="categorylist.html">Listar categorías</a></li>
-                  <li><a href="addcategory.html">Crear categoría</a></li>
+                  <li><a href="{% url 'list_category' %}">Listar categorías</a></li>
+                  <li><a href="{% url 'create_category' %}">Crear categoría</a></li>
                   <li><a href="importproduct.html">Importar productos</a></li>
                 </ul>
               </li>
@@ -342,7 +341,7 @@
                 ></a>
                 <ul>
                   <li><a href="saleslist.html">Listar ventas</a></li>
-                  <li><a href="pos.html">Crear venta</a></li>
+                  <li><a href="{% url 'create_sale' %}">Crear venta</a></li>
                 </ul>
               </li>
               <li class="submenu">
@@ -435,20 +434,18 @@
       </div>
     </div>
 
-    <script src="{% static 'assets/js/feather.min.js' %}"></script>
-    
     <script src="{% static 'assets/js/jquery-3.6.0.min.js' %}"></script>
-
-
+    <script src="{% static 'assets/js/feather.min.js' %}"></script>
     <script src="{% static 'assets/js/jquery.slimscroll.min.js' %}"></script>
-
     <script src="{% static 'assets/js/jquery.dataTables.min.js' %}"></script>
     <script src="{% static 'assets/js/dataTables.bootstrap4.min.js' %}"></script>
-
-    <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
-
     <script src="{% static 'assets/plugins/apexchart/apexcharts.min.js' %}"></script>
     <script src="{% static 'assets/plugins/apexchart/chart-data.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/select2/js/select2.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/owlcarousel/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
 
     <script src="{% static 'assets/js/script.js' %}"></script>
   </body>

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Detalles del Producto
+{% endblock title %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <h4>Detalles del Producto</h4>
+        <h6>Detalles completos de un producto</h6>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="bar-code-view">
+                    <img src="{% static 'assets/img/barcode1.png' %}" alt="barcode">
+                    <a class="printimg">
+                        <img src="{% static 'assets/img/icons/printer.svg' %}" alt="print">
+                    </a>
+                </div>
+                <div class="productdetails">
+                    <ul class="product-bar">
+                        <li>
+                            <h4>Producto</h4>
+                            <h6>{{ product.nombre }}</h6>
+                        </li>
+                        <li>
+                            <h4>Categoría</h4>
+                            <h6>{{ product.categoria.nombre }}</h6>
+                        </li>
+                        <li>
+                            <h4>Precio de Venta</h4>
+                            <h6>{{ product.precio_venta }}</h6>
+                        </li>
+                        <li>
+                            <h4>Precio de Compra</h4>
+                            <h6>{{ product.precio_compra }}</h6>
+                        </li>
+                        <li>
+                            <h4>Stock Mínimo</h4>
+                            <h6>{{ product.stock_minimo }}</h6>
+                        </li>
+                        <li>
+                            <h4>Stock</h4>
+                            <h6>{{ product.stock }}</h6>
+                        </li>
+                        <li>
+                            <h4>Última Actualización</h4>
+                            <h6>{{ product.ultima_actualizacion }}</h6>
+                        </li>
+                        <li>
+                            <h4>Descripción</h4>
+                            <h6>{{ product.descripcion }}</h6>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="slider-product-details">
+                    <div class="owl-carousel owl-theme product-slide">
+                        <div class="slider-product d-flex flex-column gap-1 align-items-center">
+                            <img src="{{ product.imagen.url }}" alt="img" style="width: 100px !important;">
+                            <h4>{{ product.imagen }}</h4>
+                            {% if image_size %}
+                                <h6>{{ image_size|filesizeformat }}</h6>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

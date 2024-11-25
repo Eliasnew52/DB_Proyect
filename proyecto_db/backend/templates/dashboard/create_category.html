@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %} Crear categoría {% endblock title %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-title">
+    <h4>Crear Categoría</h4>
+    <h6>Crear nueva categoría de producto</h6>
+  </div>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <p>{{ form.non_field_errors }}</p>
+  </div>
+  {% endif %}
+  <div class="card">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-lg-6 col-sm-6 col-12">
+          <div class="form-group">
+            <label for="{{ form.nombre.id_for_label }}">Nombre</label>
+            {% render_field form.nombre class="form-control" %}
+            <p style="color: red;">{{ form.nombre.errors }}</p>
+          </div>
+        </div>
+        <div class="col-lg-12">
+          <div class="form-group">
+            <label for="{{ form.descripcion.id_for_label }}">Descripción</label>
+            {% render_field form.descripcion class="form-control" %}
+            <p style="color: red;">{{ form.descripcion.errors }}</p>
+          </div>
+        </div>
+        <div class="col-lg-12">
+          <div class="form-group">
+            <label for="{{ form.imagen.id_for_label }}">Imagen</label>
+            <div class="image-upload">
+              {% render_field form.imagen class="form-control" %}
+              <div class="image-uploads">
+                <img src="{% static 'assets/img/icons/upload.svg' %}" alt="img" />
+                <h4>Arrastrar y soltar un archivo para cargarlo</h4>
+              </div>
+            </div>
+            <p style="color: red;">{{ form.imagen.errors }}</p>
+          </div>
+        </div>
+        <div class="col-lg-12">
+          <button type="submit" class="btn btn-submit me-2">Crear</button>
+          <a href="{% url 'dashboard' %}" class="btn btn-cancel">Cancelar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock content %}
