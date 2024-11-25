@@ -16,7 +16,7 @@ class DashboardView(TemplateView):
 
 def NewProduct(request):
     if request.method =='POST':
-        NewProductForm = ProductoForm(request.POST)
+        NewProductForm = ProductoForm(request.POST, request.FILES)
         if NewProductForm.is_valid():
             NewProductForm.save()
             return redirect('NewProduct')
