@@ -11,11 +11,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-# cloudinary imports
-
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -142,11 +137,3 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'
-
-#Cloudinary Config
-
-cloudinary.config(
-    cloud_name='dscmwiiqa',
-    api_key='382824415584826',
-    api_secret='MGrUSh3782gLjGreQxLCQjyzNYM',
-)
