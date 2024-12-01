@@ -24,7 +24,6 @@ def NewProduct(request):
         NewProductForm = ProductoForm()
         return render(request,'NewProduct.html', {'NewProductForm': NewProductForm})
 
-
 # Vista de Compras
 
 def BuyProduct(request):
@@ -44,11 +43,6 @@ def BuyProduct(request):
         detalle_compra_formset = DetalleCompraFormSet()
     return render(request, 'NewBuy.html', {'compra_form': compra_form, 'detalle_compra_formset': detalle_compra_formset})
     
-
-
-
-
-
 def SellProduct(request):
     if request.method == 'POST':
         venta_form = VentaForm(request.POST)

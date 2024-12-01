@@ -11,7 +11,6 @@ urlpatterns = [
     path('products/inventory/', login_required(Inventory), name='Inventory'),
     path('products/edit/<int:product_id>/', login_required(EditProduct), name='EditProduct'),
 
-    path('', login_required(DashboardView.as_view()), name='dashboard'),
     
     path('list/product/', login_required(ProductoListView.as_view()), name='list_product'),
     path('list/category/', login_required(CategoryListView.as_view()), name='list_category'),
@@ -22,5 +21,6 @@ urlpatterns = [
     path('new/sale/', login_required(SaleCreateView.as_view()), name='create_sale'),
     path('detail/product/<int:pk>/', login_required(ProductoDetailView.as_view()), name='detail_product'),
     path('detail/category/<int:pk>/', login_required(CategoryDetailView.as_view()), name='detail_category'),
+    path('', login_required(DashboardView.as_view()), name='dashboard'),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

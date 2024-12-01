@@ -1,4 +1,5 @@
 {% load static %}
+{% load widget_tweaks %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -48,26 +49,19 @@
                 <h3>Iniciar sesión</h3>
                 <h4>Por favor ingresa tu cuenta</h4>
               </div>
-              <form method="post">
+              <form method="post" action="{% url 'login' %}">
                 {% csrf_token %}
                 <div class="form-login">
-                  <label>Nombre de usuario</label>
+                  <label for="{{ form.username.id_for_label }}">Nombre de usuario</label>
                   <div class="form-addons">
-                    <input type="text" placeholder="Ingresa tu nombre de usuario" />
-                    <img
-                      src="{% static 'assets/img/icons/users1.svg' %}"
-                      alt="img"
-                    />
+                    {% render_field form.username class="form-control" placeholder="Ingresa tu nombre de usuario" %}
+                    <img src="{% static 'assets/img/icons/users1.svg' %}" alt="img" />
                   </div>
                 </div>
                 <div class="form-login">
-                  <label>Contraseña</label>
+                  <label for="{{ form.password.id_for_label }}">Contraseña</label>
                   <div class="pass-group">
-                    <input
-                      type="password"
-                      class="pass-input"
-                      placeholder="Ingresa tu contraseña"
-                    />
+                    {% render_field form.password class="form-control pass-input" placeholder="Ingresa tu contraseña" %}
                     <span class="fas toggle-password fa-eye-slash"></span>
                   </div>
                 </div>
