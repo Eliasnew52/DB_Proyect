@@ -3,14 +3,14 @@
 {% load widget_tweaks %}
 
 {% block title %}
-    Editar Producto
+    Editar Categoría
 {% endblock title %}
 
 {% block content %}
 <div class="page-header">
     <div class="page-title">
-        <h4>Editar Producto</h4>
-        <h6>Actualiza los detalles de tu producto</h6>
+        <h4>Editar Categoría</h4>
+        <h6>Actualiza los detalles de tu categoría</h6>
     </div>
 </div>
 
@@ -25,32 +25,11 @@
             </div>
             {% endif %}
             <div class="row">
-                <div class="col-lg-3 col-sm-6 col-12">
+                <div class="col-lg-6 col-sm-6 col-12">
                     <div class="form-group">
-                        <label for="{{ form.nombre.id_for_label }}">Nombre del Producto</label>
+                        <label for="{{ form.nombre.id_for_label }}">Nombre</label>
                         {% render_field form.nombre class="form-control" %}
                         <p style="color: red;">{{ form.nombre.errors }}</p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6 col-12">
-                    <div class="form-group">
-                        <label for="{{ form.categoria.id_for_label }}">Categoría</label>
-                        {% render_field form.categoria class="form-control" %}
-                        <p style="color: red;">{{ form.categoria.errors }}</p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6 col-12">
-                    <div class="form-group">
-                        <label for="{{ form.stock_minimo.id_for_label }}">Stock Mínimo</label>
-                        {% render_field form.stock_minimo class="form-control" %}
-                        <p style="color: red;">{{ form.stock_minimo.errors }}</p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6 col-12">
-                    <div class="form-group">
-                        <label for="{{ form.stock.id_for_label }}">Stock</label>
-                        {% render_field form.stock class="form-control" %}
-                        <p style="color: red;">{{ form.stock.errors }}</p>
                     </div>
                 </div>
                 <div class="col-lg-12">
@@ -60,35 +39,14 @@
                         <p style="color: red;">{{ form.descripcion.errors }}</p>
                     </div>
                 </div>
-                <div class="col-lg-3 col-sm-6 col-12">
-                    <div class="form-group">
-                        <label for="{{ form.precio_compra.id_for_label }}">Precio de Compra</label>
-                        {% render_field form.precio_compra class="form-control" %}
-                        <p style="color: red;">{{ form.precio_compra.errors }}</p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6 col-12">
-                    <div class="form-group">
-                        <label for="{{ form.precio_venta.id_for_label }}">Precio de Venta</label>
-                        {% render_field form.precio_venta class="form-control" %}
-                        <p style="color: red;">{{ form.precio_venta.errors }}</p>
-                    </div>
-                </div>
                 <div class="col-lg-12">
                     <div class="form-group">
-                        <label for="{{ form.proveedores.id_for_label }}">Proveedores</label>
-                        {% render_field form.proveedores class="form-control" %}
-                        <p style="color: red;">{{ form.proveedores.errors }}</p>
-                    </div>
-                </div>
-                <div class="col-lg-12">
-                    <div class="form-group">
-                        <label for="{{ form.imagen.id_for_label }}">Imagen del Producto</label>
+                        <label for="{{ form.imagen.id_for_label }}">Imagen</label>
                         <div class="image-upload">
                             {% render_field form.imagen class="form-control" id="imagen-input" onchange="previewImage(event)" %}
                             <div class="image-uploads">
                                 <img src="{% static 'assets/img/icons/upload.svg' %}" alt="img">
-                                <h4>Arrastra y suelta un archivo para subir</h4>
+                                <h4>Arrastra y suelta un archivo para cargarlo</h4>
                             </div>
                         </div>
                         <p style="color: red;">{{ form.imagen.errors }}</p>
@@ -100,11 +58,11 @@
                             <li class="ps-0" id="productviewscontainer">
                                 <div class="productviews">
                                     <div class="productviewsimg">
-                                        <img id="imagen-preview" src="{% if product.imagen %}{{ product.imagen.url }}{% endif %}" alt="img">
+                                        <img id="imagen-preview" src="{% if category.imagen %}{{ category.imagen.url }}{% endif %}" alt="img">
                                     </div>
                                     <div class="productviewscontent">
                                         <div class="productviewsname">
-                                            <h2 id="productname">{% if product.imagen %}{{ product.imagen.url }}{% endif %}</h2>
+                                            <h2 id="productname">{% if category.imagen %}{{ category.imagen.url }}{% endif %}</h2>
                                             <h3 id="productimagesize">
                                                     {% if image_size %}
                                                         {{ image_size|filesizeformat }}
@@ -120,7 +78,7 @@
                 </div>
                 <div class="col-lg-12">
                     <button type="submit" class="btn btn-submit me-2">Guardar</button>
-                    <a href="{% url 'list_product' %}" class="btn btn-cancel">Cancelar</a>
+                    <a href="{% url 'list_category' %}" class="btn btn-cancel">Cancelar</a>
                 </div>
             </div>
         </form>
@@ -148,4 +106,4 @@
         document.querySelector('#productviewscontainer').style.display = 'none';
     }
 </script>
-{% endblock content %}
+{% endblock content %}</ul></div>

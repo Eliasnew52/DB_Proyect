@@ -17,6 +17,12 @@ class ProductoForm(forms.ModelForm):
             'proveedores',
             'imagen',
         ]
+        widgets = {
+            'imagen': forms.FileInput(attrs={
+                'class': 'form-control',  
+                'id': 'imagen-input',     
+            }),
+        }
 
 
 #Formulario para las Compras
@@ -53,22 +59,38 @@ DetalleVentaFormSet = forms.inlineformset_factory(
 )
 
 
-#Product Edit Form
-class ProductoEditForm(forms.ModelForm):
-    class Meta:
-        model = Producto
-        fields = [
-            'nombre',
-            'precio_venta',
-            'precio_compra',
-            'descripcion',
-            'stock_minimo',
-            'stock',
-            'categoria',
-            'proveedores'
-        ]
+# #Product Edit Form
+# class ProductoEditForm(forms.ModelForm):
+#     class Meta:
+#         model = Producto
+#         fields = [
+#             'nombre',
+#             'precio_venta',
+#             'precio_compra',
+#             'descripcion',
+#             'stock_minimo',
+#             'stock',
+#             'categoria',
+#             'proveedores'
+#         ]
 
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Categoria
         exclude = ['created_by']
+        widgets = {
+            'imagen': forms.FileInput(attrs={
+                'class': 'form-control',  
+                'id': 'imagen-input',     
+            }),
+        }
+
+class SupplierForm(forms.ModelForm):
+    class Meta:
+        model = Proveedor
+        fields = '__all__'
+
+class CustomerForm(forms.ModelForm):
+    class Meta:
+        model = Cliente
+        fields = '__all__'

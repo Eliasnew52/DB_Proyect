@@ -17,12 +17,6 @@
     <div class="col-lg-8 col-sm-12">
         <div class="card">
             <div class="card-body">
-                <div class="bar-code-view">
-                    <img src="{% static 'assets/img/barcode1.png' %}" alt="barcode">
-                    <a class="printimg">
-                        <img src="{% static 'assets/img/icons/printer.svg' %}" alt="print">
-                    </a>
-                </div>
                 <div class="productdetails">
                     <ul class="product-bar">
                         <li>
@@ -56,6 +50,14 @@
                         <li>
                             <h4>Descripción</h4>
                             <h6>{{ product.descripcion }}</h6>
+                        </li>
+                        <li>
+                            <h4>Proveedor</h4>
+                            
+                            {% for proveedor in product.proveedores.all %}
+                                <h6>{{ proveedor.nombre }}</h6>
+                            {% endfor %}
+                                
                         </li>
                     </ul>
                 </div>

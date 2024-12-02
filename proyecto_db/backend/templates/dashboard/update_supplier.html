@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}
+    Editar Proveedor
+{% endblock title %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <h4>Editar Proveedor</h4>
+        <h6>Actualiza los detalles de tu proveedor</h6>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <p>{{ form.non_field_errors }}</p>
+            </div>
+            {% endif %}
+            <div class="row">
+                <div class="col-lg-6 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label for="{{ form.nombre.id_for_label }}">Nombre</label>
+                        {% render_field form.nombre class="form-control" %}
+                        <p style="color: red;">{{ form.nombre.errors }}</p>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label for="{{ form.email.id_for_label }}">Email</label>
+                        {% render_field form.email class="form-control" %}
+                        <p style="color: red;">{{ form.email.errors }}</p>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label for="{{ form.telefono.id_for_label }}">Teléfono</label>
+                        {% render_field form.telefono class="form-control" %}
+                        <p style="color: red;">{{ form.telefono.errors }}</p>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label for="{{ form.empresa.id_for_label }}">Empresa</label>
+                        {% render_field form.empresa class="form-control" %}
+                        <p style="color: red;">{{ form.empresa.errors }}</p>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <button type="submit" class="btn btn-submit me-2">Guardar</button>
+                    <a href="{% url 'list_supplier' %}" class="btn btn-cancel">Cancelar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}</div>

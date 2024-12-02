@@ -109,9 +109,13 @@ class ProductoUpdateView(UpdateView):
     success_url = reverse_lazy('list_product')
     context_object_name = 'product'
 
+class ProductoDetailView(DetailView):
+    model = Producto
+    template_name = 'dashboard/detail_product.html'
+    context_object_name = 'product'
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['categorias'] = Categoria.objects.all()
         if self.object.imagen:
             image_path = self.object.imagen.path
             context['image_size'] = os.path.getsize(image_path)
@@ -121,7 +125,6 @@ class ProductoUpdateView(UpdateView):
 
 class ProductoDeleteView(DeleteView):
     model = Producto
-    template_name = 'producto_confirm_delete.html'
     success_url = reverse_lazy('list_product')
 
 class CategoryListView(ListView):
@@ -138,22 +141,64 @@ class CategoryCreateView(CreateView):
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         return super().form_valid(form)
-    
-class ProductoDetailView(DetailView):
-    model = Producto
-    template_name = 'dashboard/detail_product.html'
-    context_object_name = 'product'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if self.object.imagen:
-            image_path = self.object.imagen.path
-            context['image_size'] = os.path.getsize(image_path)
-        else:
-            context['image_size'] = None
-        return context
-
 class CategoryDetailView(DetailView):
     model = Categoria
     template_name = 'dashboard/detail_category.html'
     context_object_name = 'category'
+
+class CategoryUpdateView(UpdateView):
+    model = Categoria
+    form_class = CategoryForm
+    template_name = 'dashboard/update_category.html'
+    success_url = reverse_lazy('list_category')
+    context_object_name = 'category'
+class CategoryDeleteView(DeleteView):
+    model = Categoria
+    success_url = reverse_lazy('list_category')
+
+class SupplierListView(ListView):
+    model = Proveedor
+    template_name = 'dashboard/list_suppliers.html'
+    context_object_name = 'suppliers'
+
+class SupplierCreateView(CreateView):
+    context_object_name = 'supplier'
+
+    model = Proveedor
+    form_class = SupplierForm
+    template_name = 'dashboard/create_supplier.html'
+    success_url = reverse_lazy('list_supplier')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super().form_valid(form)
+class SupplierUpdateView(UpdateView):
+    model = Proveedor
+    form_class = SupplierForm
+    template_name = 'dashboard/update_supplier.html'
+    success_url = reverse_lazy('list_supplier')
+
+class SupplierDeleteView(DeleteView):
+    model = Proveedor
+    success_url = reverse_lazy('list_supplier')
+
+class CustomerListView(ListView):
+    model = Cliente
+    template_name = 'dashboard/list_customers.html'
+    context_object_name = 'customers'
+
+class CustomerCreateView(CreateView):
+    model = Cliente
+    form_class = CustomerForm
+    template_name = 'dashboard/create_customer.html'
+    success_url = reverse_lazy('list_customer')
+
+class CustomerUpdateView(UpdateView):
+    model = Cliente
+    form_class = CustomerForm
+    template_name = 'dashboard/update_customer.html'
+    success_url = reverse_lazy('list_customer')
+
+class CustomerDeleteView(DeleteView):
+    model = Cliente
+    success_url = reverse_lazy('list_customer')

@@ -363,8 +363,8 @@
                   <span class="menu-arrow"></span
                 ></a>
                 <ul>
-                  <li><a href="supplierlist.html">Listar proveedores</a></li>
-                  <li><a href="addsupplier.html">Crear proveedor</a></li>
+                  <li><a href="{% url 'list_supplier' %}">Listar proveedores</a></li>
+                  <li><a href="{% url 'create_supplier' %}">Crear proveedor</a></li>
                 </ul>
               </li>
               <li class="submenu">
@@ -375,8 +375,8 @@
                   <span class="menu-arrow"></span
                 ></a>
                 <ul>
-                  <li><a href="customerlist.html">Lista clientes</a></li>
-                  <li><a href="addcustomer.html">Crear cliente</a></li>
+                  <li><a href="{% url 'list_customer' %}">Lista clientes</a></li>
+                  <li><a href="{% url 'create_customer' %}">Crear cliente</a></li>
                 </ul>
               </li>
               <li class="submenu">

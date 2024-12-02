@@ -14,13 +14,29 @@ urlpatterns = [
     
     path('list/product/', login_required(ProductoListView.as_view()), name='list_product'),
     path('list/category/', login_required(CategoryListView.as_view()), name='list_category'),
+    path('list/supplier/', login_required(SupplierListView.as_view()), name='list_supplier'),
+    path('list/customer/', login_required(CustomerListView.as_view()), name='list_customer'),
+
+    path('new/customer/', login_required(CustomerCreateView.as_view()), name='create_customer'),
+    path('update/customer/<int:pk>/', login_required(CustomerUpdateView.as_view()), name='update_customer'),
+    path('delete/customer/<int:pk>/', login_required(CustomerDeleteView.as_view()), name='delete_customer'),
+
+    path('new/supplier/', login_required(SupplierCreateView.as_view()), name='create_supplier'),
+    path('update/supplier/<int:pk>/', login_required(SupplierUpdateView.as_view()), name='update_supplier'),
+    path('delete/supplier/<int:pk>/', login_required(SupplierDeleteView.as_view()), name='delete_supplier'),
 
     path('new/product/', login_required(ProductoCreateView.as_view()), name='create_product'),
     path('update/product/<int:pk>/', login_required(ProductoUpdateView.as_view()), name='update_product'),
-    path('new/category/', login_required(CategoryCreateView.as_view()), name='create_category'),
-    path('new/sale/', login_required(SaleCreateView.as_view()), name='create_sale'),
     path('detail/product/<int:pk>/', login_required(ProductoDetailView.as_view()), name='detail_product'),
+    path('delete/product/<int:pk>/', login_required(ProductoDeleteView.as_view()), name='delete_product'),
+
+    path('new/category/', login_required(CategoryCreateView.as_view()), name='create_category'),
     path('detail/category/<int:pk>/', login_required(CategoryDetailView.as_view()), name='detail_category'),
+    path('update/category/<int:pk>/', login_required(CategoryUpdateView.as_view()), name='update_category'),
+    path('delete/category/<int:pk>/', login_required(CategoryDeleteView.as_view()), name='delete_category'),
+    
+    path('new/sale/', login_required(SaleCreateView.as_view()), name='create_sale'),
+
     path('', login_required(DashboardView.as_view()), name='dashboard'),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

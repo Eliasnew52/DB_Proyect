@@ -109,7 +109,12 @@
             </td>
             <td class="productimgname">
               <a href="javascript:void(0);" class="product-img">
-                <img src="{% static 'assets/img/product/noimage.png' %}" alt="product" />
+                
+                {% if category.imagen %}
+                  <img src="{{ category.imagen.url }}" alt="{{ category.imagen }}" />
+                {% else %}
+                  <img src="{% static 'assets/img/product/noimage.png' %}" alt="noimage" />
+                {% endif %}
               </a>
               <a href="javascript:void(0);">{{ category.nombre|capfirst }}</a>
             </td>
@@ -117,12 +122,15 @@
             <td>{{ category.descripcion|default:"Sin descripción" }}</td>
             <td>{{ category.created_by }}</td>
             <td>
-              <a class="me-3" href="editcategory.html">
+              <a class="me-3" href="{% url 'update_category' category.id %}">
                 <img src="{% static 'assets/img/icons/edit.svg' %}" alt="img" />
               </a>
-              <a class="me-3 confirm-text" href="javascript:void(0);">
-                <img src="{% static 'assets/img/icons/delete.svg' %}" alt="img" />
-              </a>
+              <form class="d-inline" action="{% url 'delete_category' category.id %}" method="post">
+                {% csrf_token %}
+                <button type="button" class="btn confirm-text p-0 m-0 align-baseline">
+                  <img src="{% static 'assets/img/icons/delete.svg' %}" alt="img" />
+                </button>
+              </form>
             </td>
           </tr>
           {% endfor %}

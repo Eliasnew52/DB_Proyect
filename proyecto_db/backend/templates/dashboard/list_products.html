@@ -16,7 +16,7 @@
     <div class="page-btn">
       <a href="{% url 'create_product' %}" class="btn btn-added">
         <img src="{% static 'assets/img/icons/plus.svg' %}" alt="img" class="me-1" />
-        Agregar Nuevo Producto
+        Agregar nuevo producto
       </a>
     </div>
 </div>
@@ -80,12 +80,12 @@
                     <select class="select">
                       <option>Elegir producto</option>
                       
-                      
-                      {% for product in productos  %}
-                        <option>{{ product.nombre }}</option>
-                      {% endfor %}
+                        {% for product in productos  %}
+                          <option>{{ product.nombre }}</option>
+                          {% empty %}
+                            <option>No hay productos</option>
+                        {% endfor %}
                         
-                      
                     </select>
                   </div>
                 </div>
@@ -93,19 +93,26 @@
                   <div class="form-group">
                     <select class="select">
                       <option>Elegir categoría</option>
-                      {% for category in productos|unique_categories  %}
-                        <option>{{ category }}</option>
-                      {% endfor %}
+                      
+                        {% for category in productos|unique_categories  %}
+                          <option>{{ category }}</option>
+                          {% empty %}
+                          <option>No hay categorías</option>
+                        {% endfor %}
+                        
                     </select>
                   </div>
                 </div>
                 <div class="col-lg col-sm-6 col-12">
                   <div class="form-group">
                     <select class="select">
-                      <option>Elegir precio</option>
+                      <option>Elegir precio</option>                        
                       {% for product in productos  %}
                         <option>{{ product.precio_venta }}</option>
+                      {% empty %}
+                          <option>No hay precios</option>
                       {% endfor %}
+                        
                     </select>
                   </div>
                 </div>
@@ -134,10 +141,10 @@
                   <span class="checkmarks"></span>
                 </label>
               </th>
-              <th>Nombre del Producto</th>
+              <th>Nombre del producto</th>
               <th>Categoría</th>
-              <th>Precio de Venta</th>
-              <th>Precio de Compra</th>
+              <th>Precio de venta</th>
+              <th>Precio de compra</th>
               <th>Stock</th>
               <th>Acciones</th>
             </tr>
@@ -153,11 +160,17 @@
               </td>
               <td class="productimgname">
                 <a href="javascript:void(0);" class="product-img">
-                  <img
-                    src="{% static 'assets/img/product/product1.jpg' %}" alt="product"
-                  />
+                  
+                  {% if producto.imagen %}
+                    <img
+                      src="{{ producto.imagen.url }}" alt="{{ producto.imagen }}"
+                    />
+                  {% else %}
+                  <img src="{% static 'assets/img/product/noimage.png' %}" alt="noimage" />
+                  {% endif %}
+                    
                 </a>
-                <a href="javascript:void(0);">{{ producto.nombre }}</a>
+                <a href="{% url 'detail_product' producto.id %}">{{ producto.nombre }}</a>
               </td>
               <td>{{ producto.categoria.nombre }}</td>
               <td>${{ producto.precio_venta }}</td>
@@ -170,16 +183,16 @@
                 <a class="me-3" href="{% url 'update_product' producto.id %}">
                   <img src="{% static 'assets/img/icons/edit.svg' %}" alt="img" />
                 </a>
-                <a class="confirm-text" href="">
-                  <img src="{% static 'assets/img/icons/delete.svg' %}" alt="img" />
-                </a>
+                <form class="d-inline" action="{% url 'delete_product' producto.id %}" method="post">
+                  {% csrf_token %}
+                  <button type="button" class="btn confirm-text p-0 m-0 align-baseline">
+                    <img src="{% static 'assets/img/icons/delete.svg' %}" alt="img" />
+                  </button>
+                </form>
               </td>
             </tr>
-            {% empty %}
-            <tr>
-              <td colspan="6">No se encontraron productos.</td>
-            </tr>
             {% endfor %}
+
           </tbody>
         </table>
       </div>
