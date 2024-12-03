@@ -94,3 +94,11 @@ class CustomerForm(forms.ModelForm):
     class Meta:
         model = Cliente
         fields = '__all__'
+
+        from django import forms
+
+# Formulario de ImportExcel
+
+class ExcelBuyForm(forms.Form):
+    archivo = forms.FileField()
+    proveedor = forms.ModelChoiceField(queryset=Proveedor.objects.all())

@@ -34,6 +34,8 @@ urlpatterns = [
     path('detail/category/<int:pk>/', login_required(CategoryDetailView.as_view()), name='detail_category'),
     path('update/category/<int:pk>/', login_required(CategoryUpdateView.as_view()), name='update_category'),
     path('delete/category/<int:pk>/', login_required(CategoryDeleteView.as_view()), name='delete_category'),
+
+    path('import/new/',login_required(ExcelUploadView.as_view()),name='upload_excel'),
     
     path('new/sale/', login_required(SaleCreateView.as_view()), name='create_sale'),
 

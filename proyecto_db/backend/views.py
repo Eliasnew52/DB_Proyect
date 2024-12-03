@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView, DetailView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView, DetailView, FormView
 from django.urls import reverse_lazy
 
 from .forms import *
 from .models import *
 from .utils import Stock_Update
+from .files import ExcelNewProduct
 import os
 
 
@@ -87,6 +88,9 @@ def EditProduct(request, product_id):
 
     # Renderiza la página con el formulario
     return render(request, 'EditProduct.html', {'product': product, 'form': form})
+
+            
+
 
 class SaleCreateView(TemplateView):
     template_name = 'dashboard/create_sale.html'
@@ -202,3 +206,18 @@ class CustomerUpdateView(UpdateView):
 class CustomerDeleteView(DeleteView):
     model = Cliente
     success_url = reverse_lazy('list_customer')
+
+
+# Implementacion de Excel 
+
+
+class ExcelUploadView(FormView):
+    template_name = 'dashboard/import_excel.html'
+    form_class = ExcelBuyForm
+    success_url = reverse_lazy('list_product')
+
+    def form_valid(self, form):
+        file = form.cleaned_data['archivo']
+        proveedor = form.cleaned_data['proveedor']
+        ExcelNewProduct(file, proveedor.id)
+        return super().form_valid(form)

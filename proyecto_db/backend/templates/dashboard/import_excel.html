@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}
+    Importar Productos Excel
+{% endblock title %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <h4>Importar Productos desde Excel</h4>
+        <h6>Crear un nuevo producto</h6>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    <div class="card">
+        <div class="card-body">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <p>{{ form.non_field_errors }}</p>
+            </div>
+            {% endif %}
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="form-group">
+                        <label for="{{ form.proveedor.id_for_label }}">Proveedor</label>
+                        {% render_field form.proveedor class="form-control" %}
+                        <p style="color: red;">{{ form.proveedor.errors }}</p>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="form-group">
+                        <label for="{{ form.archivo.id_for_label }}">Archivo Excel</label>
+                        {% render_field form.archivo class="form-control" %}
+                        <p style="color: red;">{{ form.archivo.errors }}</p>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <button type="submit" class="btn btn-submit me-2">Subir</button>
+                    <a href="{% url 'list_product' %}" class="btn btn-cancel">Cancelar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock content %}
