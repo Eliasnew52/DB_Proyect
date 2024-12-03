@@ -92,8 +92,33 @@ def EditProduct(request, product_id):
             
 
 
-class SaleCreateView(TemplateView):
+class SaleCreateView(CreateView):
+    form_class = VentaForm
     template_name = 'dashboard/create_sale.html'
+    success_url = reverse_lazy('list_sale')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Categoria.objects.all()
+        context['products'] = Producto.objects.all()
+        if self.request.POST:
+            context['detalle_venta_formset'] = DetalleVentaFormSet(self.request.POST)
+        else:
+            context['detalle_venta_formset'] = DetalleVentaFormSet()
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        detalle_venta_formset = context['detalle_venta_formset']
+        if form.is_valid() and detalle_venta_formset.is_valid():
+            self.object = form.save()
+            detalle_venta_formset.instance = self.object
+            detalle_venta_formset.save()
+            self.object.calcular_total()
+            Stock_Update(self.object, 'Salida')
+            return redirect(self.success_url)
+        else:
+            return self.render_to_response(self.get_context_data(form=form))
 
 class ProductoListView(ListView):
     model = Producto

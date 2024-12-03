@@ -76,10 +76,21 @@ class Cliente(models.Model):
         return self.nombre
 
 class Venta(models.Model):
+    forma_de_pago_choices = [
+        ('Efectivo', 'Efectivo'),
+        ('Tarjeta', 'Tarjeta'),
+    ]
+
+    estado_choices = [
+        ('Pendiente', 'Pendiente'),
+        ('Pagado', 'Pagado'),
+        ('Anulado', 'Anulado')
+    ]
+
     fecha = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
-    forma_de_pago = models.CharField(max_length=100)
-    estado = models.CharField(max_length=100)
+    forma_de_pago = models.CharField(choices=forma_de_pago_choices,max_length=100, default=forma_de_pago_choices[0][0])
+    estado = models.CharField(choices=estado_choices,max_length=100, default=estado_choices[0][0])
     cliente = models.ForeignKey('Cliente', on_delete=models.CASCADE)
     productos = models.ManyToManyField(Producto, through='DetalleVenta')
 

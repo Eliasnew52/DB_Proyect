@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 django-widget-tweaks = "*"
 pillow = "*"
+pandas = "*"
+openpyxl = "*"
 
 [dev-packages]
 
