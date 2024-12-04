@@ -251,3 +251,32 @@ class ExcelUploadView(FormView):
         proveedor = form.cleaned_data['proveedor']
         ExcelNewProduct(file, proveedor.id)
         return super().form_valid(form)
+    
+class PurchaseCreateView(CreateView):
+    model = Compra
+    form_class = CompraForm
+    template_name = 'dashboard/create_purchase.html'
+    success_url = reverse_lazy('list_purchase')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['proveedores'] = Proveedor.objects.all()
+        context['productos'] = Producto.objects.all()
+        if self.request.POST:
+            context['detalle_compra_formset'] = DetalleCompraFormSet(self.request.POST)
+        else:
+            context['detalle_compra_formset'] = DetalleCompraFormSet()
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        detalle_compra_formset = context['detalle_compra_formset']
+        if form.is_valid() and detalle_compra_formset.is_valid():
+            self.object = form.save()
+            detalle_compra_formset.instance = self.object
+            detalle_compra_formset.save()
+            Stock_Update(self.object, 'Entrada')
+            return redirect(self.success_url)
+        else:
+            context['detalle_compra_formset_errors'] = detalle_compra_formset.errors
+            return self.render_to_response(context)

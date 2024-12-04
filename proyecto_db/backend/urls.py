@@ -11,7 +11,8 @@ urlpatterns = [
     path('products/inventory/', login_required(Inventory), name='Inventory'),
     path('products/edit/<int:product_id>/', login_required(EditProduct), name='EditProduct'),
 
-    
+    path('new/purchase/', login_required(PurchaseCreateView.as_view()), name='create_purchase'),
+
     path('list/product/', login_required(ProductoListView.as_view()), name='list_product'),
     path('list/category/', login_required(CategoryListView.as_view()), name='list_category'),
     path('list/supplier/', login_required(SupplierListView.as_view()), name='list_supplier'),

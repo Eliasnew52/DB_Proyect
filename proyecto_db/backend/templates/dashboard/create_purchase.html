@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}
+    Crear compra
+{% endblock title %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">
+        <h4>Agregar Compra</h4>
+        <h6>Agregar/Actualizar Compra</h6>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-lg-3 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label>Nombre del Proveedor</label>
+                        <select class="form-control select" id="proveedor-select" name="proveedor">
+                            <option value="">Seleccionar Proveedor</option>
+                            {% for proveedor in proveedores %}
+                            <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-9 col-sm-6 col-12">
+                    <div class="form-group">
+                        <div class="row">
+                            <label>Nombre del Producto</label>
+                            <div class="col-lg-10 col-sm-10 col-10">
+                                <select class="form-control select" id="producto-select">
+                                    <option value="">Seleccionar Producto</option>
+                                    {% for producto in productos %}
+                                    <option value="{{ producto.id }}" data-precio="{{ producto.precio_compra }}" data-imagen="{% if producto.imagen %}{{ producto.imagen.url }}{% else %}{% static 'assets/img/product/noimage.png' %}{% endif %}">{{ producto.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-lg-2 col-sm-2 col-2 ps-0">
+                                <div class="add-icon">
+                                    <span role="button" id="add-product-btn">
+                                        <img src="{% static 'assets/img/icons/plus1.svg' %}" alt="img" />
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="table-responsive">
+                    <table class="table" id="productos-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre del Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio de Compra ($)</th>
+                                <th class="text-end">Costo Total ($)</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Aquí se agregarán los productos dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12 float-md-right">
+                    <div class="total-order">
+                        <ul>
+                            <li>
+                                <h4>Subtotal</h4>
+                                <h5 id="subtotal">$ 0.00</h5>
+                            </li>
+                            <li class="total">
+                                <h4>Total</h4>
+                                <h5 id="total">$ 0.00</h5>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <button type="submit" class="btn btn-submit me-2">Enviar</button>
+                    <a href="purchaselist.html" class="btn btn-cancel">Cancelar</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const productoSelect = document.getElementById('producto-select');
+        const addProductBtn = document.getElementById('add-product-btn');
+        const productosTableBody = document.querySelector('#productos-table tbody');
+        const subtotalElement = document.getElementById('subtotal');
+        const totalElement = document.getElementById('total');
+
+        let productos = [];
+
+        addProductBtn.addEventListener('click', function () {
+            const productoId = productoSelect.value;
+            const productoNombre = productoSelect.options[productoSelect.selectedIndex].text;
+            const productoPrecio = parseFloat(productoSelect.options[productoSelect.selectedIndex].getAttribute('data-precio'));
+            const productoImagen = productoSelect.options[productoSelect.selectedIndex].getAttribute('data-imagen');
+
+            if (!productoId) {
+                alert('Por favor, seleccione un producto.');
+                return;
+            }
+
+            const existingProduct = productos.find(producto => producto.id === productoId);
+
+            if (existingProduct) {
+                existingProduct.cantidad += 1;
+            } else {
+                productos.push({
+                    id: productoId,
+                    nombre: productoNombre,
+                    precio: productoPrecio,
+                    imagen: productoImagen,
+                    cantidad: 1
+                });
+            }
+
+            updateProductosTable();
+        });
+
+        function updateProductosTable() {
+            productosTableBody.innerHTML = '';
+            let subtotal = 0;
+
+            productos.forEach(function (producto) {
+                const costoTotal = producto.precio * producto.cantidad;
+                subtotal += costoTotal;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="productimgname">
+                        <a class="product-img">
+                            <img src="${producto.imagen}" alt="product" />
+                        </a>
+                        <a href="javascript:void(0);">${producto.nombre}</a>
+                    </td>
+                    <td>
+                        <input type="number" class="form-control cantidad-input" data-producto-id="${producto.id}" value="${producto.cantidad}" min="1" />
+                    </td>
+                    <td>
+                        <input type="number" class="form-control precio-input" data-producto-id="${producto.id}" value="${producto.precio.toFixed(2)}" min="0" step="0.01" />
+                    </td>
+                    <td class="text-end">${costoTotal.toFixed(2)}</td>
+                    <td>
+                        <a href="javascript:void(0);" class="delete-set" data-producto-id="${producto.id}">
+                            <img src="{% static 'assets/img/icons/delete.svg' %}" alt="svg" />
+                        </a>
+                    </td>
+                `;
+                productosTableBody.appendChild(row);
+            });
+
+            subtotalElement.textContent = `$ ${subtotal.toFixed(2)}`;
+            totalElement.textContent = `$ ${subtotal.toFixed(2)}`;
+
+            document.querySelectorAll('.cantidad-input').forEach(function (input) {
+                input.addEventListener('change', function () {
+                    const productoId = this.getAttribute('data-producto-id');
+                    const nuevaCantidad = parseInt(this.value);
+
+                    const producto = productos.find(producto => producto.id === productoId);
+                    if (producto) {
+                        producto.cantidad = nuevaCantidad;
+                        updateProductosTable();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.precio-input').forEach(function (input) {
+                input.addEventListener('change', function () {
+                    const productoId = this.getAttribute('data-producto-id');
+                    const nuevoPrecio = parseFloat(this.value);
+
+                    const producto = productos.find(producto => producto.id === productoId);
+                    if (producto) {
+                        producto.precio = nuevoPrecio;
+                        updateProductosTable();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.delete-set').forEach(function (deleteBtn) {
+                deleteBtn.addEventListener('click', function () {
+                    const productoId = this.getAttribute('data-producto-id');
+                    productos = productos.filter(producto => producto.id !== productoId);
+                    updateProductosTable();
+                });
+            });
+        }
+    });
+</script>
+{% endblock content %}

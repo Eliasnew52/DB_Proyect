@@ -351,7 +351,7 @@
                 ></a>
                 <ul>
                   <li><a href="purchaselist.html">Listar compras</a></li>
-                  <li><a href="addpurchase.html">Crear compra</a></li>
+                  <li><a href="{% url 'create_purchase' %}">Crear compra</a></li>
                   <li><a href="importpurchase.html">Importar compras    </a></li>
                 </ul>
               </li>
@@ -442,6 +442,9 @@
     <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'assets/plugins/select2/js/select2.min.js' %}"></script>
     <script src="{% static 'assets/plugins/owlcarousel/owl.carousel.min.js' %}"></script>
+    
+		<script src="{% static 'assets/js/moment.min.js' %}"></script>
+		<script src="{% static 'assets/js/bootstrap-datetimepicker.min.js' %}"></script>
     <script src="{% static 'assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
     <script src="{% static 'assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
 
