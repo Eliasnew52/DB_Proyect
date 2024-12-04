@@ -44,25 +44,50 @@ def BuyProduct(request):
         detalle_compra_formset = DetalleCompraFormSet()
     return render(request, 'NewBuy.html', {'compra_form': compra_form, 'detalle_compra_formset': detalle_compra_formset})
     
+
+
 def SellProduct(request):
+    products = Producto.objects.all()
+    categories = Categoria.objects.all()
     if request.method == 'POST':
+        # Formularios de la venta y los detalles
         venta_form = VentaForm(request.POST)
         detalle_venta_formset = DetalleVentaFormSet(request.POST)
-        
+
+        # Validación de formularios
         if venta_form.is_valid() and detalle_venta_formset.is_valid():
+            # Guardar la venta
             venta = venta_form.save()
+
+            # Asignar la venta a cada detalle y guardarlos
             detalles = detalle_venta_formset.save(commit=False)
             for detalle in detalles:
                 detalle.venta = venta
                 detalle.save()
+
+            # Calcular total y actualizar el stock
             venta.calcular_total()
-            Stock_Update(venta, 'Salida')  # Actualizar el stock
-            return redirect('SellProduct')
+            Stock_Update(venta, 'Salida')  # Función personalizada para manejar el stock
+
+            # Redirigir tras la venta exitosa
+            return redirect('BuyProduct')  # Cambia 'SellProduct' por la URL deseada
+        else:
+            print(venta_form.errors)
+            print(detalle_venta_formset.errors)
+
     else:
+        # Inicialización de formularios en caso de GET
         venta_form = VentaForm()
         detalle_venta_formset = DetalleVentaFormSet()
-        #print(detalle_venta_formset.management_form)
-    return render(request, 'NewSell.html', {'venta_form': venta_form, 'detalle_venta_formset': detalle_venta_formset})
+
+    # Renderizar el template con los formularios
+    return render(request, 'NewSell.html', {
+        'venta_form': venta_form,
+        'detalle_venta_formset': detalle_venta_formset,
+        'products':products,
+        'categories':categories
+    })
+
 
 #Inventory
 
@@ -95,7 +120,7 @@ def EditProduct(request, product_id):
 class SaleCreateView(CreateView):
     form_class = VentaForm
     template_name = 'dashboard/create_sale.html'
-    success_url = reverse_lazy('list_sale')
+    success_url = reverse_lazy('list_product')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -1,40 +1,234 @@
+{% extends 'base.html' %}
 {% load static %}
+{% load widget_tweaks %}
+
+{% block title %}
+    Crear Venta
+{% endblock title %}
+
 {% block content %}
-<h2>Registrar Nueva Venta</h2>
-
-<form method="post">
-    {% csrf_token %}
-    <h3>Datos de la Venta</h3>
-    {{ venta_form.as_p }}
-    
-    <h3>Detalles de los Productos</h3>
-    <div id="formset-container">
-        {{ detalle_venta_formset.management_form }}
-        <table id="detalleventa-table">
-            <thead>
-                <tr>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                    <th>Precio Unitario</th>
-                    <th>Descuento</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for form in detalle_venta_formset %}
-                <tr class="detalleventa-form">
-                    <td>{{ form.producto }}</td>
-                    <td>{{ form.cantidad }}</td>
-                    <td>{{ form.precio_unitario }}</td>
-                    <td>{{ form.descuento }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="col-lg-8 col-sm-12 tabs_wrapper">
+    <div class="page-header">
+        <div class="page-title">
+            <h4>Crear venta</h4>
+            <h6>Gestiona tus compras</h6>
+        </div>
     </div>
+    <!-- Filtro de Categorías de los productos -->
+    <ul class="tabs owl-carousel owl-theme owl-product border-0">
+        {% for category in categories %}
+        <li class="{% if forloop.first %}active{% endif %}" id="{{ category.nombre }}">
+            <a class="product-details">
+                <img src="{% static 'assets/img/product/product65.png' %}" alt="img" />
+                <h6>{{ category.nombre }}</h6>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    <!-- Productos -->
+    <div class="tabs_container">
+        {% for category in categories %}
+        <div class="tab_content {% if forloop.first %}active{% endif %}" data-tab="{{ category.nombre }}">
+            <div class="row">
+                {% for product in products %}
+                {% if product.categoria == category %}
+                <div class="col-lg-3 col-sm-6 d-flex">
+                    <div class="productset flex-fill" data-product-id="{{ product.id }}" data-image-url="{% if product.imagen %}{{ product.imagen.url }} {% else %} {% static 'assets/img/product/noimage.png' %} {% endif %}" data-product-name="{{ product.nombre }}" data-product-price="{{ product.precio_venta }}">
+                        <div class="productsetimg">
+                            
+                            {% if product.imagen %}
+                                <img src="{{ product.imagen.url }}" alt="img" style="width: 208px; height: 208px;" />
+                            {% else %}
+                                <img src="{% static 'assets/img/product/noimage.png' %}" alt="img" style="width: 208px; height: 208px;" />
+                            {% endif %}
+                                
+                            <h6>Cantidad: {{ product.stock }}</h6>
+                            <div class="check-product">
+                                <i class="fa fa-check"></i>
+                            </div>
+                        </div>
+                        <div class="productsetcontent">
+                            <h5>{{ category.nombre }}</h5>
+                            <h4>{{ product.nombre }}</h4>
+                            <h6>C${{ product.precio_venta }}</h6>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<!-- Detalles de la venta -->
+<div class="col-lg-4 col-sm-12">
+    <div class="order-list">
+        <div class="orderid">
+            <h4>Venta</h4>
+            <h5>Nueva venta</h5>
+        </div>
+        <div class="actionproducts">
+            <ul>
+                <li>
+                    <a href="javascript:void(0);" class="deletebg confirm-text">
+                        <img src="{% static 'assets/img/icons/delete-2.svg' %}" alt="img" />
+                    </a>
+                </li>
+                <li>
+                    <a href="javascript:void(0);" data-bs-toggle="dropdown" aria-expanded="false" class="dropset">
+                        <img src="{% static 'assets/img/icons/ellipise1.svg' %}" alt="img" />
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton" data-popper-placement="bottom-end">
+                        <li>
+                            <a href="#" class="dropdown-item">Action</a>
+                        </li>
+                        <li>
+                            <a href="#" class="dropdown-item">Another Action</a>
+                        </li>
+                        <li>
+                            <a href="#" class="dropdown-item">Something Else</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <!-- Formulario de venta -->
+    <div class="card card-order">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="select-split">
+                            <div class="select-group w-100">
+                                <label for="{{ form.cliente.id_for_label }}">Cliente</label>
+                                {% render_field form.cliente class="form-control" %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="select-split">
+                            <div class="select-group w-100">
+                                <label for="{{ form.forma_de_pago.id_for_label }}">Forma de pago</label>
+                                {% render_field form.forma_de_pago class="form-control" %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-12">
+                        <div class="select-split">
+                            <div class="select-group w-100">
+                                <label for="{{ form.estado.id_for_label }}">Estado</label>
+                                {% render_field form.estado class="form-control" %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="split-card"></div>
+                <!-- Preview de productos seleccionados -->
+                <div class="card-body pt-0">
+                    <div class="totalitem">
+                        <h4>Total de artículos: <span id="total-items">0</span></h4>
+                        <a href="javascript:void(0);" id="clear-all">Limpiar todo</a>
+                    </div>
+                    <!-- Espacio de los Productos-->
+                    <div class="product-table" id="selected-products">
 
-    <button type="button" id="add-form" class="btn btn-secondary">Añadir Producto</button>
-    <button type="submit" class="btn btn-primary">Registrar Venta</button>
-</form>
+                    </div>
+                </div>
+                <div class="split-card"></div>
+                <!-- Total de venta -->
+                <div class="card-body pt-0 pb-2">
+                    <div class="setvalue">
+                        <ul>
+                            <li>
+                                <h5>Subtotal</h5>
+                                <h6 id="subtotal">0.00$</h6>
+                            </li>
+                            <li>
+                                <h5>Tax</h5>
+                                <h6 id="tax">0.00$</h6>
+                            </li>
+                            <li class="total-value">
+                                <h5>Total</h5>
+                                <h6 id="total">0.00$</h6>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Métodos de pagos -->
+                    <div class="setvaluecash">
+                        <ul class="justify-content-center">
+                            <li>
+                                <a href="javascript:void(0);" class="paymentmethod">
+                                    <img src="{% static 'assets/img/icons/cash.svg' %}" alt="img" class="me-2" />Efectivo
+                                </a>
+                            </li>
+                            <li>
+                                <a href="javascript:void(0);" class="paymentmethod">
+                                    <img src="{% static 'assets/img/icons/debitcard.svg' %}" alt="img" class="me-2" />Tarjeta
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <!-- Botón para crear venta -->
+                    <div class="btn-totallabel">
+                        <h5>Pagar</h5>
+                        <h6 id="checkout-total">0.00$</h6>
+                        <button type="submit"></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="edit" tabindex="-1" aria-hidden="true">
+    <div
+        class="modal-dialog modal-lg modal-dialog-centered"
+        role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar Pedido</h5>
+                <button
+                    type="button"
+                    class="close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-6 col-sm-12 col-12">
+                        <div class="form-group">
+                            <label> Impuesto</label>
+                            <div class="input-group">
+                                <input type="text" />
+                                <a class="scanner-set input-group-text">
+                                    %
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 col-sm-12 col-12">
+                        <div class="form-group">
+                            <label>Descuento</label>
+                            <input type="text" value="20" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <a class="btn btn-submit me-2">Guardar</a>
+                    <a class="btn btn-cancel" data-bs-dismiss="modal"
+                        >Cancelar</a
+                    >
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="{% static 'assets/JavaScript/sell.js' %}" defer></script>
-{% endblock %}
+{% endblock content %}
