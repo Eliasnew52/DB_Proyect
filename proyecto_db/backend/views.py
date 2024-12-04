@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView, DetailView, FormView
 from django.urls import reverse_lazy
+from django.utils.dateparse import parse_date
 
 from .forms import *
 from .models import *
@@ -262,6 +263,138 @@ class CustomerDeleteView(DeleteView):
     model = Cliente
     success_url = reverse_lazy('list_customer')
 
+    
+class PurchaseCreateView(CreateView):
+    model = Compra
+    form_class = CompraForm
+    template_name = 'dashboard/create_purchase.html'
+    success_url = reverse_lazy('list_purchase')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['proveedores'] = Proveedor.objects.all()
+        context['productos'] = Producto.objects.all()
+        if self.request.POST:
+            context['detalle_compra_formset'] = DetalleCompraFormSet(self.request.POST)
+        else:
+            context['detalle_compra_formset'] = DetalleCompraFormSet()
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        detalle_compra_formset = context['detalle_compra_formset']
+        if form.is_valid() and detalle_compra_formset.is_valid():
+            self.object = form.save()
+            detalle_compra_formset.instance = self.object
+            detalle_compra_formset.save()
+            Stock_Update(self.object, 'Entrada')
+            return redirect(self.success_url)
+        else:
+            context['detalle_compra_formset_errors'] = detalle_compra_formset.errors
+            return self.render_to_response(context)
+        
+
+# Reportes
+
+class InventoryReportView(ListView):
+    model = Producto
+    template_name = 'dashboard/report_inventory.html'
+    context_object_name = 'productos'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['productos'] = self.get_filtered_products()
+        context['proveedores'] = Proveedor.objects.all()
+        return context
+
+    def get_filtered_products(self):
+        productos = Producto.objects.all()
+        proveedor_id = self.request.GET.get('proveedor')
+        from_date = self.request.GET.get('from_date')
+        to_date = self.request.GET.get('to_date')
+
+        if proveedor_id:
+            productos = productos.filter(proveedor_id=proveedor_id)
+        if from_date:
+            from_date = parse_date(from_date)
+            productos = productos.filter(ultima_actualizacion__date__gte=from_date)
+        if to_date:
+            to_date = parse_date(to_date)
+            productos = productos.filter(ultima_actualizacion__date__lte=to_date)
+
+        return productos
+
+class SalesReportView(ListView):
+    model = Venta
+    template_name = 'dashboard/report_sales.html'
+    context_object_name = 'ventas'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['ventas'] = self.get_filtered_sales()
+        return context
+
+    def get_filtered_sales(self):
+        ventas = Venta.objects.all()
+        from_date = self.request.GET.get('from_date')
+        to_date = self.request.GET.get('to_date')
+
+        if from_date:
+            from_date = parse_date(from_date)
+            ventas = ventas.filter(fecha__date__gte=from_date)
+        if to_date:
+            to_date = parse_date(to_date)
+            ventas = ventas.filter(fecha__date__lte=to_date)
+
+        return ventas
+    
+class PurchasesReportView(ListView):
+    model = Compra
+    template_name = 'dashboard/report_purchases.html'
+    context_object_name = 'compras'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['compras'] = self.get_filtered_purchases()
+        return context
+
+    def get_filtered_purchases(self):
+        compras = Compra.objects.all()
+        from_date = self.request.GET.get('from_date')
+        to_date = self.request.GET.get('to_date')
+
+        if from_date:
+            from_date = parse_date(from_date)
+            compras = compras.filter(fecha__date__gte=from_date)
+        if to_date:
+            to_date = parse_date(to_date)
+            compras = compras.filter(fecha__date__lte=to_date)
+
+        return compras
+    
+class InvoicesReportView(ListView):
+    model = FacturaVenta
+    template_name = 'dashboard/report_invoices.html'
+    context_object_name = 'facturas'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['facturas'] = self.get_filtered_invoices()
+        return context
+
+    def get_filtered_invoices(self):
+        facturas = FacturaVenta.objects.all()
+        from_date = self.request.GET.get('from_date')
+        to_date = self.request.GET.get('to_date')
+
+        if from_date:
+            from_date = parse_date(from_date)
+            facturas = facturas.filter(fecha_emision__date__gte=from_date)
+        if to_date:
+            to_date = parse_date(to_date)
+            facturas = facturas.filter(fecha_emision__date__lte=to_date)
+
+        return facturas
 
 # Implementacion de Excel 
 

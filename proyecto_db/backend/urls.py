@@ -11,7 +11,8 @@ urlpatterns = [
     path('products/inventory/', login_required(Inventory), name='Inventory'),
     path('products/edit/<int:product_id>/', login_required(EditProduct), name='EditProduct'),
 
-    
+    path('new/purchase/', login_required(PurchaseCreateView.as_view()), name='create_purchase'),
+
     path('list/product/', login_required(ProductoListView.as_view()), name='list_product'),
     path('list/category/', login_required(CategoryListView.as_view()), name='list_category'),
     path('list/supplier/', login_required(SupplierListView.as_view()), name='list_supplier'),
@@ -38,6 +39,11 @@ urlpatterns = [
     path('import/new/',login_required(ExcelUploadView.as_view()),name='upload_excel'),
     
     path('new/sale/', login_required(SaleCreateView.as_view()), name='create_sale'),
+
+    path('report/inventory/', login_required(InventoryReportView.as_view()), name='report_inventory'),
+    path('report/sales/', login_required(SalesReportView.as_view()), name='report_sales'),
+    path('report/purchases/', login_required(PurchasesReportView.as_view()), name='report_purchases'),
+    path('report/invoices/', login_required(InvoicesReportView.as_view()), name='report_invoices'),
 
     path('', login_required(DashboardView.as_view()), name='dashboard'),
 ]
