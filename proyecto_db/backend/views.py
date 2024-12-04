@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView, DetailView, FormView
 from django.urls import reverse_lazy
+from django.utils.dateparse import parse_date
 
 from .forms import *
 from .models import *
@@ -237,20 +238,6 @@ class CustomerDeleteView(DeleteView):
     model = Cliente
     success_url = reverse_lazy('list_customer')
 
-
-# Implementacion de Excel 
-
-
-class ExcelUploadView(FormView):
-    template_name = 'dashboard/import_excel.html'
-    form_class = ExcelBuyForm
-    success_url = reverse_lazy('list_product')
-
-    def form_valid(self, form):
-        file = form.cleaned_data['archivo']
-        proveedor = form.cleaned_data['proveedor']
-        ExcelNewProduct(file, proveedor.id)
-        return super().form_valid(form)
     
 class PurchaseCreateView(CreateView):
     model = Compra
@@ -280,3 +267,48 @@ class PurchaseCreateView(CreateView):
         else:
             context['detalle_compra_formset_errors'] = detalle_compra_formset.errors
             return self.render_to_response(context)
+        
+
+# Reportes
+
+class InventoryReportView(ListView):
+    model = Producto
+    template_name = 'dashboard/report_inventory.html'
+    context_object_name = 'productos'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['productos'] = self.get_filtered_products()
+        context['proveedores'] = Proveedor.objects.all()
+        return context
+
+    def get_filtered_products(self):
+        productos = Producto.objects.all()
+        proveedor_id = self.request.GET.get('proveedor')
+        from_date = self.request.GET.get('from_date')
+        to_date = self.request.GET.get('to_date')
+
+        if proveedor_id:
+            productos = productos.filter(proveedor_id=proveedor_id)
+        if from_date:
+            from_date = parse_date(from_date)
+            productos = productos.filter(ultima_actualizacion__date__gte=from_date)
+        if to_date:
+            to_date = parse_date(to_date)
+            productos = productos.filter(ultima_actualizacion__date__lte=to_date)
+
+        return productos
+
+# Implementacion de Excel 
+
+
+class ExcelUploadView(FormView):
+    template_name = 'dashboard/import_excel.html'
+    form_class = ExcelBuyForm
+    success_url = reverse_lazy('list_product')
+
+    def form_valid(self, form):
+        file = form.cleaned_data['archivo']
+        proveedor = form.cleaned_data['proveedor']
+        ExcelNewProduct(file, proveedor.id)
+        return super().form_valid(form)

@@ -40,6 +40,8 @@ urlpatterns = [
     
     path('new/sale/', login_required(SaleCreateView.as_view()), name='create_sale'),
 
+    path('report/inventory/', login_required(InventoryReportView.as_view()), name='report_inventory'),
+
     path('', login_required(DashboardView.as_view()), name='dashboard'),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
