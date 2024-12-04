@@ -41,6 +41,9 @@ urlpatterns = [
     path('new/sale/', login_required(SaleCreateView.as_view()), name='create_sale'),
 
     path('report/inventory/', login_required(InventoryReportView.as_view()), name='report_inventory'),
+    path('report/sales/', login_required(SalesReportView.as_view()), name='report_sales'),
+    path('report/purchases/', login_required(PurchasesReportView.as_view()), name='report_purchases'),
+    path('report/invoices/', login_required(InvoicesReportView.as_view()), name='report_invoices'),
 
     path('', login_required(DashboardView.as_view()), name='dashboard'),
 ]

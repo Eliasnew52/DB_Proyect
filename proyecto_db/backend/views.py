@@ -299,6 +299,78 @@ class InventoryReportView(ListView):
 
         return productos
 
+class SalesReportView(ListView):
+    model = Venta
+    template_name = 'dashboard/report_sales.html'
+    context_object_name = 'ventas'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['ventas'] = self.get_filtered_sales()
+        return context
+
+    def get_filtered_sales(self):
+        ventas = Venta.objects.all()
+        from_date = self.request.GET.get('from_date')
+        to_date = self.request.GET.get('to_date')
+
+        if from_date:
+            from_date = parse_date(from_date)
+            ventas = ventas.filter(fecha__date__gte=from_date)
+        if to_date:
+            to_date = parse_date(to_date)
+            ventas = ventas.filter(fecha__date__lte=to_date)
+
+        return ventas
+    
+class PurchasesReportView(ListView):
+    model = Compra
+    template_name = 'dashboard/report_purchases.html'
+    context_object_name = 'compras'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['compras'] = self.get_filtered_purchases()
+        return context
+
+    def get_filtered_purchases(self):
+        compras = Compra.objects.all()
+        from_date = self.request.GET.get('from_date')
+        to_date = self.request.GET.get('to_date')
+
+        if from_date:
+            from_date = parse_date(from_date)
+            compras = compras.filter(fecha__date__gte=from_date)
+        if to_date:
+            to_date = parse_date(to_date)
+            compras = compras.filter(fecha__date__lte=to_date)
+
+        return compras
+    
+class InvoicesReportView(ListView):
+    model = FacturaVenta
+    template_name = 'dashboard/report_invoices.html'
+    context_object_name = 'facturas'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['facturas'] = self.get_filtered_invoices()
+        return context
+
+    def get_filtered_invoices(self):
+        facturas = FacturaVenta.objects.all()
+        from_date = self.request.GET.get('from_date')
+        to_date = self.request.GET.get('to_date')
+
+        if from_date:
+            from_date = parse_date(from_date)
+            facturas = facturas.filter(fecha_emision__date__gte=from_date)
+        if to_date:
+            to_date = parse_date(to_date)
+            facturas = facturas.filter(fecha_emision__date__lte=to_date)
+
+        return facturas
+
 # Implementacion de Excel 
 
 
