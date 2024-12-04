@@ -116,9 +116,14 @@ class SaleCreateView(CreateView):
             detalle_venta_formset.save()
             self.object.calcular_total()
             Stock_Update(self.object, 'Salida')
+            print(form.errors)
             return redirect(self.success_url)
+
         else:
-            return self.render_to_response(self.get_context_data(form=form))
+            print(form.errors)
+            print(detalle_venta_formset.errors)
+            context['detalle_venta_formset_errors'] = detalle_venta_formset.errors
+            return self.render_to_response(context)
 
 class ProductoListView(ListView):
     model = Producto
