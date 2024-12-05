@@ -95,8 +95,7 @@ class CustomerForm(forms.ModelForm):
         model = Cliente
         fields = '__all__'
 
-        from django import forms
-
+       
 # Formulario de ImportExcel
 
 class ExcelBuyForm(forms.Form):

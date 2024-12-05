@@ -71,7 +71,7 @@ def SellProduct(request):
             Stock_Update(venta, 'Salida')  # Función personalizada para manejar el stock
 
             # Redirigir tras la venta exitosa
-            return redirect('BuyProduct')  # Cambia 'SellProduct' por la URL deseada
+            return redirect('list_product')  # Cambia 'SellProduct' por la URL deseada
         else:
             print(venta_form.errors)
             print(detalle_venta_formset.errors)
