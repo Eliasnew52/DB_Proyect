@@ -15,11 +15,11 @@ Inicio
       </div>
       <div class="dash-widgetcontent">
         <h5>
-          $<span class="counters" data-count="307144.00"
-            >$307,144.00</span
+          <span class="counters" data-count="{{ products }}"
+            >{{ products }}</span
           >
         </h5>
-        <h6>Total Purchase Due</h6>
+        <h6>Total Productos</h6>
       </div>
     </div>
   </div>
@@ -32,11 +32,11 @@ Inicio
       </div>
       <div class="dash-widgetcontent">
         <h5>
-          $<span class="counters" data-count="4385.00"
-            >$4,385.00</span
+          $<span class="counters" data-count="{{ total_income }}"
+            >{{ total_income }}/span
           >
         </h5>
-        <h6>Total Sales Due</h6>
+        <h6>Ganancias Ventas</h6>
       </div>
     </div>
   </div>
@@ -49,11 +49,11 @@ Inicio
       </div>
       <div class="dash-widgetcontent">
         <h5>
-          $<span class="counters" data-count="385656.50"
-            >385,656.50</span
+          $<span class="counters" data-count="{{ total_payed }}"
+            >{{ total_payed }}</span
           >
         </h5>
-        <h6>Total Sale Amount</h6>
+        <h6>Total Pagado</h6>
       </div>
     </div>
   </div>
@@ -66,17 +66,17 @@ Inicio
       </div>
       <div class="dash-widgetcontent">
         <h5>
-          $<span class="counters" data-count="40000.00">400.00</span>
+          $<span class="counters" data-count="{{ total_pending }}"> {{ total_pending }}</span>
         </h5>
-        <h6>Total Sale Amount</h6>
+        <h6>Total Pendiente</h6>
       </div>
     </div>
   </div>
   <div class="col-lg-3 col-sm-6 col-12 d-flex">
     <div class="dash-count">
       <div class="dash-counts">
-        <h4>100</h4>
-        <h5>Customers</h5>
+        <h4>{{ clients }}</h4>
+        <h5>Clientes</h5>
       </div>
       <div class="dash-imgs">
         <i data-feather="user"></i>
@@ -86,8 +86,8 @@ Inicio
   <div class="col-lg-3 col-sm-6 col-12 d-flex">
     <div class="dash-count das1">
       <div class="dash-counts">
-        <h4>100</h4>
-        <h5>Suppliers</h5>
+        <h4>{{ providers }}</h4>
+        <h5>Proveedores</h5>
       </div>
       <div class="dash-imgs">
         <i data-feather="user-check"></i>
@@ -97,8 +97,8 @@ Inicio
   <div class="col-lg-3 col-sm-6 col-12 d-flex">
     <div class="dash-count das2">
       <div class="dash-counts">
-        <h4>100</h4>
-        <h5>Purchase Invoice</h5>
+        <h4>{{ buys }}</h4>
+        <h5>Compras</h5>
       </div>
       <div class="dash-imgs">
         <i data-feather="file-text"></i>
@@ -108,8 +108,8 @@ Inicio
   <div class="col-lg-3 col-sm-6 col-12 d-flex">
     <div class="dash-count das3">
       <div class="dash-counts">
-        <h4>105</h4>
-        <h5>Sales Invoice</h5>
+        <h4>{{ sells }}</h4>
+        <h5>Ventas</h5>
       </div>
       <div class="dash-imgs">
         <i data-feather="file"></i>
@@ -220,58 +220,26 @@ Inicio
               </tr>
             </thead>
             <tbody>
+              <!--Products-->
+              {% for product in all_products %}
               <tr>
-                <td>1</td>
+                <td>{{ product.id }}</td>
                 <td class="productimgname">
                   <a href="productlist.html" class="product-img">
+                    {% if producto.imagen %}
                     <img
-                      src="{% static 'assets/img/product/product22.jpg' %}"
-                      alt="product"
+                      src="{{ producto.imagen.url }}" alt="{{ producto.imagen }}"
                     />
+                  {% else %}
+                  <img src="{% static 'assets/img/product/noimage.png' %}" alt="noimage" />
+                  {% endif %}
                   </a>
-                  <a href="productlist.html">Apple Earpods</a>
+                  <a href="productlist.html">{{ product.nombre }}</a>
                 </td>
-                <td>$891.2</td>
+                <td>{{ product.precio_venta}}</td>
               </tr>
-              <tr>
-                <td>2</td>
-                <td class="productimgname">
-                  <a href="productlist.html" class="product-img">
-                    <img
-                      src="{% static 'assets/img/product/product23.jpg' %}"
-                      alt="product"
-                    />
-                  </a>
-                  <a href="productlist.html">iPhone 11</a>
-                </td>
-                <td>$668.51</td>
-              </tr>
-              <tr>
-                <td>3</td>
-                <td class="productimgname">
-                  <a href="productlist.html" class="product-img">
-                    <img
-                      src="{% static 'assets/img/product/product24.jpg' %}"
-                      alt="product"
-                    />
-                  </a>
-                  <a href="productlist.html">samsung</a>
-                </td>
-                <td>$522.29</td>
-              </tr>
-              <tr>
-                <td>4</td>
-                <td class="productimgname">
-                  <a href="productlist.html" class="product-img">
-                    <img
-                      src="{% static 'assets/img/product/product6.jpg' %}"
-                      alt="product"
-                    />
-                  </a>
-                  <a href="productlist.html">Macbook Pro</a>
-                </td>
-                <td>$291.01</td>
-              </tr>
+              {% endfor %}
+              <!--Product End-->
             </tbody>
           </table>
         </div>

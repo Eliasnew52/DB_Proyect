@@ -9,7 +9,7 @@ urlpatterns = [
     path('products/buy/', login_required(BuyProduct), name='BuyProduct'),
     path('products/sell/', login_required(SellProduct), name='SellProduct'),
     path('products/inventory/', login_required(Inventory), name='Inventory'),
-    path('products/edit/<int:product_id>/', login_required(EditProduct), name='EditProduct'),
+
 
     path('new/purchase/', login_required(PurchaseCreateView.as_view()), name='create_purchase'),
 

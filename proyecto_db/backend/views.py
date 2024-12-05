@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, TemplateView, DetailView, FormView
 from django.urls import reverse_lazy
 from django.utils.dateparse import parse_date
+from django.db.models import Sum
 
 from .forms import *
 from .models import *
@@ -15,6 +16,23 @@ all_products = Producto.objects.all()
 
 class DashboardView(TemplateView):
     template_name = 'dashboard/index.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Categoria.objects.all()
+        context['all_products'] = Producto.objects.all()
+        
+        context['products'] = Producto.objects.count()
+        context['sells'] = Venta.objects.count()
+        context['buys'] = Compra.objects.count()
+        context['clients'] = Cliente.objects.count()
+        context['providers'] = Proveedor.objects.count()
+
+        #Recopilacion de Dinero Ganado (solo para Pagado)
+        context['total_income'] = Venta.objects.aggregate(total=Sum('total'))['total']
+        context['total_pending'] = Venta.objects.filter(estado='Pendiente').aggregate(total=Sum('total'))['total']
+        context['total_payed'] = Venta.objects.filter(estado='Pagado').aggregate(total=Sum('total'))['total']
+        return context
 
 def NewProduct(request):
     if request.method =='POST':
@@ -100,20 +118,6 @@ def Inventory(request):
     else:
         return render(request, 'Inventory.html', {'items':items})
 
-def EditProduct(request, product_id):
-    # Obtiene el producto o lanza 404 si no existe
-    product = get_object_or_404(Producto, id=product_id)
-    
-    if request.method == 'POST':
-        form = ProductoEditForm(request.POST, instance=product)  # Asocia datos del POST al formulario
-        if form.is_valid():
-            form.save()  # Guarda los cambios en la base de datos
-            return redirect('Inventory')  # Redirige a la vista de inventario
-    else:
-        form = ProductoEditForm(instance=product)  # Precarga los datos del producto en el formulario
-
-    # Renderiza la página con el formulario
-    return render(request, 'EditProduct.html', {'product': product, 'form': form})
 
             
 
