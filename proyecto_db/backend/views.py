@@ -119,10 +119,11 @@ def EditProduct(request, product_id):
 
 
 class SaleCreateView(CreateView):
+    model = Venta
     form_class = VentaForm
     template_name = 'dashboard/create_sale.html'
-    success_url = reverse_lazy('list_product')
-    
+    success_url = reverse_lazy('list_sale')
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['categories'] = Categoria.objects.all()
@@ -142,14 +143,21 @@ class SaleCreateView(CreateView):
             detalle_venta_formset.save()
             self.object.calcular_total()
             Stock_Update(self.object, 'Salida')
-            print(form.errors)
             return redirect(self.success_url)
-
         else:
-            print(form.errors)
-            print(detalle_venta_formset.errors)
-            context['detalle_venta_formset_errors'] = detalle_venta_formset.errors
-            return self.render_to_response(context)
+            return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        context = self.get_context_data()
+        detalle_venta_formset = context['detalle_venta_formset']
+        context['form_errors'] = form.errors
+        context['form_non_field_errors'] = form.non_field_errors()
+        context['detalle_venta_formset_errors'] = detalle_venta_formset.errors
+        context['detalle_venta_formset_non_field_errors'] = detalle_venta_formset.non_form_errors()
+        print(form.errors)
+        return self.render_to_response(context)
+
+
 
 class ProductoListView(ListView):
     model = Producto
