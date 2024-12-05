@@ -9,6 +9,7 @@ from .models import *
 from .utils import Stock_Update
 from .files import ExcelNewProduct
 import os
+from datetime import timedelta
 
 
 all_products = Producto.objects.all()
@@ -126,7 +127,7 @@ class SaleCreateView(CreateView):
     model = Venta
     form_class = VentaForm
     template_name = 'dashboard/create_sale.html'
-    success_url = reverse_lazy('list_sale')
+    success_url = reverse_lazy('report_sales')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -147,6 +148,13 @@ class SaleCreateView(CreateView):
             detalle_venta_formset.save()
             self.object.calcular_total()
             Stock_Update(self.object, 'Salida')
+
+            FacturaVenta.objects.create(
+                venta=self.object,
+                total=self.object.total,
+                observaciones=form.cleaned_data.get('observaciones', '')
+            )
+
             return redirect(self.success_url)
         else:
             return self.form_invalid(form)
@@ -280,11 +288,11 @@ class PurchaseCreateView(CreateView):
     model = Compra
     form_class = CompraForm
     template_name = 'dashboard/create_purchase.html'
-    success_url = reverse_lazy('list_purchase')
-    
+    success_url = reverse_lazy('report_purchases')
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['proveedores'] = Proveedor.objects.all()
+        context['categories'] = Categoria.objects.all()
         context['productos'] = Producto.objects.all()
         if self.request.POST:
             context['detalle_compra_formset'] = DetalleCompraFormSet(self.request.POST)
@@ -302,10 +310,18 @@ class PurchaseCreateView(CreateView):
             Stock_Update(self.object, 'Entrada')
             return redirect(self.success_url)
         else:
-            context['detalle_compra_formset_errors'] = detalle_compra_formset.errors
-            return self.render_to_response(context)
-        
+            return self.form_invalid(form)
 
+    def form_invalid(self, form):
+        context = self.get_context_data()
+        detalle_compra_formset = context['detalle_compra_formset']
+        context['form_errors'] = form.errors
+        context['form_non_field_errors'] = form.non_field_errors()
+        context['detalle_compra_formset_errors'] = detalle_compra_formset.errors
+        context['detalle_compra_formset_non_field_errors'] = detalle_compra_formset.non_form_errors()
+        print(form.errors)
+        print(detalle_compra_formset.errors)
+        return self.render_to_response(context)
 # Reportes
 
 class InventoryReportView(ListView):

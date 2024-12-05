@@ -1,6 +1,8 @@
 from django.db import models
 from datetime import timedelta
 from django.contrib.auth.models import User
+from django.utils import timezone
+from datetime import timedelta
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100)
@@ -129,6 +131,10 @@ class FacturaVenta(models.Model):
         return f"Factura {self.numero_factura} - {self.fecha_emision}"
 
     def save(self, *args, **kwargs):
+        if not self.numero_factura:
+            self.numero_factura = f"F-{self.venta.id}"
+        if not self.fecha_emision:
+            self.fecha_emision = timezone.now()
         if not self.fecha_vencimiento:
             self.fecha_vencimiento = self.fecha_emision + timedelta(days=30)
         self.descuento_total = sum(detalle.descuento * detalle.cantidad for detalle in DetalleVenta.objects.filter(venta=self.venta))

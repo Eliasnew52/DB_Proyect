@@ -2,12 +2,11 @@
 {% load static %}
 {% load widget_tweaks %}
 {% load tz %}
-
+{% load custom_filters %}
 
 {% block title %}
     Reporte de Facturas
 {% endblock title %}
-    
 
 {% block content %}
 <div class="page-header">
@@ -24,7 +23,7 @@
                 <div class="search-path">
                     <a class="btn btn-filter" id="filter_search">
                         <img src="{% static 'assets/img/icons/filter.svg' %}" alt="img" />
-                        <span><img src="{% static 'assets/img/icons/closes.svg' %}" alt="img" />
+                        <span><img src="{% static 'assets/img/icons/closes.svg' %}" alt="img" /></span>
                     </a>
                 </div>
                 <div class="search-input">
@@ -115,22 +114,15 @@
                         <td>${{ factura.monto_total }}</td>
                         <td>
                             {% for detalle in factura.venta.detalleventa_set.all %}
-                            <td class="productimgname">
-                                <a class="product-img">
-                                    {% if detalle.producto.imagen %}
-                                    <img src="{{ detalle.producto.imagen.url }}" alt="{{ detalle.producto.nombre }}" />
-                                    {% else %}
-                                    <img src="{% static 'assets/img/product/noimage.png' %}" alt="noimage" />
-                                    {% endif %}
-                                </a>
-                                <a href="{% url 'detail_product' detalle.producto.id %}">{{ detalle.producto.nombre }}</a>
-                            </td>
+                                {{ detalle.producto.nombre }}{% if not forloop.last %}, {% endif %}
                             {% endfor %}
                         </td>
                         <td>
-                            {% for detalle in factura.venta.detalleventa_set.all %}
-                            <a href="{% url 'detail_category' detalle.producto.categoria.id %}">{{ detalle.producto.categoria.nombre }}</a><br>
-                            {% endfor %}
+                            {% with categorias=factura.venta.detalleventa_set.all|unique %}
+                                {% for detalle in categorias %}
+                                    {{ detalle }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            {% endwith %}
                         </td>
                     </tr>
                     {% endfor %}

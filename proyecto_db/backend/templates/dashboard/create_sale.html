@@ -19,7 +19,7 @@
         {% for category in categories %}
         <li class="{% if forloop.first %}active{% endif %}" id="{{ category.nombre }}">
             <a class="product-details">
-                <img src="{% static 'assets/img/product/product65.png' %}" alt="img" />
+                <img src="{{ category.imagen.url }}" alt="{{ category.imagen.url }}" style="width: 47px; height: 47px;"  />
                 <h6>{{ category.nombre }}</h6>
             </a>
         </li>
@@ -142,15 +142,15 @@
                         <ul>
                             <li>
                                 <h5>Subtotal</h5>
-                                <h6 id="subtotal">0.00$</h6>
+                                <h6 id="subtotal">C$0.00</h6>
                             </li>
                             <li>
-                                <h5>Tax</h5>
-                                <h6 id="tax">0.00$</h6>
+                                <h5>Impuesto</h5>
+                                <h6 id="tax">C$0.00</h6>
                             </li>
                             <li class="total-value">
                                 <h5>Total</h5>
-                                <h6 id="total">0.00$</h6>
+                                <h6 id="total">C$0.00</h6>
                             </li>
                         </ul>
                     </div>
@@ -170,9 +170,9 @@
                         </ul>
                     </div>
                     <!-- Botón para crear venta -->
-                    <button type="submit" class="btn-totallabel">
+                    <button type="submit" class="btn btn-totallabel">
                         <h5>Pagar</h5>
-                        <h6 id="checkout-total">0.00$</h6>
+                        <h6 id="checkout-total" style="display: none;">C$0.00</h6>
                     </button>
                 </div>
                 {{ detalle_venta_formset.management_form }}
