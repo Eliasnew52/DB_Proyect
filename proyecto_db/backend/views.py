@@ -30,9 +30,10 @@ class DashboardView(TemplateView):
         context['providers'] = Proveedor.objects.count()
 
         #Recopilacion de Dinero Ganado (solo para Pagado)
-        context['total_income'] = Venta.objects.aggregate(total=Sum('total'))['total']
-        context['total_pending'] = Venta.objects.filter(estado='Pendiente').aggregate(total=Sum('total'))['total']
-        context['total_payed'] = Venta.objects.filter(estado='Pagado').aggregate(total=Sum('total'))['total']
+        context['total_income'] = Venta.objects.aggregate(total=Sum('total'))['total'] or 0
+        context['total_pending'] = Venta.objects.filter(estado='Pendiente').aggregate(total=Sum('total'))['total'] or 0
+        context['total_payed'] = Venta.objects.filter(estado='Pagado').aggregate(total=Sum('total'))['total'] or 0
+        print(context)
         return context
 
 def NewProduct(request):
@@ -182,6 +183,10 @@ class ProductoCreateView(CreateView):
     template_name = 'dashboard/create_product.html'
     success_url = reverse_lazy('list_product')
 
+    def form_valid(self, form): 
+        form.instance.creado_por = self.request.user
+        return super().form_valid(form)
+
 class ProductoUpdateView(UpdateView):
     model = Producto
     form_class = ProductoForm
@@ -207,6 +212,20 @@ class ProductoDeleteView(DeleteView):
     model = Producto
     success_url = reverse_lazy('list_product')
 
+class BrandListView(ListView):
+    model = Marca
+    template_name='dashboard/list_brands.html'
+    context_object_name='marcas'
+class BrandCreateView(CreateView):
+    model = Marca
+    template_name='dashboard/create_brand.html'
+    form_class = BrandForm
+    success_url = reverse_lazy('list_brands')
+
+    def form_valid(self, form):
+        form.instance.creado_por = self.request.user
+        return super().form_valid(form)
+
 class CategoryListView(ListView):
     model = Categoria
     template_name = 'dashboard/list_categories.html'
@@ -219,7 +238,7 @@ class CategoryCreateView(CreateView):
     success_url = reverse_lazy('list_category')
 
     def form_valid(self, form):
-        form.instance.created_by = self.request.user
+        form.instance.creado_por = self.request.user
         return super().form_valid(form)
 class CategoryDetailView(DetailView):
     model = Categoria
@@ -250,7 +269,7 @@ class SupplierCreateView(CreateView):
     success_url = reverse_lazy('list_supplier')
 
     def form_valid(self, form):
-        form.instance.created_by = self.request.user
+        form.instance.creado_por = self.request.user
         return super().form_valid(form)
 class SupplierUpdateView(UpdateView):
     model = Proveedor

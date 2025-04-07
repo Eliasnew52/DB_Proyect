@@ -32,9 +32,7 @@ Inicio
       </div>
       <div class="dash-widgetcontent">
         <h5>
-          $<span class="counters" data-count="{{ total_income }}"
-            >{{ total_income }}/span
-          >
+          $<span class="counters" data-count="{{ total_income|default_if_none:"0" }}">{{ total_income|default_if_none:"0" }}</span>
         </h5>
         <h6>Ganancias Ventas</h6>
       </div>
@@ -49,8 +47,8 @@ Inicio
       </div>
       <div class="dash-widgetcontent">
         <h5>
-          $<span class="counters" data-count="{{ total_payed }}"
-            >{{ total_payed }}</span
+          $<span class="counters" data-count="{{ total_payed|default_if_none:"0" }}"
+            >{{ total_payed|default_if_none:"0" }}</span
           >
         </h5>
         <h6>Total Pagado</h6>
@@ -66,7 +64,7 @@ Inicio
       </div>
       <div class="dash-widgetcontent">
         <h5>
-          $<span class="counters" data-count="{{ total_pending }}"> {{ total_pending }}</span>
+          $<span class="counters" data-count="{{ total_pending|default_if_none:"0" }}"> {{ total_pending|default_if_none:"0" }}</span>
         </h5>
         <h6>Total Pendiente</h6>
       </div>
@@ -75,7 +73,7 @@ Inicio
   <div class="col-lg-3 col-sm-6 col-12 d-flex">
     <div class="dash-count">
       <div class="dash-counts">
-        <h4>{{ clients }}</h4>
+        <h4>{{ clients|default_if_none:"0" }}</h4>
         <h5>Clientes</h5>
       </div>
       <div class="dash-imgs">
@@ -86,7 +84,7 @@ Inicio
   <div class="col-lg-3 col-sm-6 col-12 d-flex">
     <div class="dash-count das1">
       <div class="dash-counts">
-        <h4>{{ providers }}</h4>
+        <h4>{{ providers|default_if_none:"0" }}</h4>
         <h5>Proveedores</h5>
       </div>
       <div class="dash-imgs">
@@ -97,7 +95,7 @@ Inicio
   <div class="col-lg-3 col-sm-6 col-12 d-flex">
     <div class="dash-count das2">
       <div class="dash-counts">
-        <h4>{{ buys }}</h4>
+        <h4>{{ buys|default_if_none:"0" }}</h4>
         <h5>Compras</h5>
       </div>
       <div class="dash-imgs">
@@ -108,7 +106,7 @@ Inicio
   <div class="col-lg-3 col-sm-6 col-12 d-flex">
     <div class="dash-count das3">
       <div class="dash-counts">
-        <h4>{{ sells }}</h4>
+        <h4>{{ sells|default_if_none:"0" }}</h4>
         <h5>Ventas</h5>
       </div>
       <div class="dash-imgs">
@@ -221,6 +219,8 @@ Inicio
             </thead>
             <tbody>
               <!--Products-->
+              
+              {% if all_products %}
               {% for product in all_products %}
               <tr>
                 <td>{{ product.id }}</td>
@@ -239,6 +239,8 @@ Inicio
                 <td>{{ product.precio_venta}}</td>
               </tr>
               {% endfor %}
+              {% endif %}
+                
               <!--Product End-->
             </tbody>
           </table>

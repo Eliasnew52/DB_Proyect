@@ -144,9 +144,11 @@
               </th>
               <th>Nombre del producto</th>
               <th>Categoría</th>
+              <th>Marca</th>
               <th>Precio de venta</th>
               <th>Precio de compra</th>
               <th>Stock</th>
+              <th>Creado por</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -174,9 +176,11 @@
                 <a href="{% url 'detail_product' producto.id %}">{{ producto.nombre }}</a>
               </td>
               <td>{{ producto.categoria.nombre }}</td>
+              <td>{{ producto.marca.nombre }}</td>
               <td>${{ producto.precio_venta }}</td>
               <td>${{ producto.precio_compra }}</td>
               <td>{{ producto.stock }}</td>
+              <td>{{ producto.creado_por }}</td>
               <td>
                 <a class="me-3" href="{% url 'detail_product' producto.id %}">
                   <img src="{% static 'assets/img/icons/eye.svg' %}" alt="img" />

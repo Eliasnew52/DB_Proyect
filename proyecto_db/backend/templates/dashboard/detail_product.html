@@ -28,6 +28,10 @@
                             <h6>{{ product.categoria.nombre }}</h6>
                         </li>
                         <li>
+                            <h4>Marca</h4>
+                            <h6>{{ product.marca }}</h6>
+                        </li>
+                        <li>
                             <h4>Precio de Venta</h4>
                             <h6>{{ product.precio_venta }}</h6>
                         </li>
@@ -53,11 +57,7 @@
                         </li>
                         <li>
                             <h4>Proveedor</h4>
-                            
-                            {% for proveedor in product.proveedores.all %}
-                                <h6>{{ proveedor.nombre }}</h6>
-                            {% endfor %}
-                                
+                            <h6>{{ proveedor.nombre }}</h6>
                         </li>
                     </ul>
                 </div>

@@ -14,6 +14,7 @@ class ProductoForm(forms.ModelForm):
             'stock_minimo',
             'stock',
             'categoria',
+            'marca',
             'proveedores',
             'imagen',
         ]
@@ -93,6 +94,11 @@ class SupplierForm(forms.ModelForm):
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Cliente
+        fields = '__all__'
+
+class BrandForm(forms.ModelForm):
+    class Meta:
+        model = Marca
         fields = '__all__'
 
        

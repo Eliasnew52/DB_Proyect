@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block title %}
+Crear marcas
+{% endblock title %}
+
+{% block content %}
+    <div class="content">
+        <div class="page-header">
+            <div class="page-title">
+                <h4>Crear marcas</h4>
+                <h6>Crea una nueva marca</h6>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            <div class="card">
+                <div class="card-body">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <p>{{ form.non_field_errors }}</p>
+                    </div>
+                    {% endif %}
+                    <div class="row">
+                        <div class="col-lg-3 col-sm-6 col-12">
+                            <div class="form-group">
+                                <label for="{{ form.nombre.id_for_label }}">Nombre de la marca</label>
+                                {% render_field form.nombre class="form-control" %}
+                                <p style="color: red;">{{ form.nombre.errors }}</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label for="{{ form.descripcion.id_for_label }}">Descripción</label>
+                                {% render_field form.descripcion class="form-control" %}
+                                <p style="color: red;">{{ form.descripcion.errors }}</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <label for="{{ form.imagen.id_for_label }}">Imagen</label>
+                                <div class="image-upload">
+                                    {% render_field form.imagen class="form-control" id="imagen-input" onchange="previewImage(event)" %}
+                                    <div class="image-uploads">
+                                        <img src="{% static 'assets/img/icons/upload.svg' %}" alt="img">
+                                        <h4>Arrastra y suelta un archivo para subir</h4>
+                                    </div>
+                                </div>
+                                <p style="color: red;">{{ form.imagen.errors }}</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <div class="product-list">
+                                <ul class="row">
+                                    <li id="productviewscontainer" style="display: none;">
+                                        <div class="productviews">
+                                            <div class="productviewsimg">
+                                                <img id="imagen-preview" src="" alt="img">
+                                            </div>
+                                            <div class="productviewscontent">
+                                                <div class="productviewsname">
+                                                    <h2 id="productname"></h2>
+                                                    <h3 id="productimagesize"></h3>
+                                                </div>
+                                                <a href="javascript:void(0);" class="hideset" onclick="clearImage()">x</a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <button class="btn btn-submit me-2">Submit</button>
+                            <a href="{% url 'list_brands' %}" class="btn btn-cancel">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function previewImage(event) {
+            var reader = new FileReader();
+            reader.onload = function(){
+                var output = document.getElementById('imagen-preview');
+                output.src = reader.result;
+                document.querySelector('#productviewscontainer').style.display = 'block';
+                document.querySelector('#productname').innerText = event.target.files[0].name;
+                document.querySelector('#productimagesize').innerText = (event.target.files[0].size / 1024).toFixed(2) + ' KB';
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+        
+        function clearImage() {
+            var input = document.getElementById('imagen-input');
+            var preview = document.getElementById('imagen-preview');
+            input.value = '';
+            preview.src = '';
+            document.querySelector('#productviewscontainer').style.display = 'none';
+        }
+    </script>
+{% endblock content %}

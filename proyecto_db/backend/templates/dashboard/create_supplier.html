@@ -53,6 +53,13 @@
                         <p style="color: red;">{{ form.empresa.errors }}</p>
                     </div>
                 </div>
+                <div class="col-lg-6 col-sm-6 col-12">
+                    <div class="form-group">
+                        <label for="{{ form.marcas.id_for_label }}">Marcas</label>
+                        {% render_field form.marcas class="form-control" %}
+                        <p style="color: red;">{{ form.marcas.errors }}</p>
+                    </div>
+                </div>
                 <div class="col-lg-12">
                     <button type="submit" class="btn btn-submit me-2">Crear</button>
                     <a href="{% url 'dashboard' %}" class="btn btn-cancel">Cancelar</a>

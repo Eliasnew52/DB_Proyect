@@ -45,6 +45,9 @@ urlpatterns = [
     path('report/purchases/', login_required(PurchasesReportView.as_view()), name='report_purchases'),
     path('report/invoices/', login_required(InvoicesReportView.as_view()), name='report_invoices'),
 
+    path('list/brand/', BrandListView.as_view(), name='list_brands'),
+    path('new/brand/', BrandCreateView.as_view(), name='create_brand'),
+
     path('', login_required(DashboardView.as_view()), name='dashboard'),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
