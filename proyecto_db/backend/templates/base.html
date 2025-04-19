@@ -26,8 +26,9 @@
     />
 
     <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'assets/css/animate.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/plugins/select2/css/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/animate.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/plugins/icons/feather/feather.css' %}">
     <link rel="stylesheet" href="{% static 'assets/css/dataTables.bootstrap4.min.css' %}" />
     <link rel="stylesheet" href="{% static 'assets/plugins/owlcarousel/owl.carousel.min.css' %}">
     <link
@@ -35,6 +36,8 @@
       href="{% static 'assets/plugins/fontawesome/css/fontawesome.min.css' %}"
     />
     <link rel="stylesheet" href="{% static 'assets/plugins/fontawesome/css/all.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'assets/plugins/toastr/toatr.css' %}">
+
     <link rel="stylesheet" href="{% static 'assets/css/style.css' %}" />
 
   </head>
@@ -201,7 +204,7 @@
 {% endcomment %}
   
 
-          <li class="nav-item dropdown has-arrow main-drop">
+          <li class="nav-item dropdown has-arrowF main-drop">
             <a
               href="javascript:void(0);"
               class="dropdown-toggle nav-link userset"
@@ -321,7 +324,7 @@
               </li>
               <li class="submenu">
                 <a href="javascript:void(0);"
-                  ><img src="{% static 'assets/img/icons/users1.svg' %}" alt="img" /><span>
+                  ><i class="fe fe-truck" title="fe fe-truck"></i><span>
                     Proveedores</span
                   >
                   <span class="menu-arrow"></span
@@ -399,19 +402,26 @@
     <script src="{% static 'assets/js/jquery-3.6.0.min.js' %}"></script>
     <script src="{% static 'assets/js/feather.min.js' %}"></script>
     <script src="{% static 'assets/js/jquery.slimscroll.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/select2/js/select2.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/select2/js/custom-select.js' %}"></script>
     <script src="{% static 'assets/js/jquery.dataTables.min.js' %}"></script>
     <script src="{% static 'assets/js/dataTables.bootstrap4.min.js' %}"></script>
     <script src="{% static 'assets/plugins/apexchart/apexcharts.min.js' %}"></script>
     <script src="{% static 'assets/plugins/apexchart/chart-data.js' %}"></script>
-    <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
-    <script src="{% static 'assets/plugins/select2/js/select2.min.js' %}"></script>
     <script src="{% static 'assets/plugins/owlcarousel/owl.carousel.min.js' %}"></script>
     
 		<script src="{% static 'assets/js/moment.min.js' %}"></script>
 		<script src="{% static 'assets/js/bootstrap-datetimepicker.min.js' %}"></script>
     <script src="{% static 'assets/plugins/sweetalert/sweetalert2.all.min.js' %}"></script>
     <script src="{% static 'assets/plugins/sweetalert/sweetalerts.min.js' %}"></script>
+    
+    <script src="{% static 'assets/js/bootstrap.bundle.min.js' %}"></script>
+
+    <script src="{% static 'assets/plugins/toastr/toastr.min.js' %}"></script>
+    <script src="{% static 'assets/plugins/toastr/toastr.js' %}"></script>
 
     <script src="{% static 'assets/js/script.js' %}"></script>
+
+
   </body>
 </html>

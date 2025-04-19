@@ -10,6 +10,7 @@ from .utils import Stock_Update
 from .files import ExcelNewProduct
 import os
 from datetime import timedelta
+import json
 
 
 all_products = Producto.objects.all()
@@ -124,7 +125,7 @@ def Inventory(request):
             
 
 
-class SaleCreateView(CreateView):
+class CreateSaleView(CreateView):
     model = Venta
     form_class = VentaForm
     template_name = 'dashboard/create_sale.html'
@@ -134,43 +135,25 @@ class SaleCreateView(CreateView):
         context = super().get_context_data(**kwargs)
         context['categories'] = Categoria.objects.all()
         context['products'] = Producto.objects.all()
-        if self.request.POST:
-            context['detalle_venta_formset'] = DetalleVentaFormSet(self.request.POST)
-        else:
-            context['detalle_venta_formset'] = DetalleVentaFormSet()
         return context
 
+
+
+    @transaction.atomic
     def form_valid(self, form):
-        context = self.get_context_data()
-        detalle_venta_formset = context['detalle_venta_formset']
-        if form.is_valid() and detalle_venta_formset.is_valid():
-            self.object = form.save()
-            detalle_venta_formset.instance = self.object
-            detalle_venta_formset.save()
-            self.object.calcular_total()
-            Stock_Update(self.object, 'Salida')
+        try:
+            self.object = form.save(commit=False)
+            self.object.creado_por = self.request.user
+            self.object.save()
 
-            FacturaVenta.objects.create(
-                venta=self.object,
-                total=self.object.total,
-                observaciones=form.cleaned_data.get('observaciones', '')
-            )
+            products_data = json.loads(form.cleaned_data['products_data'])
 
-            return redirect(self.success_url)
-        else:
+            self.object.create_sale(products_data)
+
+            return super().form_valid(form)
+        except Exception as e:
+            form.add_error(None, f"Error al crear la venta: {str(e)}")
             return self.form_invalid(form)
-
-    def form_invalid(self, form):
-        context = self.get_context_data()
-        detalle_venta_formset = context['detalle_venta_formset']
-        context['form_errors'] = form.errors
-        context['form_non_field_errors'] = form.non_field_errors()
-        context['detalle_venta_formset_errors'] = detalle_venta_formset.errors
-        context['detalle_venta_formset_non_field_errors'] = detalle_venta_formset.non_form_errors()
-        print(form.errors)
-        return self.render_to_response(context)
-
-
 
 class ProductoListView(ListView):
     model = Producto

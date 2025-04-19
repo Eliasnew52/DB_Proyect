@@ -235,7 +235,7 @@ class Descuento(models.Model):
 
     def aplicar_a_producto(self, producto):
         """Verifica si el descuento aplica a un producto específico"""
-        if not self.esta_activo:
+        if not self.activo:
             return False
             
         if self.alcance == self.ScopeType.TODOS_PRODUCTOS:
@@ -288,7 +288,7 @@ class Venta(models.Model):
         ]
 
     @transaction.atomic
-    def crear_venta(self, detalles_data):
+    def create_sale(self, detalles_data):
         
         self.full_clean()
         self.save()  

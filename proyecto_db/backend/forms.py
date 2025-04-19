@@ -51,13 +51,27 @@ class DetalleVentaForm(forms.ModelForm):
         fields = ['producto', 'cantidad', 'precio_unitario', 'descuento']
 
 class VentaForm(forms.ModelForm):
+    products_data = forms.CharField(widget=forms.HiddenInput())
+    tipo_descuento = forms.ChoiceField(
+        choices=Descuento.TipoDescuento.choices,
+        required=False,
+        label="Tipo de Descuento",
+        widget=forms.Select(attrs={'class': 'form-control select'})
+    )
+    valor_descuento = forms.DecimalField(
+        required=False,
+        label="Valor del Descuento",
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+
     class Meta:
         model = Venta
         fields = ['total', 'forma_de_pago', 'estado', 'cliente']
 
-DetalleVentaFormSet = forms.inlineformset_factory(
-    Venta, DetalleVenta, form=DetalleVentaForm, extra=1, can_delete=False
-)
+
+# DetalleVentaFormSet = forms.inlineformset_factory(
+#     Venta, DetalleVenta, form=DetalleVentaForm, extra=1, can_delete=False
+# )
 
 
 # #Product Edit Form

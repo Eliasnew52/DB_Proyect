@@ -38,7 +38,7 @@ urlpatterns = [
 
     path('import/new/',login_required(ExcelUploadView.as_view()),name='upload_excel'),
     
-    path('new/sale/', login_required(SaleCreateView.as_view()), name='create_sale'),
+    path('new/sale/', login_required(CreateSaleView.as_view()), name='create_sale'),
 
     path('report/inventory/', login_required(InventoryReportView.as_view()), name='report_inventory'),
     path('report/sales/', login_required(SalesReportView.as_view()), name='report_sales'),

@@ -15,3 +15,8 @@ def unique(detalles):
     for detalle in detalles:
         categorias.add(detalle.producto.categoria.nombre)
     return list(categorias)
+
+@register.filter
+def dict(value, key):
+    """Accede a un diccionario con una clave dinámica en las plantillas."""
+    return value.get(key)
