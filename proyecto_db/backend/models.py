@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.db import transaction
-
+from decimal import Decimal
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
@@ -19,6 +19,31 @@ class Categoria(models.Model):
 
     def __str__(self):
         return self.nombre
+    
+class CategoriaAtributo(models.Model):
+    TIPO_DATO_CHOICES = [
+        ('TEXTO', 'Texto'),
+        ('ENTERO', 'Número Entero'),
+        ('DECIMAL', 'Número Decimal'),
+        ('BOOLEANO', 'Verdadero/Falso'),
+        ('LISTA', 'Lista de Valores'),
+    ]
+    
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, related_name='atributos')
+    nombre = models.CharField(max_length=100)
+    tipo_dato = models.CharField(max_length=10, choices=TIPO_DATO_CHOICES)
+    valores_posibles = models.JSONField(blank=True, null=True)
+    obligatorio = models.BooleanField(default=True)
+    orden = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ('categoria', 'nombre')
+        ordering = ['orden']
+        verbose_name = 'Atributo de Categoría'
+        verbose_name_plural = 'Atributos de Categorías'
+
+    def __str__(self):
+        return f"{self.categoria.nombre} - {self.nombre}"
 
 class Empresa(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
@@ -42,6 +67,15 @@ class Proveedor(models.Model):
         return f'{self.nombre} - {self.empresa}'
 
 class Producto(models.Model):
+    TIPO_PRODUCTO_CHOICES = [
+        ('GENERICO', 'Genérico'),
+        ('LIBRO', 'Libro'),
+        ('PAPELERIA', 'Artículo de Papelería'),
+        ('MATERIAL_ARTE', 'Material de Arte'),
+        ('UTILES_ESCOLARES', 'Útiles Escolares'),
+        ('ESCRITORIO', 'Artículos de Escritorio'),
+    ]
+
     nombre = models.CharField(max_length=100)
     precio_venta = models.DecimalField(max_digits=10, decimal_places=2)
     precio_compra = models.DecimalField(max_digits=10, decimal_places=2)
@@ -50,10 +84,12 @@ class Producto(models.Model):
     stock = models.IntegerField()
     ultima_actualizacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
+    tipo_especifico = models.CharField(max_length=20, choices=TIPO_PRODUCTO_CHOICES, default='GENERICO')
     proveedores = models.ForeignKey(Proveedor, on_delete=models.PROTECT, blank=True, null=True)
     imagen = models.ImageField(upload_to='productos/', blank=True, null=True)
     activo = models.BooleanField(default=True)
     marca = models.ForeignKey('Marca', on_delete=models.PROTECT, related_name='productos', blank=True, null=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
     creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
     class Meta:
@@ -80,6 +116,65 @@ class Producto(models.Model):
     def __str__(self):
         return self.nombre
 
+class ProductoAtributo(models.Model):
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='atributos')
+    atributo = models.ForeignKey(CategoriaAtributo, on_delete=models.CASCADE)
+    valor = models.TextField(blank=True, null=True)
+    
+    color = models.CharField(max_length=100, blank=True, null=True)
+    material = models.CharField(max_length=100, blank=True, null=True)
+    dimension_ancho = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    dimension_alto = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    dimension_profundidad = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    unidad_medida = models.CharField(max_length=20, blank=True, null=True)
+    notas = models.TextField(blank=True, null=True)
+
+    class Meta:
+        unique_together = ('producto', 'atributo')
+        verbose_name = 'Atributo de Producto'
+        verbose_name_plural = 'Atributos de Productos'
+
+    @property
+    def dimensiones(self):
+        if all([self.dimension_ancho, self.dimension_alto, self.dimension_profundidad]):
+            return f"{self.dimension_ancho}x{self.dimension_alto}x{self.dimension_profundidad} {self.unidad_medida}"
+        return None
+
+    def set_valor(self, raw_value):
+        """Asigna raw_value validándolo y convirtiéndolo a string según tipo."""
+        tipo = self.atributo.tipo_dato
+        if tipo == 'ENTERO':
+            self.valor = str(int(raw_value))
+        elif tipo == 'DECIMAL':
+            self.valor = str(Decimal(raw_value))
+        elif tipo == 'BOOLEANO':
+            b = bool(raw_value)
+            self.valor = 'true' if b else 'false'
+        elif tipo == 'LISTA':
+            opciones = self.atributo.valores_posibles or []
+            if raw_value not in opciones:
+                raise ValueError(f"'{raw_value}' no está entre valores_posibles {opciones}")
+            self.valor = str(raw_value)
+        else:
+            self.valor = str(raw_value)
+
+    @property
+    def valor_cast(self):
+        """Devuelve self.valor convertido al tipo definido en CategoriaAtributo."""
+        raw = self.valor
+        tipo = self.atributo.tipo_dato
+        if tipo == 'ENTERO':
+            return int(raw)
+        if tipo == 'DECIMAL':
+            return Decimal(raw)
+        if tipo == 'BOOLEANO':
+            return raw.lower() in ('true','1','t','yes')
+        if tipo == 'LISTA':
+            return raw
+        return raw
+
+    def __str__(self):
+        return f"{self.producto.nombre} - {self.atributo.nombre}"
 class ProductoProveedor(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)
@@ -93,6 +188,11 @@ class Compra(models.Model):
     imagen_factura = models.ImageField(upload_to='compras/facturas/', blank=True, null=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)
+    estado = models.CharField(max_length=20, choices=[
+        ('PENDIENTE', 'Pendiente'),
+        ('RECIBIDO', 'Recibido'),
+        ('CANCELADO', 'Cancelado')
+    ], default='PENDIENTE')
     observaciones = models.TextField(blank=True, null=True)
     creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True) 
     ultima_actualizacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)

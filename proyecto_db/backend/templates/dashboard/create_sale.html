@@ -53,20 +53,41 @@ Crear Venta
                         data-product-name="{{ product.nombre }}" data-product-price="{{ product.precio_venta }}" data-product-category="{{ product.categoria }}">
                         <div class="productsetimg">
                             {% if product.imagen %}
-                            <img src="{{ product.imagen.url }}" alt="img" style="width: 50px; height: 50px;" />
+                            <img src="{{ product.imagen.url }}" alt="img" style="width: 208px; height: 208px;" />
                             {% else %}
                             <img src="{% static 'assets/img/product/noimage.png' %}" alt="img"
                                 style="width: 208px; height: 208px;" />
                             {% endif %}
-                            <h6>Cantidad: {{ product.stock }}</h6>
+                            <h6>C${{ product.precio_venta }}</h6>
+                            
+                            {% if product.stock <= product.stock_minimo %}
+                            <span class="badge bg-danger low-stock">Stock bajo</span>
+                            {% endif %}
                             <div class="check-product">
                                 <i class="fa fa-check"></i>
                             </div>
+                            <span class="badge bg-secondary brand">{{ product.marca }}</span>
                         </div>
                         <div class="productsetcontent">
-                            <h5>{{ product.categoria }}</h5>
+                            <div class="d-flex align-items-center gap-1">
+                                <i class="fe fe-tag"></i>
+                                <h5>{{ product.categoria }}</h5>
+                            </div>                            
                             <h4>{{ product.nombre }}</h4>
-                            <h6>C${{ product.precio_venta }}</h6>
+                            <h5>Stock: {{ product.stock }}</h5>
+                            <div class="align-self-end">
+                                <a href="{% if product.imagen %}{{ product.imagen.url }} {% else %} {% static 'assets/img/product/noimage.png' %} {% endif %}" class="btn btn-outline-secondary rounded-circle image-popup-desc view-product" data-glightbox="title: My title; description: this is the slide description">
+                                    <i class="fe fe-eye" role="button"></i>
+                                </a>
+                                <button 
+                                    class="btn btn-primary rounded-circle add-product"
+                                    data-product-id="{{ product.id }}" data-product-stock="{{ product.stock }}"
+                                    data-image-url="{% if product.imagen %}{{ product.imagen.url }} {% else %} {% static 'assets/img/product/noimage.png' %} {% endif %}"
+                                    data-product-name="{{ product.nombre }}" data-product-price="{{ product.precio_venta }}" data-product-category="{{ product.categoria }}"    
+                                >
+                                    <i class="fe fe-plus" role="button"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -84,20 +105,40 @@ Crear Venta
                         data-product-name="{{ product.nombre }}" data-product-price="{{ product.precio_venta }}" data-product-category="{{ product.categoria }}">
                         <div class="productsetimg">
                             {% if product.imagen %}
-                            <img src="{{ product.imagen.url }}" alt="img" style="width: 50px; height: 50px;" />
+                            <img src="{{ product.imagen.url }}" alt="img" style="width:  208px; height:  208px;" />
                             {% else %}
                             <img src="{% static 'assets/img/product/noimage.png' %}" alt="img"
                                 style="width: 208px; height: 208px;" />
                             {% endif %}
-                            <h6>Cantidad: {{ product.stock }}</h6>
+                            <h6>C${{ product.precio_venta }}</h6>
+                            {% if product.stock <= product.stock_minimo %}
+                            <span class="badge bg-danger low-stock">Stock bajo</span>
+                            {% endif %}
                             <div class="check-product">
                                 <i class="fa fa-check"></i>
                             </div>
+                            <span class="badge bg-secondary brand">{{ product.marca }}</span>
                         </div>
                         <div class="productsetcontent">
-                            <h5>{{ category.nombre }}</h5>
+                            <div class="d-flex align-items-center gap-1">
+                                <i class="fe fe-tag"></i>
+                                <h5>{{ category.nombre }}</h5>
+                            </div>
                             <h4>{{ product.nombre }}</h4>
-                            <h6>C${{ product.precio_venta }}</h6>
+                            <h5>Stock: {{ product.stock }}</h5>
+                            <div class="align-self-end">
+                                <button class="btn btn-outline-secondary rounded-circle image-popup-desc view-product" data-title="Title 01" data-description="Lorem ipsum dolor sit amet, consectetuer adipiscing elit">
+                                    <i class="fe fe-eye" role="button"></i>
+                                </button>
+                                <button 
+                                    class="btn btn-primary rounded-circle add-product"
+                                    data-product-id="{{ product.id }}" data-product-stock="{{ product.stock }}"
+                                    data-image-url="{% if product.imagen %}{{ product.imagen.url }} {% else %} {% static 'assets/img/product/noimage.png' %} {% endif %}"
+                                    data-product-name="{{ product.nombre }}" data-product-price="{{ product.precio_venta }}" data-product-category="{{ product.categoria }}"    
+                                >
+                                    <i class="fe fe-plus" role="button"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -110,11 +151,6 @@ Crear Venta
 </div>
 <!-- Detalles de la venta -->
 <div class="col-lg-4 col-sm-12">
-    <div class="order-list">
-        <div class="orderid ">
-            <h4>Venta</h4>
-        </div>
-    </div>
     <!-- Formulario de venta -->
     <div class="card card-order">
         <div class="card-body">
@@ -149,9 +185,8 @@ Crear Venta
                         </div>
                     </div>
                 </div>
-                <div class="split-card"></div>
                 <!-- Preview de productos seleccionados -->
-                <div class="card-body pt-0">
+                <div class="card-body p-0 pt-1">
                     <div class="totalitem">
                         <h4>Total de artículos: <span id="total-items">0</span></h4>
                         <a href="javascript:void(0);" id="clear-all">
@@ -162,24 +197,23 @@ Crear Venta
                         
                     </div>
                 </div>
-                <div class="split-card"></div>
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <div class="select-group">
-                            <label for="{{ form.tipo_descuento.id_for_label }}">Tipo de descuento (opcional)</label>
+                            <label for="{{ form.tipo_descuento.id_for_label }}">Tipo de descuento</label>
                             {% render_field form.tipo_descuento class="form-control select" id="discount-type" %}
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="select-group">
-                            <label for="{{ form.valor_descuento.id_for_label }}">Valor del descuento (opcional)</label>
-                            {% render_field form.valor_descuento class="form-control" id="discount-value" inputmode="decimal" %}
+                            <label for="{{ form.valor_descuento.id_for_label }}">Valor del descuento</label>
+                            {% render_field form.valor_descuento class="form-control" id="discount-value" inputmode="decimal" pattern="/[^\d.]/g" %}
                         </div>
                     </div>
                 </div>
 
                 <!-- Total de venta -->
-                <div class="pt-0 pb-2">
+                <div class="pt-0">
                     <div class="setvalue">
                         <ul>
                             <li>
@@ -263,7 +297,7 @@ Crear Venta
         window.updateSelectedProducts = updateSelectedProducts;
 
         selectedProductsContainer.innerHTML = `
-            <div class="d-flex flex-column justify-content-center align-items-center gap-0 p-3 h-100">
+            <div class="d-flex flex-column justify-content-center align-items-center gap-0 h-100">
                 <i class="fe fe-shopping-cart" style="font-size: 32px;"></i>
                 <span class="fw-bold">
                     El carrito está vacío
@@ -276,43 +310,45 @@ Crear Venta
             updateSelectedProducts();
         });
 
-
-        discountInput.addEventListener('input', function () {
-            const type = discountType.value; // Tipo de descuento (POR o FIX)
-            let rawValue = this.value; // Valor ingresado por el usuario
-            let newValue = rawValue.replace(/[^\d.]/g, ''); // Permitir solo números y el punto decimal
+        function toggleDiscountInput() {
+            const subtotal = parseFloat(subtotalElement.textContent.replace('C$', '').trim()) || 0;
+            if (subtotal === 0) {
+                discountInput.value = '';
+                discountInput.disabled = true;
+            } else {
+                discountInput.disabled = false;
+            }
+        }
     
-            // Asegurar que el valor comience con "0." si el usuario escribe solo "."
+        discountInput.addEventListener('input', function () {
+            const type = discountType.value; 
+            let rawValue = this.value; 
+            let newValue = rawValue.replace(/[^\d.]/g, '');
+    
             if (newValue.startsWith('.')) {
                 newValue = '0' + newValue;
             }
     
-            // Limitar a dos dígitos después del punto decimal
             const parts = newValue.split('.');
             if (parts.length > 1) {
-                parts[1] = parts[1].slice(0, 2); // Limitar los decimales a 2 dígitos
+                parts[1] = parts[1].slice(0, 2);
                 newValue = parts.join('.');
             }
     
-            // Validar el valor según el tipo de descuento
             if (type === 'POR') {
-                // Para porcentaje, limitar el valor a 100
                 const numericValue = parseFloat(newValue) || 0;
                 if (numericValue > 100) {
-                    newValue = newValue.slice(0, -1); // Eliminar el último dígito si excede 100
+                    newValue = newValue.slice(0, -1);
                 }
             } else if (type === 'FIX') {
-                // Para descuento fijo, limitar el valor al subtotal
                 const subtotal = parseFloat(subtotalElement.textContent.replace('C$', '').trim()) || 0;
                 const numericValue = parseFloat(newValue) || 0;
     
-                // Si el subtotal tiene menos dígitos que el valor ingresado, no permitir más dígitos
                 if (numericValue > subtotal) {
-                    newValue = newValue.slice(0, -1); // Eliminar el último dígito si excede el subtotal
+                    newValue = newValue.slice(0, -1);
                 }
             }
     
-            // Actualizar el valor del input
             this.value = newValue;
         });
     
@@ -321,17 +357,16 @@ Crear Venta
             const currentValue = this.value;
             const hasDecimal = currentValue.includes('.');
     
-            // Permitir solo números, el punto decimal (una vez) y la tecla de retroceso
             if (!/\d/.test(key) && key !== '.' && key !== 'Backspace') {
                 e.preventDefault();
             }
     
-            // No permitir más de un punto decimal
             if (key === '.' && hasDecimal) {
                 e.preventDefault();
             }
         });
-        document.querySelectorAll('.productset').forEach(function (productElement) {
+
+        document.querySelectorAll('.add-product').forEach(function (productElement) {
             productElement.addEventListener('click', function () {
                 const productId = productElement.getAttribute('data-product-id');
                 const productName = productElement.getAttribute('data-product-name');
@@ -340,10 +375,11 @@ Crear Venta
                 const productStock = parseFloat(productElement.getAttribute('data-product-stock'));
 
                 const existingProduct = selectedProducts.find(product => product.id === productId);
-
+                let productQuantity = 1;
                 if (existingProduct) {
                     if (existingProduct.quantity === productStock) return;
                     existingProduct.quantity += 1;
+                    productQuantity = existingProduct.quantity;
                 } else {
                     selectedProducts.push({
                         id: productId,
@@ -353,7 +389,9 @@ Crear Venta
                         quantity: 1,
                         stock: productStock,
                     });
+                    productElement.classList.add('active');
                 }
+                document.querySelector('.productset .check-product').textContent = productQuantity;
 
                 updateSelectedProducts();
             });
@@ -363,7 +401,7 @@ Crear Venta
             selectedProducts = [];
             discountInput.value = '0';
             updateSelectedProducts();
-            document.querySelectorAll('.productset').forEach(function (productElement) {
+            document.querySelectorAll('.add-product').forEach(function (productElement) {
                 productElement.classList.remove('active');
             });
         });
@@ -377,7 +415,7 @@ Crear Venta
             if (selectedProducts.length === 0) {
                 document.getElementById('product-search').value = "";
                 selectedProductsContainer.innerHTML = `
-                    <div class="d-flex flex-column justify-content-center align-items-center gap-0 p-3 h-100">
+                    <div class="d-flex flex-column justify-content-center align-items-center gap-0 h-100">
                         <i class="fe fe-shopping-cart" style="font-size: 32px;"></i>
                         <span class="fw-bold">
                             El carrito está vacío
@@ -447,7 +485,7 @@ Crear Venta
                     const productId = removeButton.getAttribute('data-product-id');
                     selectedProducts = selectedProducts.filter(product => product.id !== productId);
                     updateSelectedProducts();
-                    document.querySelector(`.productset[data-product-id="${productId}"]`).classList.remove('active');
+                    document.querySelector(`.add-product[data-product-id="${productId}"]`).classList.remove('active');
                 });
             });
 
@@ -457,10 +495,23 @@ Crear Venta
                     const product = selectedProducts.find(product => product.id === productId);
                     if (product.quantity > 1) {
                         product.quantity -= 1;
+                        document.querySelector(`.productset[data-product-id="${productId}"] .check-product`).textContent = product.quantity;
                     } else {
                         selectedProducts = selectedProducts.filter(product => product.id !== productId);
                         document.querySelector(`.productset[data-product-id="${productId}"]`).classList.remove('active');
                     }
+                    updateSelectedProducts();
+                });
+            });
+
+            
+            document.querySelectorAll('.button-plus').forEach(function (plusButton) {
+                plusButton.addEventListener('click', function () {
+                    const productId = plusButton.getAttribute('data-product-id');
+                    const product = selectedProducts.find(product => product.id === productId);
+                    if (product.quantity === product.stock) return;
+                    product.quantity += 1;
+                    document.querySelector(`.productset[data-product-id="${productId}"] .check-product`).textContent = product.quantity;
                     updateSelectedProducts();
                 });
             });
@@ -473,7 +524,6 @@ Crear Venta
                 q.addEventListener('blur', (e) => {
                     if (e.target.value.length === 0) {
                         const existingProduct = selectedProducts.find(p => p.id === productId);
-                        console.log({existingProduct});
                         q.value = existingProduct.quantity;
                     }
                 })
@@ -501,16 +551,10 @@ Crear Venta
                 })
             })
 
-            document.querySelectorAll('.button-plus').forEach(function (plusButton) {
-                plusButton.addEventListener('click', function () {
-                    const productId = plusButton.getAttribute('data-product-id');
-                    const product = selectedProducts.find(product => product.id === productId);
-                    if (product.quantity === product.stock) return;
-                    product.quantity += 1;
-                    updateSelectedProducts();
-                });
-            });
+            toggleDiscountInput();
         }
+
+        toggleDiscountInput();
     });
 </script>
 
@@ -594,12 +638,13 @@ Crear Venta
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        $('.productset').on("click", function () {
+        $('.add-product').on("click", function () {
             const productName = $(this).data('product-name')
 			toastr.success(`${productName} ha sido agregado al carrito`, "Producto Agregado", {
 				showDuration: 500,
                 positionClass: "toast-top-right",
-                closeButton: true
+                closeButton: true,
+                timeOut: 1500
 			});
 		})
     })
