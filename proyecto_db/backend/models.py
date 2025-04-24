@@ -371,7 +371,7 @@ class Venta(models.Model):
     ]
 
     fecha = models.DateTimeField(auto_now_add=True)
-    total = models.DecimalField(max_digits=10, decimal_places=2)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     # forma_de_pago = models.CharField(choices=forma_de_pago_choices,max_length=100, default=forma_de_pago_choices[0][0])
 
     forma_de_pago = models.ForeignKey('MetodoPago', on_delete=models.PROTECT)
@@ -389,58 +389,105 @@ class Venta(models.Model):
 
     @transaction.atomic
     def create_sale(self, detalles_data):
-        
-        self.full_clean()
-        self.save()  
-        
-        detalles = []
-        total = 0
+        """
+        Crea una venta con validaciones robustas y cálculo seguro del total
+        Args:
+            detalles_data (list): Lista de diccionarios con:
+                - producto_id (int)
+                - cantidad (int)
+                - [opcional] descuento_id (int)
+        """
+        # Validación inicial
+        if not detalles_data:
+            raise ValidationError("La venta debe contener al menos un producto")
+
+        # Pre-cargar recursos necesarios
+        producto_ids = [d['producto_id'] for d in detalles_data]
+        productos = Producto.objects.in_bulk(producto_ids)
+        descuento_ids = [d.get('descuento_id') for d in detalles_data if d.get('descuento_id')]
+        descuentos = Descuento.objects.in_bulk(descuento_ids) if descuento_ids else {}
+
+        # Variables de cálculo
+        total = Decimal('0.00')
+        detalles_venta = []
+        updates_stock = []
+
+        # Procesar cada detalle
         for detalle in detalles_data:
-            producto = detalle['producto']
+            producto_id = detalle['producto_id']
             cantidad = detalle['cantidad']
-            descuento = detalle.get('descuento')
             
+            # 1. Validar producto
+            producto = productos.get(producto_id)
+            if not producto:
+                raise ValidationError(f"Producto ID {producto_id} no existe")
+            
+            # 2. Validar stock
             if producto.stock < cantidad:
-                raise ValidationError(f"Stock insuficiente para {producto.nombre}")
-            
+                raise ValidationError(f"Stock insuficiente para {producto.nombre} (Stock: {producto.stock}, Solicitado: {cantidad})")
+
+            # 3. Obtener precio ACTUAL desde DB (evita usar precio del front)
             precio_unitario = producto.precio_venta
-            if descuento and descuento.aplicar_a_producto(producto):
-                precio_unitario -= descuento.calcular_descuento(producto.precio_venta)
             
-            d = DetalleVenta(
-                venta=self,
-                producto=producto,
-                cantidad=cantidad,
-                precio_unitario=precio_unitario,
-                descuento=descuento
+            # 4. Calcular descuentos
+            descuento_valor = Decimal('0.00')
+            if detalle.get('descuento_id'):
+                descuento = descuentos.get(detalle['descuento_id'])
+                if descuento and descuento.aplicar_a_producto(producto):
+                    descuento_valor = descuento.calcular_descuento(precio_unitario)
+
+            # 5. Calcular subtotal
+            subtotal = (precio_unitario - descuento_valor) * cantidad
+            total += subtotal
+
+            # 6. Preparar detalle
+            detalles_venta.append(
+                DetalleVenta(
+                    venta=self,
+                    producto=producto,
+                    cantidad=cantidad,
+                    precio_unitario=precio_unitario,
+                    descuento=descuento if descuento_valor else None
+                )
             )
-            d.full_clean()
-            detalles.append(d)
-            total += d.precio_total
-        
+
+            # 7. Preparar actualización de stock
+            updates_stock.append((producto, cantidad))
+
+        # 8. Validación final del total
+        if total <= Decimal('0.00'):
+            raise ValidationError("El total de la venta debe ser mayor a cero")
+
+        # 9. Asignar y guardar (en orden correcto)
         self.total = total
-        self.save(update_fields=['total'])
+        self.full_clean()  # Ejecuta tu método clean()
+        self.save()
+
+        # 10. Crear detalles y actualizar stock
+        DetalleVenta.objects.bulk_create(detalles_venta)
         
-        DetalleVenta.objects.bulk_create(detalles)
-        
-        for detalle in detalles:
-            producto = detalle.producto
-            producto.stock = models.F('stock') - detalle.cantidad
+        for producto, cantidad in updates_stock:
+            producto.stock = F('stock') - cantidad
             producto.save(update_fields=['stock'])
-            
             MovimientoStock.objects.create(
                 producto=producto,
-                cantidad=detalle.cantidad,
+                cantidad=cantidad,
                 tipo_movimiento='Salida',
                 venta=self
             )
-        
+
+        # 11. Generar factura (opcional)
+        self.generar_factura()
+
         return self
 
     def clean(self):
+        if self.total is None:
+            print('entre')
+            raise ValidationError("El total no puede ser nulo")
         if self.total < 0:
+            print('entre2')
             raise ValidationError("El total no puede ser negativo")
-    
     def generar_factura(self):
         from .signals import generar_factura_venta
         generar_factura_venta(sender=self.__class__, instance=self, created=False)
@@ -456,20 +503,20 @@ class DetalleVenta(models.Model):
     descuento = models.ForeignKey('Descuento', null=True, blank=True, on_delete=models.SET_NULL)
     creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
-    def save(self, *args, **kwargs):
-        if self.producto.stock < self.cantidad:
-            raise ValidationError("Stock insuficiente para realizar la venta")
+    # def save(self, *args, **kwargs):
+    #     if self.producto.stock < self.cantidad:
+    #         raise ValidationError("Stock insuficiente para realizar la venta")
             
-        self.producto.stock = F('stock') - self.cantidad
-        self.producto.save()
-        super().save(*args, **kwargs)
+    #     self.producto.stock = F('stock') - self.cantidad
+    #     self.producto.save()
+    #     super().save(*args, **kwargs)
         
-        MovimientoStock.objects.create(
-            producto=self.producto,
-            cantidad=self.cantidad,
-            tipo_movimiento='Salida',
-            venta=self.venta
-        )
+    #     MovimientoStock.objects.create(
+    #         producto=self.producto,
+    #         cantidad=self.cantidad,
+    #         tipo_movimiento='Salida',
+    #         venta=self.venta
+    #     )
 
     def __str__(self):
         return f"{self.producto.nombre} - {self.cantidad} unidades from {self.venta}"

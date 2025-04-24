@@ -66,7 +66,7 @@ class VentaForm(forms.ModelForm):
 
     class Meta:
         model = Venta
-        fields = ['total', 'forma_de_pago', 'estado', 'cliente']
+        exclude = ['total', 'creado_por']
 
 
 # DetalleVentaFormSet = forms.inlineformset_factory(

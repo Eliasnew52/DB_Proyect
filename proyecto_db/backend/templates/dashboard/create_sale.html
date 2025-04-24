@@ -154,7 +154,7 @@ Crear Venta
     <!-- Formulario de venta -->
     <div class="card card-order">
         <div class="card-body">
-            <form method="post" enctype="multipart/form-data">
+            <form id="sale-form" method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="row">
                     <div class="col-lg-12">
@@ -185,6 +185,9 @@ Crear Venta
                         </div>
                     </div>
                 </div>
+                
+                {% render_field form.products_data %}
+
                 <!-- Preview de productos seleccionados -->
                 <div class="card-body p-0 pt-1">
                     <div class="totalitem">
@@ -289,10 +292,13 @@ Crear Venta
         const clearAllButton = document.getElementById('clear-all');
         const discountType = document.getElementById('discount-type');
         const quantityField = document.getElementById('quantity-field');
+        const form = document.querySelector('#sale-form');
 
         const tabElement = document.querySelector('.tab_content');
 
         let selectedProducts = [];
+        let totalItems = 0;
+        let subtotal = 0;
         window.selectedProducts = selectedProducts;
         window.updateSelectedProducts = updateSelectedProducts;
 
@@ -408,8 +414,7 @@ Crear Venta
 
         function updateSelectedProducts() {
             selectedProductsContainer.innerHTML = '';
-            let totalItems = 0;
-            let subtotal = 0;
+
 
             window.selectedProducts = selectedProducts;
             if (selectedProducts.length === 0) {
@@ -553,6 +558,19 @@ Crear Venta
 
             toggleDiscountInput();
         }
+
+
+        form.addEventListener('submit', (e) => {
+            const productsData = document.querySelector('#id_products_data');
+            const mappedProducts = selectedProducts.map(p => ({
+                id_product: p.productId,
+                precio_unitario: p.price,
+                cantidad: p.quantity,
+                descuento: 0,
+            })) 
+            console.log(JSON.stringify(mappedProducts));
+            productsData.value = JSON.stringify(mappedProducts);
+        })
 
         toggleDiscountInput();
     });

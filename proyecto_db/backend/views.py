@@ -144,15 +144,18 @@ class CreateSaleView(CreateView):
         try:
             self.object = form.save(commit=False)
             self.object.creado_por = self.request.user
-            self.object.save()
-
-            products_data = json.loads(form.cleaned_data['products_data'])
-
-            self.object.create_sale(products_data)
-
-            return super().form_valid(form)
+            
+            productos_data = json.loads(form.cleaned_data['products_data'])
+            print("productos_data", productos_data)
+            self.object.create_sale(productos_data)
+            
+            FacturaVenta.objects.create(venta=self.object)
+            
+            return redirect(self.get_success_url())
+            
         except Exception as e:
-            form.add_error(None, f"Error al crear la venta: {str(e)}")
+            print("ee")
+            form.add_error(None, f"Error: {str(e)}")
             return self.form_invalid(form)
 
 class ProductoListView(ListView):
