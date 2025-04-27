@@ -1,6 +1,6 @@
 import {Outlet} from 'react-router';
 import {Grid} from "@mui/material";
-import loginImg from '../../assets/images/login.png';
+import loginImg from '../../../assets/images/login.png';
 
 export const AuthLayout = () => {
     return (

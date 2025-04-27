@@ -1,7 +1,7 @@
 import {Button, Grid, InputAdornment, InputLabel, TextField, Typography} from "@mui/material";
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
-import {PasswordField} from "../../../components/PasswordField.tsx";
-import logo from '../../../assets/images/logo.png';
+import {PasswordField} from "../../../../components/PasswordField/PasswordField.tsx";
+import logo from '../../../../assets/images/logo.png';
 
 export const LoginForm = () => {
 

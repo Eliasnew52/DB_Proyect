@@ -1,25 +1,16 @@
-import {Divider, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar} from "@mui/material";
-import {MenuOption} from "../MainLayout.types.ts";
-
-type DrawerContentProps = {
-    menuOptions: MenuOption[];
-}
+import {Divider, List, Toolbar} from "@mui/material";
+import type {DrawerContentProps} from "./DrawerContent.types.ts";
+import {DrawerMenuItem} from "./components/DrawerMenuItem/DrawerMenuItem.tsx";
 
 export const DrawerContent = ({ menuOptions }: DrawerContentProps) => {
+
     return (
         <div>
             <Toolbar/>
             <Divider/>
             <List>
                 {menuOptions.map((option) => (
-                    <ListItem key={option.label} disablePadding>
-                        <ListItemButton>
-                            <ListItemIcon>
-                                {option.icon}
-                            </ListItemIcon>
-                            <ListItemText primary={option.label}/>
-                        </ListItemButton>
-                    </ListItem>
+                    <DrawerMenuItem key={option.label} icon={option.icon} label={option.label} subRoutes={option.subRoutes} path={option.path} />
                 ))}
             </List>
         </div>
