@@ -8,6 +8,15 @@ django-widget-tweaks = "*"
 pillow = "*"
 pandas = "*"
 openpyxl = "*"
+psycopg2-binary = "*"
+django-jsoneditor = "*"
+django-jsonform = "*"
+djangorestframework = "*"
+django-filter = "*"
+djoser = "*"
+djangorestframework-simplejwt = "*"
+jsonschema = "*"
+drf-yasg = "*"
 
 [dev-packages]
 

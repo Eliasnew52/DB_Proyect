@@ -9,647 +9,428 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.db import transaction
 from decimal import Decimal
+from django.contrib.postgres.indexes import GinIndex
+from jsonschema import validate, ValidationError
 
-class Categoria(models.Model):
-    nombre = models.CharField(max_length=100, unique=True)
-    descripcion = models.TextField(blank=True, null=True)
-    creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    ultima_actualizacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    imagen = models.ImageField(upload_to='categorias/', blank=True, null=True)
 
-    def __str__(self):
-        return self.nombre
-    
-class CategoriaAtributo(models.Model):
-    TIPO_DATO_CHOICES = [
-        ('TEXTO', 'Texto'),
-        ('ENTERO', 'Número Entero'),
-        ('DECIMAL', 'Número Decimal'),
-        ('BOOLEANO', 'Verdadero/Falso'),
-        ('LISTA', 'Lista de Valores'),
-    ]
-    
-    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE, related_name='atributos')
-    nombre = models.CharField(max_length=100)
-    tipo_dato = models.CharField(max_length=10, choices=TIPO_DATO_CHOICES)
-    valores_posibles = models.JSONField(blank=True, null=True)
-    obligatorio = models.BooleanField(default=True)
-    orden = models.PositiveIntegerField(default=0)
+def default_product_schema():
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {},
+        "required": []
+    }
 
-    class Meta:
-        unique_together = ('categoria', 'nombre')
-        ordering = ['orden']
-        verbose_name = 'Atributo de Categoría'
-        verbose_name_plural = 'Atributos de Categorías'
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    image = models.ImageField(upload_to='categories/', blank=True, null=True)
+    product_schema = models.JSONField(default=default_product_schema, blank=True,)
+
+    class Meta: 
+        verbose_name_plural='Categories'
 
     def __str__(self):
-        return f"{self.categoria.nombre} - {self.nombre}"
+        return self.name
 
-class Empresa(models.Model):
-    nombre = models.CharField(max_length=100, unique=True)
-    ultima_actualizacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+class Company(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
+    class Meta: 
+        verbose_name_plural='Companies'
 
     def __str__(self):
-        return self.nombre
+        return self.name
 
-class Proveedor(models.Model):
-    nombre = models.CharField(max_length=100, unique=True)
+class Supplier(models.Model):
+    name = models.CharField(max_length=100, unique=True)
     email = models.EmailField(max_length=255, blank=True, null=True, unique=True)
-    telefono = models.CharField(max_length=15, blank=True, null=True)
-    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
-    marcas = models.ManyToManyField('Marca')
-    ultima_actualizacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    phone = models.CharField(max_length=15, blank=True, null=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    brands = models.ManyToManyField('Brand')
+    last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
-        return f'{self.nombre} - {self.empresa}'
+        return f'{self.name} - {self.company}'
 
-class Producto(models.Model):
-    TIPO_PRODUCTO_CHOICES = [
-        ('GENERICO', 'Genérico'),
-        ('LIBRO', 'Libro'),
-        ('PAPELERIA', 'Artículo de Papelería'),
-        ('MATERIAL_ARTE', 'Material de Arte'),
-        ('UTILES_ESCOLARES', 'Útiles Escolares'),
-        ('ESCRITORIO', 'Artículos de Escritorio'),
-    ]
-
-    nombre = models.CharField(max_length=100)
-    precio_venta = models.DecimalField(max_digits=10, decimal_places=2)
-    precio_compra = models.DecimalField(max_digits=10, decimal_places=2)
-    descripcion = models.TextField(blank=True, null=True)
-    stock_minimo = models.IntegerField()
+class Product(models.Model):
+    name = models.CharField(max_length=100)
+    sale_price = models.DecimalField(max_digits=10, decimal_places=2)
+    purchase_price = models.DecimalField(max_digits=10, decimal_places=2)
+    description = models.TextField(blank=True, null=True)
+    minimum_stock = models.IntegerField()
     stock = models.IntegerField()
-    ultima_actualizacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
-    tipo_especifico = models.CharField(max_length=20, choices=TIPO_PRODUCTO_CHOICES, default='GENERICO')
-    proveedores = models.ForeignKey(Proveedor, on_delete=models.PROTECT, blank=True, null=True)
-    imagen = models.ImageField(upload_to='productos/', blank=True, null=True)
-    activo = models.BooleanField(default=True)
-    marca = models.ForeignKey('Marca', on_delete=models.PROTECT, related_name='productos', blank=True, null=True)
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
-    creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    suppliers = models.ManyToManyField(Supplier, blank=True)
+    image = models.ImageField(upload_to='products/', blank=True, null=True)
+    active = models.BooleanField(default=True)
+    brand = models.ForeignKey('Brand', on_delete=models.PROTECT, related_name='products', blank=True, null=True)
+    creation_date = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    attributes = models.JSONField(
+        default=default_product_schema,
+        blank=True,
+        help_text="Atributos específicos según el tipo de producto"
+    )
 
     class Meta:
         indexes = [
-            models.Index(fields=['nombre']),
-            models.Index(fields=['stock'])
+            models.Index(fields=['name']),
+            models.Index(fields=['stock']),
+            GinIndex(fields=['attributes'], name='gin_attributes')
         ]
         constraints = [
             models.CheckConstraint(
                 check=models.Q(stock__gte=0),
-                name='stock_no_negativo'
+                name='non_negative_stock'
             )
         ]
 
     def clean(self):
         if self.stock < 0:
-            raise ValidationError("El stock no puede ser negativo")
-        if self.precio_venta < self.precio_compra:
-            raise ValidationError("El precio de venta no puede ser menor al de compra")
+            raise ValidationError("Stock cannot be negative")
+        if self.sale_price < self.purchase_price:
+            raise ValidationError("Sale price cannot be lower than purchase price")
         
-    def check_stock(self, cantidad_requerida):
-        return self.stock >= cantidad_requerida
+        if self.category and self.category.product_schema:
+            try:
+                validate(instance=self.attributes, schema=self.category.product_schema)
+            except ValidationError as e:
+                raise ValidationError({'attributes': f"Datos inválidos: {e.message}"})
 
-    def __str__(self):
-        return self.nombre
-
-class ProductoAtributo(models.Model):
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='atributos')
-    atributo = models.ForeignKey(CategoriaAtributo, on_delete=models.CASCADE)
-    valor = models.TextField(blank=True, null=True)
+        
+    def check_stock(self, required_quantity):
+        return self.stock >= required_quantity
     
-    color = models.CharField(max_length=100, blank=True, null=True)
-    material = models.CharField(max_length=100, blank=True, null=True)
-    dimension_ancho = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
-    dimension_alto = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
-    dimension_profundidad = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
-    unidad_medida = models.CharField(max_length=20, blank=True, null=True)
-    notas = models.TextField(blank=True, null=True)
-
-    class Meta:
-        unique_together = ('producto', 'atributo')
-        verbose_name = 'Atributo de Producto'
-        verbose_name_plural = 'Atributos de Productos'
-
-    @property
-    def dimensiones(self):
-        if all([self.dimension_ancho, self.dimension_alto, self.dimension_profundidad]):
-            return f"{self.dimension_ancho}x{self.dimension_alto}x{self.dimension_profundidad} {self.unidad_medida}"
-        return None
-
-    def set_valor(self, raw_value):
-        """Asigna raw_value validándolo y convirtiéndolo a string según tipo."""
-        tipo = self.atributo.tipo_dato
-        if tipo == 'ENTERO':
-            self.valor = str(int(raw_value))
-        elif tipo == 'DECIMAL':
-            self.valor = str(Decimal(raw_value))
-        elif tipo == 'BOOLEANO':
-            b = bool(raw_value)
-            self.valor = 'true' if b else 'false'
-        elif tipo == 'LISTA':
-            opciones = self.atributo.valores_posibles or []
-            if raw_value not in opciones:
-                raise ValueError(f"'{raw_value}' no está entre valores_posibles {opciones}")
-            self.valor = str(raw_value)
-        else:
-            self.valor = str(raw_value)
-
-    @property
-    def valor_cast(self):
-        """Devuelve self.valor convertido al tipo definido en CategoriaAtributo."""
-        raw = self.valor
-        tipo = self.atributo.tipo_dato
-        if tipo == 'ENTERO':
-            return int(raw)
-        if tipo == 'DECIMAL':
-            return Decimal(raw)
-        if tipo == 'BOOLEANO':
-            return raw.lower() in ('true','1','t','yes')
-        if tipo == 'LISTA':
-            return raw
-        return raw
+    def get_attribute(self, key, default=None):
+        return self.attributes.get(key, default)
+    
+    def update_attributes(self, new_attributes):
+        self.attributes.update(new_attributes)
+        self.save(update_fields=['attributes'])
 
     def __str__(self):
-        return f"{self.producto.nombre} - {self.atributo.nombre}"
-class ProductoProveedor(models.Model):
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)
-    fecha_suministro = models.DateTimeField(auto_now_add=True)
+        return self.name
 
-    def __str__(self):
-        return f"{self.producto.nombre} - {self.proveedor.nombre}"
-
-class Compra(models.Model):
-    fecha = models.DateTimeField(auto_now_add=True)
-    imagen_factura = models.ImageField(upload_to='compras/facturas/', blank=True, null=True)
+class Purchase(models.Model):
+    date = models.DateTimeField(auto_now_add=True)
+    invoice_image = models.ImageField(upload_to='purchases/invoices/', blank=True, null=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
-    proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)
-    estado = models.CharField(max_length=20, choices=[
-        ('PENDIENTE', 'Pendiente'),
-        ('RECIBIDO', 'Recibido'),
-        ('CANCELADO', 'Cancelado')
-    ], default='PENDIENTE')
-    observaciones = models.TextField(blank=True, null=True)
-    creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True) 
-    ultima_actualizacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-
-    @transaction.atomic
-    def crear_compra(self, detalles_data):
-        if not self.numero_factura:
-            self.numero_factura = f'C-{self.proveedor.empresa.nombre[:3]}-{timezone.now().year}-{self.id or "00000"}'
-        
-        if not self.fecha_vencimiento:
-            self.fecha_vencimiento = timezone.now() + timedelta(days=30)
-        
-        self.full_clean()
-        self.save() 
-        
-        detalles = []
-        total = 0
-        for detalle in detalles_data:
-            d = DetalleCompra(
-                compra=self,
-                producto=detalle['producto'],
-                cantidad=detalle['cantidad'],
-                precio_unitario=detalle['precio_unitario']
-            )
-            d.full_clean()
-            detalles.append(d)
-            total += d.precio_total
-        
-        self.total = total
-        self.save(update_fields=['total'])
-        
-        DetalleCompra.objects.bulk_create(detalles)
-        
-        for detalle in detalles:
-            producto = detalle.producto
-            producto.stock = models.F('stock') + detalle.cantidad
-            producto.precio_compra = detalle.precio_unitario
-            producto.save(update_fields=['stock', 'precio_compra'])
-            
-            MovimientoStock.objects.create(
-                producto=producto,
-                cantidad=detalle.cantidad,
-                tipo_movimiento='Entrada',
-                compra=self
-            )
-        
-        return self
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=[
+        ('PENDING', 'Pending'),
+        ('RECEIVED', 'Received'),
+        ('CANCELLED', 'Cancelled')
+    ], default='PENDING')
+    notes = models.TextField(blank=True, null=True)
+    invoice_number = models.CharField(
+        max_length=50, 
+        unique=True, 
+        blank=True, 
+        null=True,
+        verbose_name="Número de Factura"
+    )
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True) 
+    last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     def clean(self):
         if self.total < 0:
-            ValidationError("El total no puede ser negativo")
+            ValidationError("Total cannot be negative")
 
     def __str__(self):
-        return f"Compra {self.id} - {self.fecha}"
+        return f"Purchase {self.id} - {self.date}"
 
-class DetalleCompra(models.Model):
-    compra = models.ForeignKey(Compra, on_delete=models.CASCADE)
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    cantidad = models.IntegerField()
-    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
+class PurchaseDetail(models.Model):
+    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def save(self, *args, **kwargs):
-        self.producto.stock = F('stock') + self.cantidad
-        self.producto.precio_compra = self.precio_unitario
-        self.producto.save()
+        self.product.stock = F('stock') + self.quantity
+        self.product.purchase_price = self.unit_price
+        self.product.save()
         super().save(*args, **kwargs)
         
-        MovimientoStock.objects.create(
-            producto=self.producto,
-            cantidad=self.cantidad,
-            tipo_movimiento='Entrada',
-            compra=self.compra
+        StockMovement.objects.create(
+            product=self.product,
+            quantity=self.quantity,
+            movement_type='In',
+            purchase=self.purchase
         )
 
     def __str__(self):
-        return f"{self.producto.nombre} - {self.cantidad} unidades"
+        return f"{self.product.name} - {self.quantity} units"
 
-class Cliente(models.Model):
-    nombre = models.CharField(max_length=100, unique=True)
-    direccion = models.TextField(blank=True, null=True)
+class Customer(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    address = models.TextField(blank=True, null=True)
     email = models.EmailField(max_length=255, blank=True, null=True, unique=True)
-    telefono = models.CharField(max_length=15, blank=True, null=True)
-    creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    ultima_actualizacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-
+    phone = models.CharField(max_length=15, blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     def __str__(self):
-        return self.nombre
+        return self.name
     
-class Descuento(models.Model):
+class Discount(models.Model):
     class ScopeType(models.TextChoices):
-        TODOS_PRODUCTOS = 'ALL', 'Todos los productos'
-        PRODUCTOS_SELECCIONADOS = 'PROD', 'Productos específicos'
-        TODAS_CATEGORIAS = 'CAT_ALL', 'Todas las categorías'
-        CATEGORIAS_SELECCIONADAS = 'CAT', 'Categorías específicas'
+        ALL_PRODUCTS = 'ALL', 'All products'
+        SELECTED_PRODUCTS = 'PROD', 'Specific products'
+        ALL_CATEGORIES = 'CAT_ALL', 'All categories'
+        SELECTED_CATEGORIES = 'CAT', 'Specific categories'
 
-    class TipoDescuento(models.TextChoices):
-        PORCENTAJE = 'POR', 'Porcentaje'
-        MONTO_FIJO = 'FIX', 'Monto Fijo'
+    class DiscountType(models.TextChoices):
+        PERCENTAGE = 'POR', 'Percentage'
+        FIXED_AMOUNT = 'FIX', 'Fixed Amount'
 
-    nombre = models.CharField(max_length=100)
-    tipo = models.CharField(max_length=3, choices=TipoDescuento.choices)
-    valor = models.DecimalField(max_digits=10, decimal_places=2)
-    alcance = models.CharField(
+    name = models.CharField(max_length=100)
+    type = models.CharField(max_length=3, choices=DiscountType.choices)
+    value = models.DecimalField(max_digits=10, decimal_places=2)
+    scope = models.CharField(
         max_length=10,
         choices=ScopeType.choices,
-        default=ScopeType.PRODUCTOS_SELECCIONADOS
+        default=ScopeType.SELECTED_PRODUCTS
     )
-    productos = models.ManyToManyField(Producto, blank=True)
-    categorias = models.ManyToManyField(Categoria, blank=True)
-    activo = models.BooleanField(
+    products = models.ManyToManyField(Product, blank=True)
+    categories = models.ManyToManyField(Category, blank=True)
+    active = models.BooleanField(
         default=True,
-        help_text="Descuento disponible para aplicar"
+        help_text="Discount available to apply"
     )
-    creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    ultima_actualizacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.nombre}"
+        return f"{self.name}"
 
     def clean(self):
-        if self.alcance == self.ScopeType.PRODUCTOS_SELECCIONADOS and not self.productos.exists():
-            raise ValidationError("Debe seleccionar al menos un producto para este alcance")
+        if self.scope == self.ScopeType.SELECTED_PRODUCTS and not self.products.exists():
+            raise ValidationError("You must select at least one product for this scope")
             
-        if self.alcance == self.ScopeType.CATEGORIAS_SELECCIONADAS and not self.categorias.exists():
-            raise ValidationError("Debe seleccionar al menos una categoría para este alcance")
+        if self.scope == self.ScopeType.SELECTED_CATEGORIES and not self.categories.exists():
+            raise ValidationError("You must select at least one category for this scope")
 
-    def productos_aplicables(self):
-        """Retorna queryset con productos elegibles para el descuento"""
-        if self.alcance == self.ScopeType.TODOS_PRODUCTOS:
-            return Producto.objects.all()
+    def applicable_products(self):
+        """Returns queryset with products eligible for discount"""
+        if self.scope == self.ScopeType.ALL_PRODUCTS:
+            return Product.objects.all()
         
-        if self.alcance == self.ScopeType.TODAS_CATEGORIAS:
-            return Producto.objects.filter(categoria__isnull=False)
+        if self.scope == self.ScopeType.ALL_CATEGORIES:
+            return Product.objects.filter(category__isnull=False)
         
-        if self.alcance == self.ScopeType.CATEGORIAS_SELECCIONADAS:
-            return Producto.objects.filter(categoria__in=self.categorias.all())
+        if self.scope == self.ScopeType.SELECTED_CATEGORIES:
+            return Product.objects.filter(category__in=self.categories.all())
         
-        return self.productos.all()
+        return self.products.all()
 
-    def aplicar_a_producto(self, producto):
-        """Verifica si el descuento aplica a un producto específico"""
-        if not self.activo:
+    def apply_to_product(self, product):
+        """Checks if discount applies to a specific product"""
+        if not self.active:
             return False
             
-        if self.alcance == self.ScopeType.TODOS_PRODUCTOS:
+        if self.scope == self.ScopeType.ALL_PRODUCTS:
             return True
             
-        if self.alcance == self.ScopeType.TODAS_CATEGORIAS and producto.categoria:
+        if self.scope == self.ScopeType.ALL_CATEGORIES and product.category:
             return True
             
-        if self.alcance == self.ScopeType.CATEGORIAS_SELECCIONADAS:
-            return producto.categoria in self.categorias.all()
+        if self.scope == self.ScopeType.SELECTED_CATEGORIES:
+            return product.category in self.categories.all()
             
-        return producto in self.productos.all()
+        return product in self.products.all()
 
-    def calcular_descuento(self, precio_original):
-        if not self.esta_activo:
+    def calculate_discount(self, original_price):
+        if not self.is_active:
             return 0
             
-        if self.tipo == self.TipoDescuento.PORCENTAJE:
-            return precio_original * (self.valor / 100)
+        if self.type == self.DiscountType.PERCENTAGE:
+            return original_price * (self.value / 100)
             
-        return min(self.valor, precio_original)    
+        return min(self.value, original_price)    
 
-class Venta(models.Model):
-    forma_de_pago_choices = [
-        ('Efectivo', 'Efectivo'),
-        ('Tarjeta', 'Tarjeta'),
+class Sale(models.Model):
+
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('PAID', 'Paid'),
+        ('CANCELLED', 'Cancelled')
     ]
 
-    estado_choices = [
-        ('Pendiente', 'Pendiente'),
-        ('Pagado', 'Pagado'),
-        ('Anulado', 'Anulado')
-    ]
-
-    fecha = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    # forma_de_pago = models.CharField(choices=forma_de_pago_choices,max_length=100, default=forma_de_pago_choices[0][0])
-
-    forma_de_pago = models.ForeignKey('MetodoPago', on_delete=models.PROTECT)
-    estado = models.CharField(choices=estado_choices,max_length=100, default=estado_choices[0][0])
-    cliente = models.ForeignKey('Cliente', on_delete=models.CASCADE)
-    productos = models.ManyToManyField(Producto, through='DetalleVenta')
-    creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    payment_method = models.ForeignKey('PaymentMethod', on_delete=models.PROTECT)
+    status = models.CharField(choices=STATUS_CHOICES, max_length=100, default=STATUS_CHOICES[0][0])
+    customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
+    products = models.ManyToManyField(Product, through='SaleDetail')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
     class Meta:
-        ordering = ['-fecha']
+        ordering = ['-date']
         indexes = [
-            models.Index(fields=['-fecha', 'cliente']),
-            models.Index(fields=['estado']),
+            models.Index(fields=['-date', 'customer']),
+            models.Index(fields=['status']),
         ]
 
-    @transaction.atomic
-    def create_sale(self, detalles_data):
-        """
-        Crea una venta con validaciones robustas y cálculo seguro del total
-        Args:
-            detalles_data (list): Lista de diccionarios con:
-                - producto_id (int)
-                - cantidad (int)
-                - [opcional] descuento_id (int)
-        """
-        # Validación inicial
-        if not detalles_data:
-            raise ValidationError("La venta debe contener al menos un producto")
-
-        # Pre-cargar recursos necesarios
-        producto_ids = [d['producto_id'] for d in detalles_data]
-        productos = Producto.objects.in_bulk(producto_ids)
-        descuento_ids = [d.get('descuento_id') for d in detalles_data if d.get('descuento_id')]
-        descuentos = Descuento.objects.in_bulk(descuento_ids) if descuento_ids else {}
-
-        # Variables de cálculo
-        total = Decimal('0.00')
-        detalles_venta = []
-        updates_stock = []
-
-        # Procesar cada detalle
-        for detalle in detalles_data:
-            producto_id = detalle['producto_id']
-            cantidad = detalle['cantidad']
-            
-            # 1. Validar producto
-            producto = productos.get(producto_id)
-            if not producto:
-                raise ValidationError(f"Producto ID {producto_id} no existe")
-            
-            # 2. Validar stock
-            if producto.stock < cantidad:
-                raise ValidationError(f"Stock insuficiente para {producto.nombre} (Stock: {producto.stock}, Solicitado: {cantidad})")
-
-            # 3. Obtener precio ACTUAL desde DB (evita usar precio del front)
-            precio_unitario = producto.precio_venta
-            
-            # 4. Calcular descuentos
-            descuento_valor = Decimal('0.00')
-            if detalle.get('descuento_id'):
-                descuento = descuentos.get(detalle['descuento_id'])
-                if descuento and descuento.aplicar_a_producto(producto):
-                    descuento_valor = descuento.calcular_descuento(precio_unitario)
-
-            # 5. Calcular subtotal
-            subtotal = (precio_unitario - descuento_valor) * cantidad
-            total += subtotal
-
-            # 6. Preparar detalle
-            detalles_venta.append(
-                DetalleVenta(
-                    venta=self,
-                    producto=producto,
-                    cantidad=cantidad,
-                    precio_unitario=precio_unitario,
-                    descuento=descuento if descuento_valor else None
-                )
-            )
-
-            # 7. Preparar actualización de stock
-            updates_stock.append((producto, cantidad))
-
-        # 8. Validación final del total
-        if total <= Decimal('0.00'):
-            raise ValidationError("El total de la venta debe ser mayor a cero")
-
-        # 9. Asignar y guardar (en orden correcto)
-        self.total = total
-        self.full_clean()  # Ejecuta tu método clean()
-        self.save()
-
-        # 10. Crear detalles y actualizar stock
-        DetalleVenta.objects.bulk_create(detalles_venta)
-        
-        for producto, cantidad in updates_stock:
-            producto.stock = F('stock') - cantidad
-            producto.save(update_fields=['stock'])
-            MovimientoStock.objects.create(
-                producto=producto,
-                cantidad=cantidad,
-                tipo_movimiento='Salida',
-                venta=self
-            )
-
-        # 11. Generar factura (opcional)
-        self.generar_factura()
-
-        return self
-
-    def clean(self):
-        if self.total is None:
-            print('entre')
-            raise ValidationError("El total no puede ser nulo")
-        if self.total < 0:
-            print('entre2')
-            raise ValidationError("El total no puede ser negativo")
-    def generar_factura(self):
-        from .signals import generar_factura_venta
-        generar_factura_venta(sender=self.__class__, instance=self, created=False)
-
     def __str__(self):
-        return f"Venta {self.id} - {self.fecha}"
+        return f"Sale {self.id} - {self.date}"
 
-class DetalleVenta(models.Model):
-    venta = models.ForeignKey('Venta', on_delete=models.CASCADE)
-    producto = models.ForeignKey('Producto', on_delete=models.CASCADE)
-    cantidad = models.IntegerField()
-    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
-    descuento = models.ForeignKey('Descuento', null=True, blank=True, on_delete=models.SET_NULL)
-    creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+class SaleDetail(models.Model):
+    sale = models.ForeignKey('Sale', on_delete=models.CASCADE)
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    discount = models.ForeignKey('Discount', null=True, blank=True, on_delete=models.SET_NULL)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
-    # def save(self, *args, **kwargs):
-    #     if self.producto.stock < self.cantidad:
-    #         raise ValidationError("Stock insuficiente para realizar la venta")
-            
-    #     self.producto.stock = F('stock') - self.cantidad
-    #     self.producto.save()
-    #     super().save(*args, **kwargs)
-        
-    #     MovimientoStock.objects.create(
-    #         producto=self.producto,
-    #         cantidad=self.cantidad,
-    #         tipo_movimiento='Salida',
-    #         venta=self.venta
-    #     )
-
-    def __str__(self):
-        return f"{self.producto.nombre} - {self.cantidad} unidades from {self.venta}"
-
-class FacturaVenta(models.Model):
-    numero_factura = models.CharField(max_length=50, unique=True)
-    fecha_emision = models.DateTimeField(auto_now_add=True)
-    fecha_vencimiento = models.DateTimeField()
-    total = models.DecimalField(max_digits=10, decimal_places=2)
-    descuento_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
-    monto_total = models.DecimalField(max_digits=10, decimal_places=2)
-    observaciones = models.TextField(blank=True, null=True)
-    venta = models.ForeignKey('Venta', on_delete=models.CASCADE)
-    creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    ultima_actualizacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-
-    def __str__(self):
-        return f"Factura {self.numero_factura} - {self.fecha_emision}"
+    sale_attributes = models.JSONField(
+        default=dict,
+        help_text="Atributos del producto al momento de la venta"
+    )
 
     def save(self, *args, **kwargs):
-        if not self.numero_factura:
-            self.numero_factura = f"F-{self.venta.id}"
-        if not self.fecha_emision:
-            self.fecha_emision = timezone.now()
-        if not self.fecha_vencimiento:
-            self.fecha_vencimiento = self.fecha_emision + timedelta(days=30)
-        self.descuento_total = sum(detalle.descuento * detalle.cantidad for detalle in DetalleVenta.objects.filter(venta=self.venta))
-        self.monto_total = self.total - self.descuento_total
-        super(FacturaVenta, self).save(*args, **kwargs)
+        if not self.sale_attributes and self.product:
+            self.sale_attributes = self.product.attributes.copy()
+        super().save(*args, **kwargs)
 
-class MovimientoStock(models.Model):
-    TIPO_MOVIMIENTO_CHOICES = [
-        ('Entrada', 'Entrada'),
-        ('Salida', 'Salida'),
+    def __str__(self):
+        return f"{self.product.name} - {self.quantity} units from {self.sale}"
+
+class SaleInvoice(models.Model):
+    invoice_number = models.CharField(max_length=50, unique=True)
+    issue_date = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateTimeField()
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    total_discount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    notes = models.TextField(blank=True, null=True)
+    sale = models.ForeignKey('Sale', on_delete=models.CASCADE)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    def __str__(self):
+        return f"Invoice {self.invoice_number} - {self.issue_date}"
+
+    def save(self, *args, **kwargs):
+        if not self.invoice_number:
+            self.invoice_number = f"I-{self.sale.id}"
+        if not self.issue_date:
+            self.issue_date = timezone.now()
+        if not self.due_date:
+            self.due_date = self.issue_date + timedelta(days=30)
+        self.total_discount = sum(detail.discount * detail.quantity for detail in SaleDetail.objects.filter(sale=self.sale))
+        self.total_amount = self.total - self.total_discount
+        super(SaleInvoice, self).save(*args, **kwargs)
+
+class StockMovement(models.Model):
+    MOVEMENT_TYPE_CHOICES = [
+        ('In', 'In'),
+        ('Out', 'Out'),
     ]
 
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    cantidad = models.IntegerField()
-    tipo_movimiento = models.CharField(max_length=10, choices=TIPO_MOVIMIENTO_CHOICES)
-    fecha = models.DateTimeField(auto_now_add=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.IntegerField()
+    movement_type = models.CharField(max_length=10, choices=MOVEMENT_TYPE_CHOICES)
+    date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.tipo_movimiento} de {self.cantidad} unidades de {self.producto.nombre}"
+        return f"{self.movement_type} of {self.quantity} units of {self.product.name}"
 
-class DevolucionCompra(models.Model):
-    compra = models.ForeignKey(Compra, on_delete=models.CASCADE)
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    cantidad = models.PositiveIntegerField()
-    motivo = models.TextField()
-    fecha = models.DateTimeField(auto_now_add=True)
-    estado = models.CharField(max_length=20, choices=[
-        ('Pendiente', 'Pendiente'),
-        ('Aprobada', 'Aprobada'),
-        ('Rechazada', 'Rechazada')
-    ], default='Pendiente')
-    creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    ultima_actualizacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+class PurchaseReturn(models.Model):
+    purchase = models.ForeignKey(Purchase, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    reason = models.TextField()
+    date = models.DateTimeField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=[
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected')
+    ], default='PENDING')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        if self.cantidad > self.compra.detallecompra_set.get(producto=self.producto).cantidad:
-            raise ValidationError("Cantidad a devolver excede la compra original")
+        if self.quantity > self.purchase.purchasedetail_set.get(product=self.product).quantity:
+            raise ValidationError("Return quantity exceeds original purchase")
             
         super().save(*args, **kwargs)
         
-        if self.estado == 'Aprobada':
-            self.producto.stock = F('stock') - self.cantidad
-            self.producto.save()
+        if self.status == 'APPROVED':
+            self.product.stock = F('stock') - self.quantity
+            self.product.save()
             
-            MovimientoStock.objects.create(
-                producto=self.producto,
-                cantidad=self.cantidad,
-                tipo_movimiento='Salida',
-                devolucion_compra=self
+            StockMovement.objects.create(
+                product=self.product,
+                quantity=self.quantity,
+                movement_type='Out',
+                purchase_return=self
             )
 
-class DevolucionVenta(models.Model):
-    venta = models.ForeignKey(Venta, on_delete=models.CASCADE)
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    cantidad = models.PositiveIntegerField()
-    motivo = models.TextField()
-    fecha = models.DateTimeField(auto_now_add=True)
-    estado = models.CharField(max_length=20, choices=[
-        ('Pendiente', 'Pendiente'),
-        ('Aprobada', 'Aprobada'),
-        ('Rechazada', 'Rechazada')
-    ], default='Pendiente')
-    creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+class SaleReturn(models.Model):
+    sale = models.ForeignKey(Sale, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    reason = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=[
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected')
+    ], default='PENDING')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
 
     def save(self, *args, **kwargs):
-        detalle_original = self.venta.detalleventa_set.get(producto=self.producto)
-        if self.cantidad > detalle_original.cantidad:
-            raise ValidationError("Cantidad a devolver excede la venta original")
+        original_detail = self.sale.saledetail_set.get(product=self.product)
+        if self.quantity > original_detail.quantity:
+            raise ValidationError("Return quantity exceeds original sale")
         
         super().save(*args, **kwargs)
         
-        if self.estado == 'Aprobada':
-            self.producto.stock = F('stock') + self.cantidad
-            self.producto.save()
+        if self.status == 'APPROVED':
+            self.product.stock = F('stock') + self.quantity
+            self.product.save()
             
-            MovimientoStock.objects.create(
-                producto=self.producto,
-                cantidad=self.cantidad,
-                tipo_movimiento='Entrada',
-                devolucion_venta=self
+            StockMovement.objects.create(
+                product=self.product,
+                quantity=self.quantity,
+                movement_type='In',
+                sale_return=self
             )
 
-class MetodoPago(models.Model):
-    class Tipos(models.TextChoices):
-        EFECTIVO = 'EF', 'Efectivo'
-        TARJETA_CREDITO = 'TC', 'Tarjeta de Crédito'
-        TARJETA_DEBITO = 'TD', 'Tarjeta de Débito'
+class PaymentMethod(models.Model):
+    class Types(models.TextChoices):
+        CASH = 'CA', 'Cash'
+        CREDIT_CARD = 'CC', 'Credit Card'
+        DEBIT_CARD = 'DC', 'Debit Card'
     
-    nombre = models.CharField(max_length=2, choices=Tipos.choices, unique=True)
-    descripcion = models.TextField(blank=True, null=True)
-    activo = models.BooleanField(default=True)
-    creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    ultima_actualizacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    name = models.CharField(max_length=2, choices=Types.choices, unique=True)
+    description = models.TextField(blank=True, null=True)
+    active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
-class Marca(models.Model):
-    nombre = models.CharField(max_length=100, unique=True)
-    descripcion = models.TextField(blank=True, null=True)
-    fecha_creacion = models.DateField(auto_now_add=True)
-    imagen = models.ImageField(upload_to='marcas/', blank=True, null=True)
-    creado_por = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    ultima_actualizacion = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+class Brand(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+    creation_date = models.DateField(auto_now_add=True)
+    image = models.ImageField(upload_to='brands/', blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     
     class Meta:
-        verbose_name = 'Marca'
-        verbose_name_plural = 'Marcas'
-        ordering = ['nombre']
+        verbose_name = 'Brand'
+        verbose_name_plural = 'Brands'
+        ordering = ['name']
         indexes = [
-            models.Index(fields=['nombre'], name='idx_nombre_marca')
+            models.Index(fields=['name'], name='idx_brand_name')
         ]
 
     def __str__(self):
-        return f"Marca {self.nombre}"
+        return f"Brand {self.name}"
