@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
-    'drf_yasg',
+    'drf_spectacular',
     'widget_tweaks',
     'jsoneditor',
     'django_jsonform',
@@ -58,6 +58,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication', 
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
 }
 
 SIMPLE_JWT = {
@@ -70,14 +72,13 @@ DJOSER = {
     'LOGIN_FIELD': 'username',
 }
 
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'Bearer': {
-            'type': 'apiKey',
-            'description': 'JWT Authorization header using the Bearer scheme. Example: "Authorization: Bearer {token}"',
-            'name': 'Authorization',
-            'in': 'header',
-        }
+SPECTACULAR_SETTINGS = {
+    'TITLE': "Elisa's Stationery API",
+    'DESCRIPTION': "Elisa's Stationery API",
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'ENUM_NAME_OVERRIDES': {
+        'DiscountType': 'backend.utils.enums.DiscountTypeEnum.choices',
     },
 }
 

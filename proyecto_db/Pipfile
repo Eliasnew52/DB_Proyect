@@ -17,6 +17,7 @@ djoser = "*"
 djangorestframework-simplejwt = "*"
 jsonschema = "*"
 drf-yasg = "*"
+drf-spectacular = "*"
 
 [dev-packages]
 
