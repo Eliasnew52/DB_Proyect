@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.core.exceptions import ObjectDoesNotExist
-from backend.models import SaleDetail, Discount, Product
+from backend.models import SaleDetail, Discount, Product, DiscountType
 from backend.utils.enums import DiscountTypeEnum, ScopeTypeEnum 
 
 class SaleDetailWriteSerializer(serializers.ModelSerializer):
@@ -12,11 +12,11 @@ class SaleDetailWriteSerializer(serializers.ModelSerializer):
         write_only=True,
         help_text="ID de descuento existente (opcional)"
     )
-    discount_type = serializers.ChoiceField(
-        choices=DiscountTypeEnum.choices,
+    discount_type  = serializers.SlugRelatedField(
+        slug_field='code',
+        queryset=DiscountType.objects.all(),
         required=False,
-        write_only=True,
-        help_text="'percentage' o 'fixed_amount' (requerido si no se usa discount_id)"
+        allow_null=True
     )
     discount_value = serializers.DecimalField(
         max_digits=10,
@@ -34,45 +34,42 @@ class SaleDetailWriteSerializer(serializers.ModelSerializer):
     def validate(self, data):
         try:
             product = Product.objects.get(pk=data['product'].id)
-            
-            if not product.active:
-                raise serializers.ValidationError("Este producto está desactivado")
-                
-            if product.stock < data.get('quantity', 0):
-                raise serializers.ValidationError("Stock insuficiente")
-                
         except ObjectDoesNotExist:
             raise serializers.ValidationError("Producto no encontrado")
 
+        if not product.active:
+            raise serializers.ValidationError("Este producto está desactivado")
+        if product.stock < data.get('quantity', 0):
+            raise serializers.ValidationError("Stock insuficiente")
         if data['quantity'] <= 0:
             raise serializers.ValidationError("La cantidad debe ser mayor a 0")
 
+        has_existing = data.get('discount') is not None
+        has_manual   = data.get('discount_type') or data.get('discount_value') is not None
 
-        discount_id = data.get('discount')
+        if has_existing and has_manual:
+            raise serializers.ValidationError(
+                "Use solo discount_id o bien discount_type + discount_value, no ambos."
+            )
+
         discount_type = data.get('discount_type')
-        discount_value = data.get('discount_value')
-        product = data.get('product')
+        val  = data.get('discount_value')
+        if discount_type:
+            if val is None:
+                raise serializers.ValidationError("Debe indicar discount_value para un descuento manual")
+            try:
+                dt = DiscountType.objects.get(code=discount_type.code)
+            except DiscountType.DoesNotExist:
+                raise serializers.ValidationError(f"Tipo de descuento «{discount_type.code}» inválido")
 
-        if discount_id and (discount_type or discount_value):
-            raise serializers.ValidationError(
-                "Use solo descuento existente o valores ad-hoc, no ambos."
-            )
-
-        # if not discount_id and not (discount_type or discount_value):
-        #     raise serializers.ValidationError(
-        #         "Se requieren tipo y valor de descuento para descuentos ad-hoc."
-        #     )
-
-        if discount_type == DiscountTypeEnum.PERCENTAGE and discount_value > 100:
-            raise serializers.ValidationError(
-                "El descuento porcentual no puede exceder el 100%."
-            )
-
-        if discount_type == DiscountTypeEnum.FIXED_AMOUNT:
-            max_discount = product.sale_price * data['quantity']
-            if discount_value > max_discount:
-                raise serializers.ValidationError(
-                    f"El descuento fijo no puede exceder ${max_discount} para esta cantidad."
-                )
+            if dt.code == 'PERCENT' and val > 100:
+                raise serializers.ValidationError("El porcentaje no puede exceder 100%")
+            if dt.code == 'FIXED':
+                max_desc = product.sale_price * data['quantity']
+                if val > max_desc:
+                    raise serializers.ValidationError(
+                        f"El monto fijo no puede exceder ${max_desc} para esta cantidad"
+                    )
+            data['discount_type'] = dt.id
 
         return data

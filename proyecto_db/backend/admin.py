@@ -1,5 +1,5 @@
 import json
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.utils.html import format_html
 from django.contrib.postgres.fields import JSONField
 from django.urls import reverse
@@ -23,7 +23,7 @@ class SchemaAwareJSONEditor(JSONFormWidget):
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'schema_preview', 'created_by', 'last_updated')
+    list_display = ('name', 'schema_preview', 'created_by', 'last_updated', 'id')
     search_fields = ('name', 'description')
     list_filter = ('created_by',)
     readonly_fields = ('created_by', 'last_updated', 'schema_preview')
@@ -73,7 +73,7 @@ class ProductForm(forms.ModelForm):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'sale_price', 'stock', 'category', 'attribute_preview', 'active')
+    list_display = ('name', 'sale_price', 'stock', 'category', 'attribute_preview', 'active', 'id')
     list_editable = ('active',)
     list_filter = ('category', 'suppliers', 'active')
     search_fields = ('name', 'description', 'attributes')
@@ -157,7 +157,7 @@ class CustomerAdmin(admin.ModelAdmin):
     list_display = ('name', 'address', 'email', 'contact_info', 'created_by')
     search_fields = ('name', 'email', 'phone')
     list_filter = ('name',)
-    readonly_fields = ('last_updated',)
+    readonly_fields = ('last_updated', 'id')
     
     def contact_info(self, obj):
         return format_html("📧 {}<br>📞 {}", obj.email or "-", obj.phone or "-")
@@ -260,11 +260,12 @@ class CompanyAdmin(admin.ModelAdmin):
 @admin.register(PaymentMethod)
 class PaymentMethodAdmin(admin.ModelAdmin):
     list_display = (
-        'name_column',
+        'code',
+        'name',
         'description',
         'active',
         'created_by',
-        'last_updated'
+        'last_updated',
     )
     
     list_editable = ('active',)
@@ -275,7 +276,7 @@ class PaymentMethodAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Información Básica', {
-            'fields': ('name', 'active'),
+            'fields': ('name', 'code', 'active'),
             'description': 'Configuración principal del método de pago'
         }),
         ('Detalles Adicionales', {
@@ -285,10 +286,7 @@ class PaymentMethodAdmin(admin.ModelAdmin):
     )
     
     readonly_fields = ('created_by', 'last_updated')
-    
-    def name_column(self, obj):
-        return obj.get_name_display()
-    name_column.short_description = 'Tipo'
+
 
     # def save_model(self, request, obj, form, change):
     #     if not obj.pk:
@@ -300,20 +298,24 @@ class PaymentMethodAdmin(admin.ModelAdmin):
 class DiscountAdmin(admin.ModelAdmin):
     list_display = (
         'name',
-        'type_display',
+        'type_label',
         'value',
-        'scope_display',
+        'scope_label',
+        'active_badge',
         'active',
         'applicable_products_count',
         'created_by',
         'last_updated'
     )
-    list_editable = ('active',)
-    search_fields = ['name', 'description']
-    list_filter = ('active', 'type', 'scope')
-    filter_horizontal = ('products', 'categories')
-    readonly_fields = ('created_by', 'last_updated', 'applicable_products_preview')
-    
+
+    list_editable    = ('active',)
+    search_fields    = ['name', 'description']
+    list_filter      = ('active', 'type__label', 'scope__label')
+    filter_horizontal= ('products', 'categories')
+    readonly_fields  = ('created_by', 'last_updated', 'applicable_products_preview')
+    raw_id_fields    = ('products', 'categories')
+    list_select_related = ('type', 'scope', 'created_by')
+
     fieldsets = (
         ('Información General', {
             'fields': ('name', 'active'),
@@ -337,13 +339,23 @@ class DiscountAdmin(admin.ModelAdmin):
         }),
     )
 
-    def type_display(self, obj):
-        return obj.get_type_display()
-    type_display.short_description = 'Tipo'
+    def type_label(self, obj):
+        return obj.type.label
+    type_label.short_description = 'Tipo'
 
-    def scope_display(self, obj):
-        return obj.get_scope_display()
-    scope_display.short_description = 'Alcance'
+    def scope_label(self, obj):
+        return obj.scope.label
+    scope_label.short_description = 'Alcance'
+
+    def active_badge(self, obj):
+        color = 'success' if obj.active else 'secondary'
+        text  = 'Activo'  if obj.active else 'Inactivo'
+        return format_html(
+            '<span class="badge bg-{}">{}</span>',
+            color,
+            text
+        )
+    active_badge.short_description = 'Estado'
 
     def applicable_products_count(self, obj):
         return obj.applicable_products().count()
@@ -355,40 +367,22 @@ class DiscountAdmin(admin.ModelAdmin):
             "<div style='max-height: 200px; overflow-y: auto;'>"
             "<strong>Productos afectados:</strong><br>{}"
             "</div>",
-            "<br>".join(products) if products else "Ninguno (según el alcance)"
+            "<br>".join(products) if products else "Ninguno"
         )
-    applicable_products_preview.short_description = 'Previsualización de Aplicación'
+    applicable_products_preview.short_description = 'Previsualización'
 
     def save_model(self, request, obj, form, change):
-        if not obj.pk:
+        if not change:
             obj.created_by = request.user
         obj.last_updated = timezone.now()
         super().save_model(request, obj, form, change)
 
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        if db_field.name == "products":
-            kwargs["queryset"] = Product.objects.select_related('category')
-        elif db_field.name == "categories":
-            kwargs["queryset"] = Category.objects.prefetch_related('product_set')
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
-    
 class SaleDetailInline(admin.TabularInline):
     model = SaleDetail
     extra = 0
     readonly_fields = ('final_price', 'sale_attributes')
-    fields = (
-        'product', 'quantity', 'unit_price', 
-        'discount_type', 'discount_value', 'final_price',
-        'sale_attributes'
-    )
-    autocomplete_fields = ['product']
+    autocomplete_fields = ('product',)
     verbose_name_plural = "Detalles de Venta"
-    
-    def has_add_permission(self, request, obj=None):
-        return obj and obj.status == Sale.Status.PENDING
-
-    def has_delete_permission(self, request, obj=None):
-        return obj and obj.status == Sale.Status.PENDING
 
 @admin.register(Sale)
 class SaleAdmin(admin.ModelAdmin):
@@ -397,96 +391,96 @@ class SaleAdmin(admin.ModelAdmin):
         'status_badge',
         'payment_method',
         'total_display',
-        'products_count'
+        'products_count',
+        'id',
     )
     list_filter = (
-        ('status', admin.ChoicesFieldListFilter),
-        ('date', admin.DateFieldListFilter),
-        'payment_method'
+        'status',
+        ('date',    admin.DateFieldListFilter),
+        'payment_method',
     )
     search_fields = (
         'customer__name',
         'customer__email',
-        'payment_method__name'
+        'payment_method__name',
+        'status__label',
     )
-    raw_id_fields = ('customer', 'payment_method')
-    date_hierarchy = 'date'
-    inlines = [SaleDetailInline]
-    actions = ['mark_as_paid', 'cancel_sale']
+    raw_id_fields   = ('customer', 'payment_method')
+    date_hierarchy  = 'date'
+    inlines         = [SaleDetailInline]
+    actions         = ['mark_as_paid', 'cancel_sale']
     readonly_fields = ('created_by', 'date', 'subtotal', 'total')
     fieldsets = (
         (None, {
             'fields': (
                 ('date', 'created_by'),
                 ('customer', 'payment_method'),
-                'status'
+                'status',
             )
         }),
         ('Totales', {
-            'fields': (
-                ('subtotal', 'total'),
-            ),
+            'fields': (('subtotal', 'total'),),
             'classes': ('collapse',)
         }),
     )
 
-    # def customer_link(self, obj):
-    #     url = reverse("admin:app_customer_change", args=[obj.customer.id])
-    #     return format_html('<a href="{}">{}</a>', url, obj.customer)
-    # customer_link.short_description = "Cliente"
-
     def status_badge(self, obj):
         status_map = {
-            Sale.Status.PENDING: ('secondary', '⏳'),
-            Sale.Status.PAID: ('success', '✅'),
-            Sale.Status.CANCELLED: ('danger', '❌'),
-            Sale.Status.REFUNDED: ('warning', '↩️'),
+            'PENDING':   ('secondary', '⏳'),
+            'PAID':      ('success',   '✅'),
+            'CANCELLED': ('danger',    '❌'),
+            'REFUNDED':  ('warning',   '↩️'),
         }
-        color, icon = status_map.get(obj.status, ('dark', '?'))
+        code = obj.status.code
+        color, icon = status_map.get(code, ('dark', '?'))
         return format_html(
             '<span class="badge bg-{}">{} {}</span>',
             color,
             icon,
-            obj.get_status_display()
+            obj.status.label
         )
-    status_badge.short_description = "Estado"
+    status_badge.short_description = 'Estado'
 
     def total_display(self, obj):
         return f"${obj.total:.2f}"
-    total_display.short_description = "Total"
+    total_display.short_description = 'Total'
 
     def products_count(self, obj):
         return obj.products.count()
-    products_count.short_description = "Productos"
+    products_count.short_description = 'Productos'
 
     def mark_as_paid(self, request, queryset):
-        updated = queryset.exclude(status=Sale.Status.PAID).update(
-            status=Sale.Status.PAID
-        )
+        paid = SaleStatus.objects.get(code='PAID')
+        updated = queryset.exclude(status=paid).update(status=paid)
         self.message_user(request, f"{updated} ventas marcadas como pagadas")
     mark_as_paid.short_description = "Marcar como pagado"
 
     def cancel_sale(self, request, queryset):
+        paid      = SaleStatus.objects.get(code='PAID')
+        cancelled = SaleStatus.objects.get(code='CANCELLED')
+        cancelled_count = 0
+
         for sale in queryset:
-            if sale.status == Sale.Status.PAID:
+            if sale.status == paid:
                 self.message_user(
-                    request, 
-                    f"Venta {sale.id} no puede ser cancelada (ya está pagada)",
-                    level='ERROR'
+                    request,
+                    f"Venta {sale.id} no puede cancelarse (ya está pagada)",
+                    level=messages.ERROR
                 )
                 continue
-            sale.status = Sale.Status.CANCELLED
+            sale.status = cancelled
             sale.save()
             sale.saledetail_set.all().delete()
-        self.message_user(request, f"{queryset.count()} ventas canceladas")
+            cancelled_count += 1
+
+        self.message_user(request, f"{cancelled_count} ventas canceladas")
     cancel_sale.short_description = "Cancelar ventas seleccionadas"
 
     def save_model(self, request, obj, form, change):
-        if not obj.pk:
+        if not change:
             obj.created_by = request.user
         obj.update_total()
         super().save_model(request, obj, form, change)
-
 @admin.register(SaleDetail)
 class SaleDetailAdmin(admin.ModelAdmin):
     list_display = (
@@ -494,48 +488,41 @@ class SaleDetailAdmin(admin.ModelAdmin):
         'quantity',
         'unit_price',
         'discount_display',
-        'final_price'
+        'final_price',
     )
-    list_filter = ('discount_type',)
+    list_filter = (
+        ('discount_type', admin.ChoicesFieldListFilter),
+    )
     search_fields = (
         'sale__id',
-        'product__name'
+        'product__name',
     )
-    raw_id_fields = ('sale', 'product')
-    readonly_fields = ('sale_attributes', 'final_price')
-
-    # def sale_link(self, obj):
-    #     url = reverse("admin:app_sale_change", args=[obj.sale.id])
-    #     return format_html('<a href="{}">Venta #{}</a>', url, obj.sale.id)
-    # sale_link.short_description = "Venta"
-
-    # def product_link(self, obj):
-    #     url = reverse("admin:app_product_change", args=[obj.product.id])
-    #     return format_html('<a href="{}">{}</a>', url, obj.product.name)
-    # product_link.short_description = "Producto"
+    raw_id_fields    = ('sale', 'product')
+    readonly_fields  = ('sale_attributes', 'final_price')
+    autocomplete_fields = ('product',)
 
     def discount_display(self, obj):
-        if not obj.discount_type:
+        if obj.discount_type is None:
             return "-"
         symbol = "%" if obj.discount_type == DiscountTypeEnum.PERCENTAGE else "$"
         return f"{obj.discount_value}{symbol}"
     discount_display.short_description = "Descuento"
 
     def get_readonly_fields(self, request, obj=None):
-        if obj and obj.sale.status != Sale.Status.PENDING:
-            return self.readonly_fields + ('quantity', 'unit_price')
-        return self.readonly_fields
+        fields = list(self.readonly_fields)
+        if obj and obj.sale.status.code != 'PENDING':
+            fields += ['quantity', 'unit_price']
+        return fields
 
-    def has_change_permission(self, request, obj=None):
-        if obj and obj.sale.status != Sale.Status.PENDING:
-            return False
-        return super().has_change_permission(request, obj)
+    # def has_change_permission(self, request, obj=None):
+    #     if obj and obj.sale.status.code != 'PENDING':
+    #         return False
+    #     return super().has_change_permission(request, obj)
 
-    def has_delete_permission(self, request, obj=None):
-        if obj and obj.sale.status != Sale.Status.PENDING:
-            return False
-        return super().has_delete_permission(request, obj)
-    
+    # def has_delete_permission(self, request, obj=None):
+    #     if obj and obj.sale.status.code != 'PENDING':
+    #         return False
+    #     return super().has_delete_permission(request, obj)  
 class DueDateFilter(SimpleListFilter):
     title = 'Estado de fecha'
     parameter_name = 'due_status'
@@ -557,6 +544,12 @@ class DueDateFilter(SimpleListFilter):
             return queryset.filter(sale__status=Sale.Status.PAID)
         return queryset
 
+from django.contrib import admin, messages
+from django.utils.html import format_html
+from django.utils import timezone
+from django.core.exceptions import ValidationError
+from .models import SaleInvoice, Sale, SaleStatus
+
 @admin.register(SaleInvoice)
 class SaleInvoiceAdmin(admin.ModelAdmin):
     list_display = (
@@ -568,25 +561,27 @@ class SaleInvoiceAdmin(admin.ModelAdmin):
         'sale',
         'created_by'
     )
-    list_filter = (DueDateFilter, 'issue_date')
-    search_fields = ('invoice_number', 'sale__id')
-    readonly_fields = ('created_by', 'last_updated', 'invoice_number', 'issue_date', 'sale')
-    raw_id_fields = ('sale',)
-    autocomplete_fields = ['sale']
-    date_hierarchy = 'issue_date'
+    list_filter = (
+        'issue_date',
+        ('sale__status__label', admin.ChoicesFieldListFilter),
+        ('due_date', admin.DateFieldListFilter),
+    )
+    search_fields = ('invoice_number', 'sale__id', 'sale__status__label')
+    readonly_fields = (
+        'created_by',
+        'last_updated',
+        'invoice_number',
+        'issue_date',
+        'sale',
+    )
+    raw_id_fields    = ('sale',)
+    date_hierarchy   = 'issue_date'
     fieldsets = (
         ('Información Básica', {
-            'fields': (
-                ('invoice_number', 'sale'),
-                ('due_date',)
-            )
+            'fields': (('invoice_number', 'sale'), ('due_date',))
         }),
         ('Detalles Financieros', {
-            'fields': (
-                ('subtotal', 'discount'),
-                'total_amount',
-                'notes'
-            ),
+            'fields': (('subtotal', 'discount'), 'total_amount', 'notes'),
             'classes': ('collapse',)
         }),
         ('Auditoría', {
@@ -596,65 +591,65 @@ class SaleInvoiceAdmin(admin.ModelAdmin):
     )
     actions = ['send_invoice_email', 'export_to_pdf']
 
-    # def sale_link(self, obj):
-    #     url = reverse("admin:sales_sale_change", args=[obj.sale.id])
-    #     return format_html('<a href="{}">Venta #{}</a>', url, obj.sale.id)
-    # sale_link.short_description = "Venta Relacionada"
-
     def due_date_status(self, obj):
         today = timezone.now().date()
-        if obj.due_date < today and obj.sale.status != Sale.Status.PAID:
-            return format_html('<span style="color: red; font-weight: bold;">VENCIDA ({})</span>', obj.due_date)
-        elif obj.sale.status == Sale.Status.PAID:
+        status_code = obj.sale.status.code
+        if obj.due_date < today and status_code != 'PAID':
+            return format_html(
+                '<span style="color: red; font-weight: bold;">VENCIDA ({})</span>',
+                obj.due_date
+            )
+        if status_code == 'PAID':
             return format_html('<span style="color: green;">PAGADA</span>')
-        return format_html('<span style="color: orange;">PENDIENTE ({})</span>', obj.due_date)
-    due_date_status.short_description = "Estado"
+        return format_html(
+            '<span style="color: orange;">PENDIENTE ({})</span>',
+            obj.due_date
+        )
+    due_date_status.short_description = 'Estado'
 
     def total_amount_display(self, obj):
-        return f"${obj.total_amount:.2f}" if obj.total_amount else "-"
-    total_amount_display.short_description = "Total"
+        return f"${obj.total_amount:.2f}" if obj.total_amount is not None else "-"
+    total_amount_display.short_description = 'Total'
 
     def payment_status(self, obj):
         status_map = {
-            Sale.Status.PAID: ('green', '✅ Pagada'),
-            Sale.Status.PENDING: ('orange', '⏳ Pendiente'),
-            Sale.Status.CANCELLED: ('red', '❌ Cancelada'),
-            Sale.Status.REFUNDED: ('blue', '↩️ Reembolsada'),
+            'PAID':      ('green',   '✅ Pagada'),
+            'PENDING':   ('orange', '⏳ Pendiente'),
+            'CANCELLED': ('red',    '❌ Cancelada'),
+            'REFUNDED':  ('blue',   '↩️ Reembolsada'),
         }
-        color, text = status_map.get(obj.sale.status, ('black', 'Desconocido'))
+        code = obj.sale.status.code
+        color, text = status_map.get(code, ('black', 'Desconocido'))
         return format_html('<span style="color: {};">{}</span>', color, text)
-    payment_status.short_description = "Estado de Pago"
+    payment_status.short_description = 'Estado de Pago'
 
     def get_readonly_fields(self, request, obj=None):
-        readonly = super().get_readonly_fields(request, obj)
-        if obj and obj.sale.status == Sale.Status.PAID:
-            return readonly + ('subtotal', 'discount', 'total_amount', 'due_date')
-        return readonly
+        ro = list(self.readonly_fields)
+        if obj and obj.sale.status.code == 'PAID':
+            ro += ['subtotal', 'discount', 'total_amount', 'due_date']
+        return ro
 
     def save_model(self, request, obj, form, change):
-        if not obj.pk:
+        if not change:
             obj.created_by = request.user
         super().save_model(request, obj, form, change)
 
     def send_invoice_email(self, request, queryset):
-        # Implementar lógica de envío de emails
+        # TODO: implementar lógica de envío de emails
         self.message_user(request, f"{queryset.count()} facturas enviadas")
     send_invoice_email.short_description = "Enviar factura por email"
 
     def export_to_pdf(self, request, queryset):
-        # Implementar generación de PDF
+        # TODO: implementar generación de PDF
         self.message_user(request, f"{queryset.count()} PDFs generados")
     export_to_pdf.short_description = "Exportar a PDF"
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "sale":
+            # sólo ventas sin factura aún
             kwargs["queryset"] = Sale.objects.filter(invoice__isnull=True)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
-    def clean(self):
-        if self.cleaned_data.get('due_date') < self.cleaned_data.get('issue_date').date():
-            raise ValidationError("La fecha de vencimiento no puede ser anterior a la fecha de emisión")
-        
     # def get_readonly_fields(self, request, obj=None):
     #     readonly = super().get_readonly_fields(request, obj)
     #     if obj:
@@ -683,3 +678,101 @@ class SaleInvoiceAdmin(admin.ModelAdmin):
     #         new_sale.save()
             
     #     super().save_model(request, obj, form, change)
+
+@admin.register(SaleStatus)
+class SaleStatusAdmin(admin.ModelAdmin):
+    list_display  = ('code', 'label', 'order', 'status_badge', 'id')
+    list_editable = ('order',)
+    search_fields = ('code', 'label', 'description')
+    list_filter   = ('active',)
+    ordering      = ('order', 'code')
+
+    fieldsets = (
+        ('Información Básica', {
+            'fields': ('code', 'label', 'active'),
+            'description': 'Define el identificador interno, la etiqueta y si está habilitado.'
+        }),
+        ('Detalles Adicionales', {
+            'fields': ('description', 'order'),
+            'classes': ('collapse',),
+            'description': 'Descripción opcional y orden en listados.'
+        }),
+    )
+
+    def status_badge(self, obj):
+        color = 'success' if obj.active else 'secondary'
+        text  = 'Activo' if obj.active else 'Inactivo'
+        return format_html(
+            '<span class="badge bg-{}">{}</span>',
+            color,
+            text
+        )
+    status_badge.short_description = 'Estado'
+
+@admin.register(DiscountType)
+class DiscountTypeAdmin(admin.ModelAdmin):
+    list_display   = ('code', 'label', 'active_badge', 'id')
+    list_editable  = ('label',)
+    search_fields  = ('code', 'label')
+    list_filter    = ('active',)
+    ordering       = ('code',)
+    readonly_fields= ()
+    fieldsets = (
+        ('Información Básica', {
+            'fields': ('code', 'label', 'active'),
+            'description': 'Define el identificador, la etiqueta mostrada y si está habilitado.'
+        }),
+    )
+
+    def active_badge(self, obj):
+        color = 'success' if obj.active else 'secondary'
+        text  = 'Activo'  if obj.active else 'Inactivo'
+        return format_html(
+            '<span class="badge bg-{}">{}</span>',
+            color,
+            text
+        )
+    active_badge.short_description = 'Estado'
+
+
+@admin.register(ScopeType)
+class ScopeTypeAdmin(admin.ModelAdmin):
+    list_display   = ('code', 'label', 'active_badge')
+    list_editable  = ('label',)
+    search_fields  = ('code', 'label')
+    list_filter    = ('active',)
+    ordering       = ('code',)
+    fieldsets = (
+        ('Información Básica', {
+            'fields': ('code', 'label', 'active'),
+            'description': 'Define el identificador, la etiqueta mostrada y si está habilitado.'
+        }),
+    )
+
+    def active_badge(self, obj):
+        color = 'success' if obj.active else 'secondary'
+        text  = 'Activo'  if obj.active else 'Inactivo'
+        return format_html(
+            '<span class="badge bg-{}">{}</span>',
+            color,
+            text
+        )
+    active_badge.short_description = 'Estado'
+
+@admin.register(MovementType)
+class MovementTypeAdmin(admin.ModelAdmin):
+    list_display   = ('code', 'label', 'active_badge', 'active')
+    list_editable  = ('label', 'active')
+    search_fields  = ('code', 'label')
+    list_filter    = ('active',)
+    ordering       = ('code',)
+
+    def active_badge(self, obj):
+        color = 'success' if obj.active else 'secondary'
+        text  = 'Activo'  if obj.active else 'Inactivo'
+        return format_html(
+            '<span class="badge bg-{}">{}</span>',
+            color,
+            text
+        )
+    active_badge.short_description = 'Estado'

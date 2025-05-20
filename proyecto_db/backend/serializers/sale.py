@@ -1,7 +1,7 @@
 import uuid
 from rest_framework import serializers
 from django.db import transaction
-from backend.models import Sale, SaleDetail, StockMovement, SaleInvoice, Discount, Product
+from backend.models import Sale, SaleDetail, PaymentMethod, StockMovement, SaleInvoice, Discount, Product
 from .sale_detail import SaleDetailWriteSerializer
 from .payments_methods import PaymentMethodSerializer
 from .customer import CustomerSerializer
@@ -9,138 +9,137 @@ from backend.utils.enums import DiscountTypeEnum, ScopeTypeEnum
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
-"""
-{
-  "customer": 2,
-  "payment_method": 1,
-  "status": "PENDING",
-  "details": [
-    { "product": 5, "quantity": 2 },
-    { "product": 7, "quantity": 1, "unit_price": "18.50", "discount": 3 }
-  ]
-}
-
-"""
+import uuid
+from decimal import Decimal
+from django.db import transaction
+from django.utils import timezone
+from rest_framework import serializers
+from backend.models import (
+    Sale, SaleDetail, SaleInvoice,
+    Product, PaymentMethod, Discount, DiscountType
+)
+from .sale_detail import SaleDetailWriteSerializer
+from .customer import CustomerSerializer
 
 class SaleWriteSerializer(serializers.ModelSerializer):
+    payment_method = serializers.SlugRelatedField(
+        slug_field='code',
+        queryset=PaymentMethod.objects.all()
+    )
     details = SaleDetailWriteSerializer(many=True, write_only=True)
 
     class Meta:
-        model = Sale
+        model  = Sale
         fields = ['customer', 'payment_method', 'status', 'details']
 
     def create(self, validated_data):
         details_data = validated_data.pop('details')
-        user = self.context['request'].user
+        user         = self.context['request'].user
+
+        subtotal       = Decimal('0')
+        total_discount = Decimal('0')
 
         with transaction.atomic():
             sale = Sale.objects.create(created_by=user, **validated_data)
-            subtotal = 0
-            total_discount = 0
 
             product_ids = [item['product'].id for item in details_data]
-            products = {
-                p.id: p for p in 
-                Product.objects.filter(id__in=product_ids)
-                .select_for_update()
-                .select_related('category')
+            products    = {
+                p.id: p for p in Product.objects
+                                 .filter(id__in=product_ids)
+                                 .select_for_update()
+                                 .select_related('category')
             }
 
             for item in details_data:
-                product = products[item['product'].id]
-                qty = item['quantity']
+                product    = products[item['product'].id]
+                qty        = item['quantity']
                 unit_price = product.sale_price
-                line_total = qty * unit_price
+                line_sub   = qty * unit_price
 
-                discount_data = self._process_discount(item, product, line_total)
-                SaleDetail.objects.create(
-                    sale=sale,
-                    product=product,
-                    quantity=qty,
-                    unit_price=unit_price,
-                    discount_name=discount_data['discount_name'],
-                    discount_type=discount_data['discount_type'],
-                    discount_value=discount_data['discount_value'],
-                    created_by=user
+                discount_amount, disc_name, disc_type, disc_value = (
+                    self._process_discount(item, product, line_sub)
                 )
-                subtotal += line_total
-                total_discount += discount_data['line_total']
 
-            print(discount_data)
+                SaleDetail.objects.create(
+                    sale          = sale,
+                    product       = product,
+                    quantity      = qty,
+                    unit_price    = unit_price,
+                    discount_name = disc_name,
+                    discount_type = disc_type,
+                    discount_value= disc_value,
+                    created_by    = user,
+                )
+
+                subtotal       += line_sub
+                total_discount += discount_amount
+
             sale.subtotal = subtotal
-            sale.total_discount = total_discount
-            sale.total = subtotal - total_discount
+            sale.total    = subtotal - total_discount
             sale.save()
 
             self._create_invoice(sale, user, subtotal, total_discount)
-        
+
         return sale
-    
-    def _process_discount(self, item, product, line_total):
-        """Centraliza la lógica de descuentos"""
-        discount = item.get('discount')
-        discount_type = item.get('discount_type')
-        discount_value = item.get('discount_value')
 
-        result = {
-            'discount_type': None,
-            'discount_value': None,
-            'discount_name': None,
-            'line_total': line_total
-        }
-
-        if discount:
-            if not discount.apply_to_product(product):
+    def _process_discount(self, item, product, line_sub):
+        """
+        Devuelve: (discount_amount, discount_name, discount_type_code, discount_value)
+        """
+        discount_obj = item.get('discount')
+        if discount_obj:
+            if not discount_obj.apply_to_product(product):
                 raise serializers.ValidationError(
-                    f"El descuento {discount.name} no aplica a {product.name}"
+                    f"El descuento «{discount_obj.name}» no aplica a «{product.name}»"
                 )
-            result.update({
-                'discount_type': discount.type,
-                'discount_value': discount.value,
-                'discount_name': discount.name,
-                'line_total': discount.calculate_discount(line_total)
-            })
+            amount = discount_obj.calculate_discount(line_sub)
+            return (
+                amount,
+                discount_obj.name,
+                discount_obj.type.id,
+                discount_obj.value
+            )
 
-        elif discount_type and discount_value:
-            result.update({
-                'discount_type': discount_type,
-                'discount_value': discount_value,
-                'discount_name': "Descuento manual",
-                'line_total': self._calculate_manual_discount(
-                    discount_type, 
-                    discount_value, 
-                    line_total
-                )
-            })
+        manual_type  = item.get('discount_type')
+        manual_value = item.get('discount_value')
+        if manual_type and manual_value is not None:
+            try:
+                dt = DiscountType.objects.get(pk=manual_type)
+            except DiscountType.DoesNotExist:
+                raise serializers.ValidationError(f"Tipo de descuento «{manual_type}» inválido")
 
-        return result
+            if dt.code == 'PERCENT':
+                if manual_value > 100:
+                    raise serializers.ValidationError("El porcentaje no puede exceder 100%")
+                amount = (line_sub * manual_value) / Decimal('100')
+            else:
+                amount = min(Decimal(manual_value), line_sub)
 
-    def _calculate_manual_discount(self, discount_type, value, line_total):
-        """Calcula descuentos manuales con validación"""
-        if discount_type == DiscountTypeEnum.PERCENTAGE:
-            if value > 100:
-                raise serializers.ValidationError(
-                    "El descuento porcentual no puede exceder el 100%"
-                )
-            return line_total * (value / 100)
-        else:
-            return max(value, 0)
+            return (
+                amount,
+                "Descuento manual",
+                dt.id,
+                Decimal(manual_value)
+            )
+
+        return (Decimal('0'), None, None, None)
 
     def _create_invoice(self, sale, user, subtotal, total_discount):
-        print(sale)
-        """Crea factura de forma separada"""
+        from django.core.exceptions import ValidationError as DjangoValidationError
+
         try:
             SaleInvoice.objects.create(
-                sale=sale,
-                invoice_number=uuid.uuid4().hex[:20].upper(),  # Formato más legible
-                due_date=timezone.now() + timezone.timedelta(days=30),
-                subtotal=subtotal,
-                discount=total_discount,
-                total_amount=sale.total,
-                created_by=user
+                sale           = sale,
+                invoice_number = uuid.uuid4().hex[:20].upper(),
+                due_date       = timezone.now().date() + timezone.timedelta(days=30),
+                subtotal       = subtotal,
+                discount       = total_discount,
+                total_amount   = sale.total,
+                created_by     = user,
             )
-        except ValidationError as e:
+        except DjangoValidationError as e:
             raise serializers.ValidationError(f"Error al crear factura: {e}")
+
 
 class SaleReadSerializer(serializers.ModelSerializer):
     payment_method = PaymentMethodSerializer(read_only=True)

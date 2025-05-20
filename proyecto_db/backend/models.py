@@ -206,15 +206,33 @@ class Customer(models.Model):
     def __str__(self):
         return self.name
     
+class DiscountType(models.Model):
+    code  = models.CharField(max_length=10, unique=True)
+    label = models.CharField(max_length=50)
+    active= models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.label
+    
+class ScopeType(models.Model):
+    code  = models.CharField(max_length=20, unique=True)
+    label = models.CharField(max_length=50)                
+    active= models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.label
+
 class Discount(models.Model):
 
     name = models.CharField(max_length=100)
-    type = models.PositiveIntegerField(choices=DiscountTypeEnum.choices)
+    type = models.ForeignKey(
+        DiscountType,
+        on_delete=models.PROTECT
+    )
     value = models.DecimalField(max_digits=10, decimal_places=2)
-    scope = models.CharField(
-        max_length=10,
-        choices=ScopeTypeEnum.choices,
-        default=ScopeTypeEnum.SELECTED_PRODUCTS
+    scope = models.ForeignKey(
+        ScopeType,
+        on_delete=models.PROTECT
     )
     products = models.ManyToManyField(Product, blank=True)
     categories = models.ManyToManyField(Category, blank=True)
@@ -273,19 +291,36 @@ class Discount(models.Model):
             
         return min(self.value, original_price)    
 
+class SaleStatus(models.Model):
+    code        = models.CharField(max_length=20, unique=True) 
+    label       = models.CharField(max_length=50)              
+    description = models.TextField(blank=True, null=True)      
+    order       = models.PositiveSmallIntegerField(default=0)  
+    active      = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name_plural = "Sale Status"
+
+    def __str__(self):
+        return self.label
+    
+class PaymentMethod(models.Model):
+    code        = models.CharField(max_length=2, unique=True, primary_key=True)
+    name        = models.CharField(max_length=50)
+    description = models.TextField(blank=True, null=True)
+    active      = models.BooleanField(default=True)
+    created_by  = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    last_updated= models.DateTimeField(auto_now_add=True, blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
 class Sale(models.Model):
-
-    class Status(models.IntegerChoices):
-        PENDING = 1, 'Pendiente'
-        PAID = 2, 'Pagado'
-        CANCELLED = 3, 'Cancelado'
-        REFUNDED = 4, 'Reembolsado'
-
     date = models.DateTimeField(auto_now_add=True)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    payment_method = models.ForeignKey('PaymentMethod', on_delete=models.PROTECT)
-    status = models.PositiveIntegerField(choices=Status.choices, default=Status.PENDING)
+    payment_method = models.ForeignKey(PaymentMethod, to_field='code', db_column='payment_method', on_delete=models.PROTECT)
+    status = models.ForeignKey(SaleStatus, on_delete=models.PROTECT)
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
     products = models.ManyToManyField(Product, through='SaleDetail')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
@@ -335,8 +370,20 @@ class SaleDetail(models.Model):
 
         self.product.stock = F('stock') - self.quantity
         self.product.save()
-       
+
+        created = self.pk is None
         super().save(*args, **kwargs)
+
+        if created:
+            out_type = MovementType.objects.get(code='OUT')
+            StockMovement.objects.create(
+                product       = self.product,
+                quantity      = self.quantity,
+                movement_type = out_type,
+                reason        = MovementReasonEnum.SALE,
+                sale          = self.sale,
+                created_by    = self.created_by
+            )
 
     @property
     def final_price(self):
@@ -363,15 +410,20 @@ class PurchaseInvoice(InvoiceBase):
         related_name='invoice'
     )
 
+class MovementType(models.Model):
+    code   = models.CharField(max_length=10, unique=True)  
+    label  = models.CharField(max_length=50)               
+    active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.label
+
 class StockMovement(models.Model):
-    class MovementType(models.TextChoices):
-        IN  = 'IN',  'In'
-        OUT = 'OUT', 'Out'
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='stock_movements')
     quantity = models.PositiveIntegerField(validators=[MinValueValidator(1)], help_text="Número de unidades movidas (debe ser ≥ 1)")
     reason = models.CharField(max_length=15, choices=MovementReasonEnum.choices, blank=True, null=True)
-    movement_type = models.CharField(max_length=10, choices=MovementType.choices)
+    movement_type = models.ForeignKey(MovementType, on_delete=models.PROTECT, related_name='stock_movements')
     date = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='stock_movements_created')
 
@@ -427,22 +479,23 @@ class StockMovement(models.Model):
             )
         ]
 
-    def clean(self):
-        if self.movement_type == MovementTypeEnum.IN and self.reason not in [
-            self.MovementReason.PURCHASE, 
-            self.MovementReason.RETURN,
-            self.MovementReason.ADJUSTMENT
-        ]:
-            raise ValidationError("Razón inválida para entrada de stock")
+    # def clean(self):
+    #     code = self.movement_type.code
+    #     if code == 'IN' and self.reason not in [
+    #         self.MovementReason.PURCHASE,
+    #         self.MovementReason.RETURN,
+    #         self.MovementReason.ADJUSTMENT
+    #     ]:
+    #         raise ValidationError("Razón inválida para entrada de stock")
 
-        if self.movement_type == MovementTypeEnum.OUT and self.reason not in [
-            self.MovementReason.SALE,
-            self.MovementReason.RETURN,
-            self.MovementReason.DAMAGED,
-            self.MovementReason.EXPIRED,
-            self.MovementReason.ADJUSTMENT
-        ]:
-            raise ValidationError("Razón inválida para salida de stock")
+    #     if code == 'OUT' and self.reason not in [
+    #         self.MovementReason.SALE,
+    #         self.MovementReason.RETURN,
+    #         self.MovementReason.DAMAGED,
+    #         self.MovementReason.EXPIRED,
+    #         self.MovementReason.ADJUSTMENT
+    #     ]:
+    #         raise ValidationError("Razón inválida para salida de stock")
 
     def __str__(self):
         return f"{self.movement_type} of {self.quantity} units of {self.product.name}"
@@ -509,20 +562,6 @@ class SaleReturn(models.Model):
                 sale_return=self
             )
 
-class PaymentMethod(models.Model):
-    class Types(models.TextChoices):
-        CASH = 'CA', 'Efectivo'
-        CREDIT_CARD = 'CC', 'Tarjeta de crédito'
-        DEBIT_CARD = 'DC', 'Tarjeta de débito'
-    
-    name = models.CharField(max_length=2, choices=Types.choices, unique=True)
-    description = models.TextField(blank=True, null=True)
-    active = models.BooleanField(default=True)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-
-    def __str__(self):
-        return self.description
 class Brand(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
