@@ -144,17 +144,20 @@ class InvoiceBase(models.Model):
 
     def __str__(self):
         return f"Invoice {self.invoice_number}"
+    
+class TransactionStatus(models.Model):
+    code  = models.CharField(max_length=20, unique=True)
+    label = models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.label
 
 class Purchase(models.Model):
     date = models.DateTimeField(auto_now_add=True)
     invoice_image = models.ImageField(upload_to='purchases/invoices/', blank=True, null=True)
-    total = models.DecimalField(max_digits=10, decimal_places=2)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=[
-        ('PENDING', 'Pending'),
-        ('RECEIVED', 'Received'),
-        ('CANCELLED', 'Cancelled')
-    ], default='PENDING')
+    status = models.ForeignKey(TransactionStatus, on_delete=models.PROTECT)
     notes = models.TextField(blank=True, null=True)
     invoice_number = models.CharField(
         max_length=50, 
@@ -162,6 +165,16 @@ class Purchase(models.Model):
         blank=True, 
         null=True,
         verbose_name="Número de Factura"
+    )
+    payment_method = models.ForeignKey(
+        'PaymentMethod',
+        to_field='code',
+        db_column='payment_method',
+        on_delete=models.PROTECT,
+        help_text="Método de pago usado para la compra",
+        null=True,
+        blank=True,
+        default='CA'
     )
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True) 
     last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
@@ -178,19 +191,33 @@ class PurchaseDetail(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    purchase_attributes = models.JSONField(
+        default=dict,
+        help_text="Atributos del producto al momento de la compra"
+    )
 
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
+
+        if is_new and self.product:
+            self.purchase_attributes = self.product.attributes.copy()
+
         self.product.stock = F('stock') + self.quantity
         self.product.purchase_price = self.unit_price
         self.product.save()
+
         super().save(*args, **kwargs)
-        
-        StockMovement.objects.create(
-            product=self.product,
-            quantity=self.quantity,
-            movement_type='In',
-            purchase=self.purchase
-        )
+
+        if is_new:
+            in_type = MovementType.objects.get(code='IN')
+            StockMovement.objects.create(
+                product        = self.product,
+                quantity       = self.quantity,
+                movement_type  = in_type,
+                reason         = MovementReasonEnum.PURCHASE,
+                purchase       = self.purchase,
+                created_by     = self.purchase.created_by
+            )
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity} units"
@@ -290,20 +317,6 @@ class Discount(models.Model):
             return original_price * (self.value / 100)
             
         return min(self.value, original_price)    
-
-class SaleStatus(models.Model):
-    code        = models.CharField(max_length=20, unique=True) 
-    label       = models.CharField(max_length=50)              
-    description = models.TextField(blank=True, null=True)      
-    order       = models.PositiveSmallIntegerField(default=0)  
-    active      = models.BooleanField(default=True)
-
-    class Meta:
-        verbose_name_plural = "Sale Status"
-
-    def __str__(self):
-        return self.label
-    
 class PaymentMethod(models.Model):
     code        = models.CharField(max_length=2, unique=True, primary_key=True)
     name        = models.CharField(max_length=50)
@@ -320,7 +333,7 @@ class Sale(models.Model):
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     payment_method = models.ForeignKey(PaymentMethod, to_field='code', db_column='payment_method', on_delete=models.PROTECT)
-    status = models.ForeignKey(SaleStatus, on_delete=models.PROTECT)
+    status = models.ForeignKey(TransactionStatus, on_delete=models.PROTECT)
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
     products = models.ManyToManyField(Product, through='SaleDetail')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
@@ -331,12 +344,6 @@ class Sale(models.Model):
             models.Index(fields=['-date', 'customer']),
             models.Index(fields=['status']),
         ]
-
-    def update_total(self):
-        total = self.saledetail_set.aggregate(total=Sum(F('quantity') * F('final_price'))
-        )['total'] or Decimal('0')
-        self.total = total
-        self.save(update_fields=['total'])
 
     def __str__(self):
         return f"Sale {self.id} - {self.date}"
@@ -356,6 +363,16 @@ class SaleDetail(models.Model):
         help_text="Atributos del producto al momento de la venta"
     )
 
+    @property
+    def final_price(self):
+        if self.discount_type == DiscountTypeEnum.PERCENTAGE:
+            return self.unit_price * (1 - self.discount_value/100)
+        elif self.discount_type == DiscountTypeEnum.FIXED_AMOUNT:
+            return max(self.unit_price - self.discount_value, Decimal('0'))
+        return self.unit_price
+
+
+
     def clean(self):
         try:
             product = Product.objects.get(pk=self.product_id)
@@ -365,16 +382,17 @@ class SaleDetail(models.Model):
                 raise ValidationError("Producto asociado no existe")
 
     def save(self, *args, **kwargs):
-        if not self.sale_attributes and self.product:
+        is_new = self.pk is None
+
+        if is_new and self.product:
             self.sale_attributes = self.product.attributes.copy()
 
         self.product.stock = F('stock') - self.quantity
         self.product.save()
 
-        created = self.pk is None
         super().save(*args, **kwargs)
 
-        if created:
+        if is_new:
             out_type = MovementType.objects.get(code='OUT')
             StockMovement.objects.create(
                 product       = self.product,
@@ -384,14 +402,6 @@ class SaleDetail(models.Model):
                 sale          = self.sale,
                 created_by    = self.created_by
             )
-
-    @property
-    def final_price(self):
-        if self.discount_type == DiscountTypeEnum.PERCENTAGE:
-            return self.unit_price * (1 - self.discount_value/100)
-        elif self.discount_type == DiscountTypeEnum.FIXED_AMOUNT:
-            return max(self.unit_price - self.discount_value, Decimal('0'))
-        return self.unit_price
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity} units from {self.sale}"
@@ -506,11 +516,7 @@ class PurchaseReturn(models.Model):
     quantity = models.PositiveIntegerField()
     reason = models.TextField()
     date = models.DateTimeField(blank=True, null=True)
-    status = models.CharField(max_length=20, choices=[
-        ('PENDING', 'Pending'),
-        ('APPROVED', 'Approved'),
-        ('REJECTED', 'Rejected')
-    ], default='PENDING')
+    status = models.ForeignKey(TransactionStatus, on_delete=models.PROTECT)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 

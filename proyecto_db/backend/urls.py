@@ -12,6 +12,9 @@ router.register(r'suppliers', views.SupplierViewSet)
 router.register(r'companies', views.CompanyViewSet)
 router.register(r'payment_methods', views.PaymentMethodViewSet)
 router.register(r'sales', views.SaleViewSet)
+router.register(r'purchases', views.PurchaseViewSet)
+router.register(r'purchase-details', views.PurchaseDetailViewSet, basename='purchase-detail')
+
 
 urlpatterns = [
     path('api/category-schema/<int:category_id>/', views.CategorySchemaView.as_view(), name='get_category_schema'),

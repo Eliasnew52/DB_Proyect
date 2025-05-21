@@ -4,7 +4,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.generics import  GenericAPIView
 from rest_framework import status
 from rest_framework.response import Response
-from .models import Category, Product, Customer, Company, Brand, Discount, PaymentMethod, Supplier, Sale
+from .models import Category, Product, Customer, Purchase, PurchaseDetail, Company, Brand, Discount, PaymentMethod, Supplier, Sale
 from .serializers.category import CategoryWriteSerializer, CategoryReadSerializer, CategorySchemaReadSerializer
 from .serializers.product import ProductWriteSerializer, ProductReadSerializer
 from .serializers.brand import BrandSerializer
@@ -14,7 +14,8 @@ from .serializers.discount import DiscountReadSerializer, DiscountWriteSerialize
 from .serializers.payments_methods import PaymentMethodSerializer
 from .serializers.company import CompanySerializer
 from .serializers.sale import SaleReadSerializer, SaleWriteSerializer
-
+from .serializers.purchase import PurchaseReadSerializer, PurchaseWriteSerializer
+from .serializers.purchase_detail import PurchaseDetailWriteSerializer
 class CategorySchemaView(GenericAPIView):
     serializer_class = CategorySchemaReadSerializer
     def get(self, request, category_id):
@@ -52,6 +53,30 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+class PurchaseViewSet(viewsets.ModelViewSet):
+    """
+    list, retrieve  -> PurchaseReadSerializer
+    create, update  -> PurchaseWriteSerializer
+    """
+    queryset = (
+        Purchase.objects
+        .all()
+        .select_related('supplier', 'status')
+        .prefetch_related('purchasedetail_set')
+    )
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return PurchaseReadSerializer
+        return PurchaseWriteSerializer
+
+class PurchaseDetailViewSet(viewsets.ModelViewSet):
+    """
+    CRUD sobre PurchaseDetail individual.
+    """
+    queryset = PurchaseDetail.objects.all().select_related('purchase', 'product')
+    serializer_class = PurchaseDetailWriteSerializer
 
 class SaleViewSet(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]

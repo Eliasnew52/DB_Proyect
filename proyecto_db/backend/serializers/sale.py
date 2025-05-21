@@ -16,7 +16,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from backend.models import (
     Sale, SaleDetail, SaleInvoice,
-    Product, PaymentMethod, Discount, DiscountType
+    Product, PaymentMethod, Discount, DiscountType, TransactionStatus
 )
 from .sale_detail import SaleDetailWriteSerializer
 from .customer import CustomerSerializer
@@ -25,6 +25,11 @@ class SaleWriteSerializer(serializers.ModelSerializer):
     payment_method = serializers.SlugRelatedField(
         slug_field='code',
         queryset=PaymentMethod.objects.all()
+    )
+    status = serializers.SlugRelatedField(
+        slug_field='code',
+        queryset=TransactionStatus.objects.all(),
+        help_text="Código de estado"
     )
     details = SaleDetailWriteSerializer(many=True, write_only=True)
 
