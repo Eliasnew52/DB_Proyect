@@ -18,6 +18,7 @@ djangorestframework-simplejwt = "*"
 jsonschema = "*"
 drf-yasg = "*"
 drf-spectacular = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 

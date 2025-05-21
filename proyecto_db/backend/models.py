@@ -1,19 +1,12 @@
 from django.db import models
-from datetime import timedelta
 from django.contrib.auth.models import User
-from django.utils import timezone
-from datetime import timedelta
 from django.db.models import F
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.dispatch import receiver
-from django.db.models.signals import post_save
-from django.db import transaction
 from decimal import Decimal
 from django.contrib.postgres.indexes import GinIndex
 from jsonschema import validate, ValidationError
 from django.core.validators import MinValueValidator
 from django.db.models import Q, CheckConstraint, Sum
-import uuid
 from .utils.enums import DiscountTypeEnum, ScopeTypeEnum, MovementReasonEnum, MovementTypeEnum
 
 def default_product_schema():
