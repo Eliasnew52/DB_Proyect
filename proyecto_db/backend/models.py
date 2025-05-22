@@ -20,10 +20,13 @@ def default_product_schema():
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
+    creation_date = models.DateField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
     product_schema = models.JSONField(default=default_product_schema, blank=True,)
+    active = models.BooleanField(default=True)
+
 
     class Meta: 
         verbose_name_plural='Categories'
@@ -35,6 +38,7 @@ class Company(models.Model):
     name = models.CharField(max_length=100, unique=True)
     last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    active = models.BooleanField(default=True)
 
     class Meta: 
         verbose_name_plural='Companies'
@@ -50,6 +54,8 @@ class Supplier(models.Model):
     brands = models.ManyToManyField('Brand')
     last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    active = models.BooleanField(default=True)
+
 
     def __str__(self):
         return f'{self.name} - {self.company}'
@@ -568,6 +574,8 @@ class Brand(models.Model):
     image = models.ImageField(upload_to='brands/', blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    active= models.BooleanField(default=True)
+
     
     class Meta:
         verbose_name = 'Brand'

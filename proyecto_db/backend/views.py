@@ -128,10 +128,22 @@ class BrandViewSet(viewsets.ModelViewSet):
     queryset = Brand.objects.all()
     serializer_class = BrandSerializer
     filterset_fields = ['name', 'created_by']
-    
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.active = False
+        instance.save(update_fields=['active'])
+        serializer = self.get_serializer(instance)
+        return Response(
+            {
+                'message': 'Marca desactivada correctamente.',
+                'data': serializer.data
+            },
+            status=status.HTTP_200_OK
+        )
 class SupplierViewSet(viewsets.ModelViewSet):
     queryset = Supplier.objects.select_related('company', 'created_by').prefetch_related('brands')
     filterset_fields = ['name', 'created_by', 'email', 'phone']

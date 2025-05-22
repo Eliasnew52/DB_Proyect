@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!categorySelect || !attributesField) return;
 
     function updateAttributes(schema) {
-        attributesField.value = simplifySchema(schema.properties);
+        attributesField.value = simplifySchema(schema.result.properties);
     }
 
     categorySelect.addEventListener('change', function () {

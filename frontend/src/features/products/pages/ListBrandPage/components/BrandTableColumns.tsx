@@ -1,3 +1,6 @@
+import DoDisturbOnIcon from '@mui/icons-material/DoDisturbOn';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+
 export const BrandTableColumns = [
         {
             accessorKey: 'id',
@@ -36,5 +39,12 @@ export const BrandTableColumns = [
         {
             accessorKey: 'created_by',
             header: 'Creado por',
+        },
+        {
+            accessorKey: 'active',
+            header: 'Activo',
+            Cell: ({ renderedCellValue, row }) => (
+                renderedCellValue ?  <CheckCircleIcon color={'success'} /> : <DoDisturbOnIcon color={'error'} />
+            )
         },
 ]

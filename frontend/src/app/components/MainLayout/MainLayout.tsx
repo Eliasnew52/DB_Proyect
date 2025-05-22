@@ -1,15 +1,6 @@
 import React from "react";
 import {Outlet} from "react-router";
-import {UserMenu} from "../../../../features/dashboard/components/UserMenu.tsx";
-import {DrawerContent} from "./components/DrawerContent/DrawerContent.tsx";
-import type {MenuOption} from "./MainLayout.types.ts";
-import {dashboardRoutes} from "../../../../features/dashboard/routes.tsx";
-import {productsRoutes} from "../../../../features/products/routes.tsx";
-import {purchasesRoutes} from "../../../../features/purchases/routes.tsx";
-import {salesRoutes} from "../../../../features/sales/routes.tsx";
-import {providersRoutes} from "../../../../features/providers/routes.tsx";
-import {clientsRoutes} from "../../../../features/clients/routes.tsx";
-import {reportsRoutes} from "../../../../features/reports/routes.tsx";
+
 import {
     AppBar,
     Box,
@@ -29,6 +20,16 @@ import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
+import {MenuOption} from "./MainLayout.types.ts";
+import {dashboardRoutes} from "../../../features/dashboard/routes.tsx";
+import {productsRoutes} from "../../../features/products/routes.tsx";
+import {salesRoutes} from "../../../features/sales/routes.tsx";
+import {purchasesRoutes} from "../../../features/purchases/routes.tsx";
+import {providersRoutes} from "../../../features/providers/routes.tsx";
+import {clientsRoutes} from "../../../features/clients/routes.tsx";
+import {reportsRoutes} from "../../../features/reports/routes.tsx";
+import {UserMenu} from "../../../features/dashboard/components/UserMenu.tsx";
+import {DrawerContent} from "./components/DrawerContent/DrawerContent.tsx";
 
 
 const drawerWidth = 240;
@@ -39,32 +40,32 @@ const menuOptions: MenuOption[] = [
         icon: <Inventory2OutlinedIcon fontSize="small" />,
         subRoutes: [
             {
-                path: productsRoutes[1].path ?? '',
-                label: 'Crear categoría',
-                icon: <AddCircleOutlineIcon fontSize="small" />
-            },
-            {
                 path: productsRoutes[0].path ?? '',
                 label: 'Crear producto',
                 icon: <AddCircleOutlineIcon fontSize="small" />
             },
             {
-                path: productsRoutes[2].path ?? '',
-                label: 'Crear marca',
+                path: productsRoutes[1].path ?? '',
+                label: 'Crear categoría',
                 icon: <AddCircleOutlineIcon fontSize="small" />
             },
+            // {
+            //     path: productsRoutes[2].path ?? '',
+            //     label: 'Crear marca',
+            //     icon: <AddCircleOutlineIcon fontSize="small" />
+            // },
             {
-                path: productsRoutes[3].path ?? '',
+                path: productsRoutes[2].path ?? '',
                 label: 'Listar productos',
                 icon: <ListAltIcon fontSize="small" />
             },
             {
-                path: productsRoutes[4].path ?? '',
+                path: productsRoutes[3].path ?? '',
                 label: 'Listar categorías',
                 icon: <ListAltIcon fontSize="small" />
             },
             {
-                path: productsRoutes[5].path ?? '',
+                path: productsRoutes[4].path ?? '',
                 label: 'Listar marcas',
                 icon: <ListAltIcon fontSize="small" />
             },

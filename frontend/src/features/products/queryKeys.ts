@@ -1,2 +1,5 @@
 export const BRANDS_KEY = ['brands'] as const;
 export const BRAND_KEY = (id: number) => [...BRANDS_KEY, id] as const;
+
+export const CATEGORIES_KEY = ['categories'] as const;
+export const CATEGORY_KEY = (id: number) => [...CATEGORIES_KEY, id] as const;

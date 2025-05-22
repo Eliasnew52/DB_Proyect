@@ -9,7 +9,7 @@ import {ListBrandPage} from "./pages/ListBrandPage/ListBrandPage.tsx";
 export const productsRoutes: RouteObject[] = [
     { path: '/new-product', element: <CreateProductPage /> },
     { path: '/new-category', element: <CreateCategoryPage /> },
-    { path: '/new-brand', element: <CreateBrandPage /> },
+    // { path: '/new-brand', element: <CreateBrandPage /> },
     { path: '/product-list', element: <ListProductPage /> },
     { path: '/category-list', element: <ListCategoryPage /> },
     { path: '/brand-list', element: <ListBrandPage /> },

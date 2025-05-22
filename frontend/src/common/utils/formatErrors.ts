@@ -1,5 +1,5 @@
 import axios, {AxiosError} from 'axios';
-import {CustomError} from "../types/customError.types.ts";
+import type {CustomError} from "../types/customError.types.ts";
 
 export const formatError = (error: AxiosError | Error): CustomError => {
 
@@ -7,17 +7,21 @@ export const formatError = (error: AxiosError | Error): CustomError => {
         const { response, code, config } = error;
         const data = response?.data || {};
 
-        const customError = {
+        const customError: CustomError = {
             code: code || 'AXIOS_ERROR',
             status: response?.status ?? null,
             endpoint: config?.url ?? 'unknown',
-            message: data.message
-                || data.result
-                || data.error
-                || error.message
-                || 'Ocurrió un error en el servidor',
+            message: data.message ?? 'Ocurrió un error en el servidor',
             timestamp: new Date().toISOString(),
         };
+
+        if (data.errors && typeof data.errors === 'object') {
+            customError.fieldErrors = data.errors;
+            const allMsgs = Object.values(data.errors).flat().map(String);
+            customError.messages = allMsgs;
+            customError.message = allMsgs[0];
+        }
+
 
         if (code === 'ERR_CANCELED' || axios.isCancel(error)) {
             customError.code = 'CANCELED';
@@ -28,7 +32,6 @@ export const formatError = (error: AxiosError | Error): CustomError => {
 
         if (response && (response.status === 401 || response.status === 403)) {
             customError.code = 'UNAUTHORIZED';
-            customError.message = 'Session has expired';
         }
 
         if (error.request && !response) {

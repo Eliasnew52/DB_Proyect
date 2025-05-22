@@ -5,5 +5,6 @@ export interface Brand {
     creation_date: string;
     image: string;
     last_updated: string;
+    active: boolean;
     created_by: number | null;
 }
