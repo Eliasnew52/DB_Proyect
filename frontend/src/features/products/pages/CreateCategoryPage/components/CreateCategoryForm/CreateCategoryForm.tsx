@@ -1,25 +1,47 @@
 import {useCallback, useState} from "react";
 import {Controller, useFieldArray, useForm} from "react-hook-form";
-import {Box, Button, FormHelperText, Grid, InputLabel, TextField, Typography} from "@mui/material";
-import {ContentContainer} from "../../../../../common/components/ui/ContentContainer.tsx";
-import {Category} from "../../../types/categories.types.ts";
+import {
+    Autocomplete,
+    Box,
+    Button,
+    FormHelperText,
+    Grid, IconButton,
+    InputLabel,
+    MenuItem,
+    Select, Switch,
+    TextField,
+    Typography
+} from "@mui/material";
+import {ContentContainer} from "../../../../../../common/components/ui/ContentContainer.tsx";
+import {Category} from "../../../../types/categories.types.ts";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import SettingsIcon from '@mui/icons-material/Settings';
+import DeleteIcon from '@mui/icons-material/Delete'
+import {AttributeBuilderModal} from "./components/AttributeBuilderModal.tsx";
 
 export const CreateCategoryForm = () => {
-
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleCloseModal = useCallback(() => {
+        setIsModalOpen(false);
+    }, [setIsModalOpen])
+
+    const handleOpenModal = useCallback(() => {
+        setIsModalOpen(true);
+    }, [setIsModalOpen])
+
 
     const {
         handleSubmit,
         formState: { errors },
         control,
+        watch,
     } = useForm({
         defaultValues: {
             name: '',
             description: '',
             image: undefined,
-            characteristics: []
+            characteristics: [{ key: '', title: '', type: '', options: [] }]
         }
     });
 
@@ -114,29 +136,20 @@ export const CreateCategoryForm = () => {
                 />
 
                  <Grid>
-                     <Button variant={"text"} startIcon={<SettingsIcon />} onClick={() => append({ key: '', title: '', type: 'string', options: [] })}>
+                     <Button variant={"text"} startIcon={<SettingsIcon />} onClick={handleOpenModal}>
                         Configura las características de los productos
                      </Button>
                  </Grid>
 
-                {
-                    fields.map((field, index) => (
-                        <Grid
-                            key={field.id}
-                            container
-                            flexDirection={'column'}
-                        >
-                            <Controller
-                                name={`characteristics.${index}.key`}
-                                control={control}
-                                render={({ field }) => (
-                                    <TextField {...field} label="Nombre del campo" fullWidth />
-                                )}
-                            />
-                        </Grid>
-                    ))
-                }
-
+                <AttributeBuilderModal
+                    fields={fields}
+                    append={append}
+                    remove={remove}
+                    open={isModalOpen}
+                    handleClose={handleCloseModal}
+                    control={control}
+                    watch={watch}
+                />
             </Grid>
         </ContentContainer>
     )

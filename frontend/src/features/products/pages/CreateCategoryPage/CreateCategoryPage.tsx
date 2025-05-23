@@ -1,5 +1,5 @@
 import {Grid, Typography} from "@mui/material";
-import {CreateCategoryForm} from "./components/CreateCategoryForm.tsx";
+import {CreateCategoryForm} from "./components/CreateCategoryForm/CreateCategoryForm.tsx";
 
 export const CreateCategoryPage = () => {
     return (
