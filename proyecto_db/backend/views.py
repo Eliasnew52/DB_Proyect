@@ -16,6 +16,43 @@ from .serializers.company import CompanySerializer
 from .serializers.sale import SaleReadSerializer, SaleWriteSerializer
 from .serializers.purchase import PurchaseReadSerializer, PurchaseWriteSerializer
 from .serializers.purchase_detail import PurchaseDetailWriteSerializer
+
+from django.conf import settings
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+class CookieTokenObtainPairView(TokenObtainPairView):
+    def finalize_response(self, request, response, *args, **kwargs):
+        access  = response.data.get('access')
+        refresh = response.data.get('refresh')
+
+        response.set_cookie(
+            settings.SIMPLE_JWT['AUTH_COOKIE'],
+            access,
+            httponly=True, secure=not settings.DEBUG,
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+            path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH'],
+        )
+        response.set_cookie(
+            settings.SIMPLE_JWT['REFRESH_COOKIE'],
+            refresh,
+            httponly=True, secure=not settings.DEBUG,
+            samesite=settings.SIMPLE_JWT['REFRESH_COOKIE_SAMESITE'],
+            path=settings.SIMPLE_JWT['REFRESH_COOKIE_PATH'],
+        )
+        return super().finalize_response(request, response, *args, **kwargs)
+
+class CookieTokenRefreshView(TokenRefreshView):
+    def finalize_response(self, request, response, *args, **kwargs):
+        access = response.data.get('access')
+        response.set_cookie(
+            settings.SIMPLE_JWT['AUTH_COOKIE'],
+            access,
+            httponly=True, secure=not settings.DEBUG,
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+            path=settings.SIMPLE_JWT['AUTH_COOKIE_PATH'],
+        )
+        return super().finalize_response(request, response, *args, **kwargs)
+
 class CategorySchemaView(GenericAPIView):
     serializer_class = CategorySchemaReadSerializer
     def get(self, request, category_id):

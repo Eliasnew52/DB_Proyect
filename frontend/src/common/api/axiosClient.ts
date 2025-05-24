@@ -4,6 +4,7 @@ import {formatError} from "../utils/formatErrors.ts";
 const axiosClient = axios.create({
     baseURL: 'http://localhost:8000/api',
     timeout: 15_000,
+    withCredentials: true,
 });
 
 axiosClient.interceptors.response.use(

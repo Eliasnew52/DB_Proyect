@@ -2,6 +2,7 @@ import React from "react";
 import {FormControl, IconButton, InputAdornment, TextField} from "@mui/material";
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import {useFormContext} from "react-hook-form";
 
 type Props = {
     placeholder?: string;
@@ -10,6 +11,7 @@ type Props = {
 
 export const PasswordField = ({ placeholder = 'Ingresa la contraseña', width = '100%' }: Props) => {
     const [showPassword, setShowPassword] = React.useState(false);
+    const { register } = useFormContext();
 
     const handleClickShowPassword = () => setShowPassword((show) => !show);
 
@@ -29,6 +31,7 @@ export const PasswordField = ({ placeholder = 'Ingresa la contraseña', width = 
                 size={'small'}
                 fullWidth
                 placeholder={placeholder}
+                {...register('password')}
                 slotProps={{
                     input: {
                         endAdornment: (

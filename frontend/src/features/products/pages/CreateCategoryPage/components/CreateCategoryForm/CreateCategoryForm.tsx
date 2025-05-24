@@ -1,14 +1,11 @@
-import {useCallback, useState} from "react";
-import {Controller, useFieldArray, useForm} from "react-hook-form";
+import {useCallback, useEffect, useState} from "react";
+import {Controller, FormProvider, useFieldArray, useForm} from "react-hook-form";
 import {
-    Autocomplete,
     Box,
     Button,
     FormHelperText,
-    Grid, IconButton,
+    Grid,
     InputLabel,
-    MenuItem,
-    Select, Switch,
     TextField,
     Typography
 } from "@mui/material";
@@ -16,11 +13,18 @@ import {ContentContainer} from "../../../../../../common/components/ui/ContentCo
 import {Category} from "../../../../types/categories.types.ts";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import SettingsIcon from '@mui/icons-material/Settings';
-import DeleteIcon from '@mui/icons-material/Delete'
-import {AttributeBuilderModal} from "./components/AttributeBuilderModal.tsx";
+import SaveIcon from '@mui/icons-material/Save';
+import {AttributeBuilderModal} from "./components/AttributeBuilderModal/AttributeBuilderModal.tsx";
+import {AttributePreview} from "./components/AttributePreview/AttributePreview.tsx";
+
 
 export const CreateCategoryForm = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [attributes, setAttributes] = useState<
+        { key: string; type: string; title: string; options: any[] }[]
+    >([]);
+    const [newType, setNewType] = useState("");
+    const [newKey, setNewKey] = useState("");
 
     const handleCloseModal = useCallback(() => {
         setIsModalOpen(false);
@@ -31,126 +35,174 @@ export const CreateCategoryForm = () => {
     }, [setIsModalOpen])
 
 
-    const {
-        handleSubmit,
-        formState: { errors },
-        control,
-        watch,
-    } = useForm({
+    const methods = useForm({
         defaultValues: {
             name: '',
             description: '',
             image: undefined,
-            characteristics: [{ key: '', title: '', type: '', options: [] }]
-        }
+            attributes: []
+        },
     });
 
-    const { fields, append, remove } = useFieldArray({
+    const {
+        handleSubmit,
         control,
-        name: "characteristics",
-    })
+    } = methods;
 
     const onSubmit = useCallback((data: Partial<Category>) => {
+        const properties = attributes.reduce<Record<string, any>>((acc, { key, title, type, options }) => {
+            acc[key] = {
+                type,
+                title,
+                ...(type === 'enum' ? { enum: options } : {})
+            };
+            return acc;
+        }, {});
 
-    }, [])
+        const product_schema = {
+            type: 'object',
+            $schema: 'https://json-schema.org/draft/2020-12/schema',
+            required: attributes.map(c => c.key),
+            properties
+        }
+
+
+        console.log({
+            name: data.name,
+            description: data.description,
+            image: data.image,
+            product_schema: JSON.stringify(product_schema),
+        })
+
+    }, [attributes])
 
     return (
-        <ContentContainer>
-            <Grid
-                component={'form'}
-                container
-                flexDirection="column"
-                spacing={2}
-                onSubmit={handleSubmit(onSubmit)}
-
-            >
-                <Controller
-                    name="name"
-                    control={control}
-                    rules={{ required: 'El nombre es obligatorio' }}
-                    render={({ field, fieldState }) => (
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                            <InputLabel htmlFor="name">Nombre</InputLabel>
-                            <TextField
-                                {...field}
-                                id="name"
-                                variant="outlined"
-                                error={!!fieldState.error}
-                                helperText={fieldState.error?.message}
-                                fullWidth
-                            />
-                        </Box>
-                    )}
-                />
-
-                <Controller
-                    name="description"
-                    control={control}
-                    render={({ field, fieldState }) => (
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                            <InputLabel htmlFor="description">Descripción</InputLabel>
-                            <TextField
-                                {...field}
-                                id="description"
-                                variant="outlined"
-                                error={!!fieldState.error}
-                                helperText={fieldState.error?.message}
-                                fullWidth
-                                multiline
-                                rows={4}
-                            />
-                        </Box>
-                    )}
-                />
-
-                <Controller
-                    name="image"
-                    control={control}
-                    render={({ field, fieldState }) => (
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                            <InputLabel htmlFor="image-upload">Imagen</InputLabel>
-                            <Button variant="outlined" component="label" endIcon={<FileUploadIcon />}>
-                                Seleccionar imagen
-                                <input
-                                    id="image-upload"
-                                    type="file"
-                                    accept="image/*"
-                                    hidden
-                                    onChange={e =>
-                                        e.target.files?.[0] && field.onChange(e.target.files[0])
-                                    }
+        <FormProvider {...methods}>
+            <ContentContainer>
+                <Grid
+                    component={'form'}
+                    container
+                    flexDirection="column"
+                    spacing={2}
+                    onSubmit={handleSubmit(onSubmit)}
+                >
+                    <Controller
+                        name="name"
+                        control={control}
+                        rules={{ required: 'El nombre es obligatorio' }}
+                        render={({ field, fieldState }) => (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                <InputLabel htmlFor="name">Nombre</InputLabel>
+                                <TextField
+                                    {...field}
+                                    id="name"
+                                    size={'small'}
+                                    variant="outlined"
+                                    error={!!fieldState.error}
+                                    helperText={fieldState.error?.message}
+                                    fullWidth
                                 />
-                            </Button>
-                            {field.value && (
-                                <Typography variant="body2">
-                                    {(field.value as File).name}
-                                </Typography>
-                            )}
-                            {fieldState.error && (
-                                <FormHelperText error>
-                                    {fieldState.error.message}
-                                </FormHelperText>
-                            )}
-                        </Box>
-                    )}
-                />
+                            </Box>
+                        )}
+                    />
 
-                 <Grid>
-                     <Button variant={"text"} startIcon={<SettingsIcon />} onClick={handleOpenModal}>
-                        Configura las características de los productos
-                     </Button>
-                 </Grid>
+                    <Controller
+                        name="description"
+                        control={control}
+                        render={({ field, fieldState }) => (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                <InputLabel htmlFor="description">Descripción</InputLabel>
+                                <TextField
+                                    {...field}
+                                    id="description"
+                                    variant="outlined"
+                                    size={'small'}
+                                    error={!!fieldState.error}
+                                    helperText={fieldState.error?.message}
+                                    fullWidth
+                                    multiline
+                                    rows={4}
+                                />
+                            </Box>
+                        )}
+                    />
 
-                <AttributeBuilderModal
-                    fields={fields}
-                    append={append}
-                    remove={remove}
-                    open={isModalOpen}
-                    handleClose={handleCloseModal}
-                    control={control}
-                    watch={watch}
-                />
-            </Grid>
-        </ContentContainer>
+                    <Controller
+                        name="image"
+                        control={control}
+                        render={({ field, fieldState }) => (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                <InputLabel htmlFor="image-upload">Imagen</InputLabel>
+                                <Grid container height={'220px'} justifyContent={'center'} alignItems={'center'} border={'2px dashed #ddd'} borderRadius={2}>
+
+                                    <Button sx={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }} variant="text" component="label">
+                                        <Grid>
+                                            <FileUploadIcon />
+                                        </Grid>
+                                        <Grid>
+                                            Seleccionar imagen
+                                            <input
+                                                id="image-upload"
+                                                type="file"
+                                                accept="image/*"
+                                                hidden
+                                                height={'100%'}
+                                                width={'100%'}
+                                                onChange={e =>
+                                                    e.target.files?.[0] && field.onChange(e.target.files[0])
+                                                }
+                                            />
+                                        </Grid>
+                                        <Grid>
+                                            {field.value && (
+                                                <Typography variant="body2">
+                                                    {(field.value as File).name}
+                                                </Typography>
+                                            )}
+                                        </Grid>
+                                    </Button>
+                                </Grid>
+
+                                {fieldState.error && (
+                                    <FormHelperText error>
+                                        {fieldState.error.message}
+                                    </FormHelperText>
+                                )}
+                            </Box>
+                        )}
+                    />
+
+                     <Grid>
+                         <Button variant={"outlined"} startIcon={<SettingsIcon />} onClick={handleOpenModal}>
+                             Atributos de producto
+                         </Button>
+                     </Grid>
+
+                    <AttributeBuilderModal
+                        open={isModalOpen}
+                        handleClose={handleCloseModal}
+                        attributes={attributes}
+                        newKey={newKey}
+                        newType={newType}
+                        setNewKey={setNewKey}
+                        setNewType={setNewType}
+                        setAttributes={setAttributes}
+                    />
+
+                    {
+                        attributes && attributes.length > 0 && (
+                            <AttributePreview attributes={attributes} />
+                        )
+                    }
+
+
+                    <Grid alignSelf={'end'}>
+                        <Button type={'submit'} variant={'contained'} startIcon={<SaveIcon />}>
+                            Guardar
+                        </Button>
+                    </Grid>
+                </Grid>
+            </ContentContainer>
+        </FormProvider>
     )
 }
