@@ -1,7 +1,9 @@
 import DoDisturbOnIcon from '@mui/icons-material/DoDisturbOn';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import {MRT_ColumnDef} from "material-react-table";
+import {Brand} from "../../../../../common/types/brands.types.ts";
 
-export const BrandTableColumns = [
+export const BrandTableColumns: MRT_ColumnDef<Brand>[] = [
         {
             accessorKey: 'id',
             header: 'Id',
@@ -11,7 +13,7 @@ export const BrandTableColumns = [
         {
             accessorKey: 'image',
             header: 'Imagen',
-            Cell: ({ renderedCellValue, row }) => (
+            Cell: ({ row }) => (
                 <img
                     alt={`${row.original.name} brand image`}
                     height={30}
@@ -29,10 +31,6 @@ export const BrandTableColumns = [
             header: 'Descripción',
         },
         {
-            accessorKey: 'creation_date',
-            header: 'Fecha de creación',
-        },
-        {
             accessorKey: 'last_updated',
             header: 'Última actualización',
         },
@@ -41,9 +39,13 @@ export const BrandTableColumns = [
             header: 'Creado por',
         },
         {
+            accessorKey: 'creation_date',
+            header: 'Creado en',
+        },
+        {
             accessorKey: 'active',
             header: 'Activo',
-            Cell: ({ renderedCellValue, row }) => (
+            Cell: ({ renderedCellValue }) => (
                 renderedCellValue ?  <CheckCircleIcon color={'success'} /> : <DoDisturbOnIcon color={'error'} />
             )
         },

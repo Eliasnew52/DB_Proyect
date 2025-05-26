@@ -1,17 +1,23 @@
 from rest_framework import serializers
 from backend.utils.schema_validation import SchemaValidatedJSONField
-from backend.models import Category, Product
+from backend.models import Category, Product, ProductMeasurement
 from .shorts import BrandShortSerializer, CategoryShortSerializer, SupplierShortSerializer
-
+from .product_measurement import ProductMeasurementSerializer
 class ProductWriteSerializer(serializers.ModelSerializer):        
     attributes = SchemaValidatedJSONField(
         schema=None,
         required=False
     )
+    measurement = ProductMeasurementSerializer(required=False)
+
 
     class Meta:
         model = Product  
-        fields = '__all__'
+        fields = [
+            'name', 'description', 'category', 'brand',
+            'suppliers', 'sale_price', 'purchase_price', 'attributes',
+            'measurement',
+        ]
         read_only_fields = ('created_by', 'last_updated', 'creation_date')
     
     def __init__(self, *args, **kwargs):
@@ -24,6 +30,23 @@ class ProductWriteSerializer(serializers.ModelSerializer):
             category = self._get_category_from_instance_or_data()
             if category and hasattr(category, 'product_schema'):
                 self.fields['attributes'].schema = category.product_schema
+
+    def create(self, validated_data):
+        meas_data = validated_data.pop('measurement', None)
+        product = super().create(validated_data)
+        if meas_data:
+            ProductMeasurement.objects.create(product=product, **meas_data)
+        return product
+
+    def update(self, instance, validated_data):
+        meas_data = validated_data.pop('measurement', None)
+        product = super().update(instance, validated_data)
+        if meas_data is not None:
+            ProductMeasurement.objects.update_or_create(
+                product=product,
+                defaults=meas_data
+            )
+        return product
 
     def _get_category_from_instance_or_data(self):
         if isinstance(self.instance, Product):

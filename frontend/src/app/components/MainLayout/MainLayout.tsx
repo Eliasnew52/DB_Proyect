@@ -28,7 +28,7 @@ import {useUser} from "../../../features/auth/hooks/useUser.ts";
 
 const drawerWidth = 240;
 const menuOptions: MenuOption[] = [
-    {label: 'Panel', icon: <SpeedOutlinedIcon fontSize="small" />, path: RouteKey.DASHBOARD, subRoutes: []},
+    {label: 'Panel', icon: <SpeedOutlinedIcon fontSize="small" />, path: PATHS[RouteKey.DASHBOARD], subRoutes: []},
     {
         label: 'Productos',
         icon: <Inventory2OutlinedIcon fontSize="small" />,
@@ -151,7 +151,7 @@ export const MainLayout = () => {
     const [mobileOpen, setMobileOpen] = React.useState(false);
     const [isClosing, setIsClosing] = React.useState(false);
 
-    const { user, isLoading, isError, error } = useUser();
+    const { user } = useUser();
 
     const handleDrawerClose = () => {
         setIsClosing(true);

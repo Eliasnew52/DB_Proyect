@@ -1,6 +1,6 @@
 import {RouteObject} from "react-router";
 import {CreateClientPage} from "./pages/CreateCustomerPage/CreateClientPage.tsx";
-import {ListClientPage} from "./pages/ListClientPage/ListClientPage.tsx";
+import {ListCustomerPage} from "./pages/ListCustomerPage/ListCustomerPage.tsx";
 import {PATHS, RouteKey} from "../../common/router/routes.ts";
 
 export const customerRoutes: RouteObject[] = [
@@ -10,6 +10,6 @@ export const customerRoutes: RouteObject[] = [
     },
     {
         path: PATHS[RouteKey.CLIENT_LIST],
-        element: <ListClientPage />
+        element: <ListCustomerPage />
     }
 ];

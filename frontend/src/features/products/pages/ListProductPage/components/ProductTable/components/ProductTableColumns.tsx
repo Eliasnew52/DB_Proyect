@@ -1,7 +1,7 @@
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import DoDisturbOnIcon from '@mui/icons-material/DoDisturbOn';
 import { MRT_ColumnDef } from 'material-react-table';
-import { Product } from '../../../../../types/products.types';
+import { Product } from '../../../../../../../common/types/products.types.ts';
 
 export const ProductTableColumns: MRT_ColumnDef<Product>[] = [
     {

@@ -1,11 +1,51 @@
-import {Box, Button, FormHelperText, Grid, InputLabel, Typography} from "@mui/material";
+import {Controller, useForm} from "react-hook-form";
+import {
+    Autocomplete,
+    Box,
+    Button,
+    FormHelperText,
+    Grid,
+    InputLabel,
+    TextField,
+    Typography
+} from "@mui/material";
 import {SectionHeader} from "../../../../common/components/ui/SectionHeader/SectionHeader.tsx";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
-import {Controller, useForm} from "react-hook-form";
 import {ContentContainer} from "../../../../common/components/ui/ContentContainer.tsx";
+import InfoOutlineIcon from '@mui/icons-material/InfoOutline';
+import AddIcon from '@mui/icons-material/Add';
+import {useCallback, useMemo, useState} from "react";
+import {NumericFormat} from "react-number-format";
+import {useCategories} from "../../hooks/useCategories.ts";
+import {useBrands} from "../../hooks/useBrands.ts";
+import {useProviders} from "../../hooks/useProviders.ts";
+import {Category} from "../../../../common/types/categories.types.ts";
 
 export const CreateProductPage = () => {
-    const { control } = useForm()
+    const [showDescriptionField, setShowDescriptionField] = useState(false);
+    const [showMeasurementsField, setShowMeasurementsField] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+
+    const { control, register } = useForm();
+    const { data: categories, isLoading: isLoadingCategories, isError: isLoadingCategoriesError, error: categoriesError } = useCategories();
+    const { data: brands, isLoading: isLoadingBrands, isError: isLoadingBrandsError, error: brandsError } = useBrands();
+    const { data: suppliers, isLoading: isLoadingProviders, isError: isLoadingProvidersError, error: suppliersError } = useProviders();
+
+    const handleToggleDescriptionField = useCallback(() => {
+        setShowDescriptionField(!showDescriptionField);
+    }, [showDescriptionField]);
+    
+    const handleToggleMeasurementsField = useCallback(() => {
+        setShowMeasurementsField(!showMeasurementsField);
+    }, [showMeasurementsField]);
+    
+    const currentCategoryProductSchema = useMemo(() => {
+        if (!categories || !selectedCategory || categories.length === 0) {
+            return null;
+        }
+        
+        return categories?.find(c => c.id === selectedCategory?.id)?.product_schema;
+    }, [categories, selectedCategory])
 
     return (
         <Grid>
@@ -17,7 +57,7 @@ export const CreateProductPage = () => {
             <Grid container flexDirection={'column'} spacing={2}>
 
                 <Grid container size={12}>
-                    <ContentContainer size={{ md: 6, lg: 6, xl: 6 }} marginTop={0}>
+                    <ContentContainer size={{ md: 6, lg: 6, xl: 6 }}>
                         <SectionHeader
                             title="Imagen del producto"
                             subtitle='Carga una imagen de alta calidad de tu producto'
@@ -68,21 +108,250 @@ export const CreateProductPage = () => {
                         />
                     </ContentContainer>
 
-
                     <ContentContainer size={{ md: 6, lg: 6, xl: 6 }}>
-                        <Grid container flexDirection={'column'}>
-                            <Grid container spacing={2}>
-                                <InfoOutlined />
-                                Typography
+                        <SectionHeader
+                            title="Información básica"
+                            Icon={InfoOutlineIcon}
+                        />
+                        <Grid>
+                            <InputLabel htmlFor={'name'}>
+                                Nombre del producto
+                            </InputLabel>
+                            <TextField
+                                id={'name'}
+                                variant={'outlined'}
+                                size={'small'}
+                                fullWidth
+                                placeholder={'Ingrese el nombre del producto'}
+                                {...register('name')}
+                            />
+                        </Grid>
+                        <Grid>
+                            <InputLabel htmlFor={'category'}>
+                                Categoría del producto
+                            </InputLabel>
+                            <Controller
+                                name={'category'}
+                                control={control}
+                                render={({ field, fieldState }) => (
+                                    <Autocomplete
+                                        {...field}
+                                        disablePortal
+                                        disabled={isLoadingCategoriesError}
+                                        loading={isLoadingCategories}
+                                        options={categories || []}
+                                        getOptionKey={(option) => option.id}
+                                        getOptionLabel={(option) => option?.name}
+                                        onChange={(_, newValue) => {
+                                            field.onChange(newValue);
+                                            setSelectedCategory(selectedCategory);
+                                        }}
+                                        value={field.value || null}
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                placeholder="Elige una categoría"
+                                                size={"small"}
+                                            />
+                                        )}
+                                    />
+                                )}
+                            />
+                        </Grid>
+                        <Grid container flexDirection={'column'} spacing={1}>
+                            <Grid container alignItems={'center'} justifyContent={'space-between'}>
+                                <InputLabel htmlFor={'description'}>
+                                    Descripción del producto
+                                </InputLabel>
+                                <Button
+                                    variant={'text'}
+                                    startIcon={<AddIcon />}
+                                    onClick={handleToggleDescriptionField}
+                                >
+                                    { !showDescriptionField ? 'Añadir' : 'Ocultar' } descripción
+                                </Button>
                             </Grid>
+                            {
+                                showDescriptionField && (
+                                    <TextField
+                                        id="description"
+                                        multiline
+                                        placeholder={'Ingresa un descripción detallada del producto'}
+                                        variant="outlined"
+                                        {...register('description')}
+                                    />
+                                )
+                            }
                         </Grid>
                     </ContentContainer>
                 </Grid>
 
-                <Grid>
+                <Grid container>
+                    <ContentContainer size={12}>
+                        <Grid container flexDirection={'column'} spacing={1}>
+                            <SectionHeader
+                                title={'Detalles del producto'}
+                                subtitle={'Especificar información y especificaciones detalladas del producto'}
+                            />
 
+                            <Grid
+                                sx={{
+                                    display: 'grid',
+                                    width: '100%',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                    gap: 2,
+                                }}
+                            >
+                                <Grid>
+                                    <InputLabel htmlFor={'brand'}>
+                                        Marca del producto
+                                    </InputLabel>
+                                    <Controller
+                                        name={'brand'}
+                                        control={control}
+                                        render={({ field, fieldState }) => (
+                                            <Autocomplete
+                                                {...field}
+                                                disablePortal
+                                                options={brands || []}
+                                                loading={isLoadingBrands}
+                                                disabled={isLoadingBrandsError}
+                                                getOptionKey={(option) => option.id}
+                                                getOptionLabel={(option) => option?.name}
+                                                onChange={(_, newValue) => field.onChange(newValue)}
+                                                value={field.value || null}
+                                                renderInput={(params) => (
+                                                    <TextField
+                                                        {...params}
+                                                        placeholder="Elige una marca"
+                                                        size={"small"}
+                                                    />
+                                                )}
+                                            />
+                                        )}
+                                    />
+                                </Grid>
+                                <Grid>
+                                    <InputLabel htmlFor={'suppliers'}>
+                                        Proveedor del producto
+                                    </InputLabel>
+                                    <Controller
+                                        name={'suppliers'}
+                                        control={control}
+                                        render={({ field, fieldState }) => (
+                                            <Autocomplete
+                                                {...field}
+                                                // multiple
+                                                // limitTags={4}
+                                                disablePortal
+                                                options={suppliers || []}
+                                                loading={isLoadingProviders}
+                                                disabled={isLoadingProvidersError}
+                                                getOptionKey={(option) => option.id}
+                                                getOptionLabel={(option) => option?.name}
+                                                onChange={(_, newValue) => field.onChange(newValue)}
+                                                value={field.value || null}
+                                                renderInput={(params) => (
+                                                    <TextField
+                                                        {...params}
+                                                        placeholder="Elige un proveedor"
+                                                        size={"small"}
+                                                    />
+                                                )}
+                                            />
+                                        )}
+                                    />
+                                </Grid>
+                                <Grid>
+                                    <InputLabel htmlFor={'sale_price'}>
+                                        Precio venta del producto
+                                    </InputLabel>
+                                    <Controller
+                                        control={control}
+                                        name={'sale_price'}
+                                        render={({ field, fieldState }) => (
+                                            <NumericFormat
+                                                {...field}
+                                                fullWidth
+                                                customInput={TextField}
+                                                thousandSeparator
+                                                valueIsNumericString
+                                                prefix="$"
+                                                size={'small'}
+                                                placeholder={'Ingrese el precio venta del producto'}
+                                                variant="outlined"
+                                            />
+                                        )}
+                                    />
+                                </Grid>
+                                <Grid>
+                                    <InputLabel htmlFor={'purchase_price'}>
+                                        Precio compra del producto
+                                    </InputLabel>
+                                    <Controller
+                                      control={control}
+                                      name={'purchase_price'}
+                                      render={({ field, fieldState }) => (
+                                          <NumericFormat
+                                              {...field}
+                                              fullWidth
+                                              customInput={TextField}
+                                              thousandSeparator
+                                              valueIsNumericString
+                                              prefix="$"
+                                              size={'small'}
+                                              placeholder={'Ingrese el precio compra del producto'}
+                                              variant="outlined"
+                                          />
+                                      )}
+                                    />
+                                </Grid>
+
+                                {
+                                    currentCategoryProductSchema && (
+                                        Object.entries(currentCategoryProductSchema).map(([ key, value ]) => (
+                                            <></>
+                                        ))
+                                    )
+                                }
+                            </Grid>
+                        </Grid>
+
+                    </ContentContainer>
                 </Grid>
 
+                <Grid container>
+                    <ContentContainer size={12}>
+                        <Grid container flexDirection={'column'} spacing={1}>
+                            <Grid container alignItems={'center'} justifyContent={'space-between'}>
+                                <SectionHeader
+                                    title={'Mediciones y Especificaciones'}
+                                    subtitle={'Agregue medidas detalladas y especificaciones técnicas.'}
+                                />
+
+                                <Button
+                                    variant={'text'}
+                                    startIcon={<AddIcon />}
+                                    onClick={handleToggleMeasurementsField}
+                                >
+                                    { !showMeasurementsField ? 'Añadir' : 'Ocultar' } especificaciones
+                                </Button>
+                            </Grid>
+                            {/*{*/}
+                            {/*    showMeasurementsField && (*/}
+                            {/*        <TextField*/}
+                            {/*            id="description"*/}
+                            {/*            multiline*/}
+                            {/*            placeholder={'Ingresa un descripción detallada del producto'}*/}
+                            {/*            variant="outlined"*/}
+                            {/*            {...register('description')}*/}
+                            {/*        />*/}
+                            {/*    )*/}
+                            {/*}*/}
+                        </Grid>
+
+                    </ContentContainer>
+                </Grid>
             </Grid>
         </Grid>
     )

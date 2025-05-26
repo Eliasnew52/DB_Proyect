@@ -5,8 +5,7 @@ import {AuthLayout} from "../../features/auth/components/layout/AuthLayout/AuthL
 import {productsRoutes} from "../../features/products/routes.tsx";
 import {purchasesRoutes} from "../../features/purchases/routes.tsx";
 import {salesRoutes} from "../../features/sales/routes.tsx";
-import {providersRoutes} from "../../features/providers/routes.tsx";
-import {clientsRoutes} from "../../features/clients/routes.tsx";
+import {customerRoutes} from "../../features/customers/routes.tsx";
 import {MainLayout} from "../components/MainLayout/MainLayout.tsx";
 import {reportsRoutes} from "../../features/reports/routes.tsx";
 import {RequiredAuth} from "../components/RequiredAuth/RequiredAuth.tsx";
@@ -22,7 +21,7 @@ export const AppRouter = () => {
             </Route>
             <Route element={<RequiredAuth />}>
                 <Route element={<MainLayout />}>
-                {clientsRoutes.map(({ path, element }) => (
+                {customerRoutes.map(({ path, element }) => (
                     <Route key={path} path={path} element={element} />
                 ))}
 
@@ -31,10 +30,6 @@ export const AppRouter = () => {
                 ))}
 
                 {productsRoutes.map(({ path, element }) => (
-                    <Route key={path} path={path} element={element} />
-                ))}
-
-                {providersRoutes.map(({ path, element }) => (
                     <Route key={path} path={path} element={element} />
                 ))}
 

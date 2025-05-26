@@ -1,15 +1,6 @@
-import {CatalogEntity} from "../../../common/types/CatalogEntity.ts";
-
-export type Category = CatalogEntity;
-export type Brand    = CatalogEntity;
-
-export interface Supplier {
-    id: number;
-    name: string;
-    email: string;
-    phone: string;
-    company: number;
-}
+import {Supplier} from "./supplier.types.ts";
+import {Category} from "./categories.types.ts";
+import {Brand} from "./brands.types.ts";
 
 export interface Product {
     id: number;

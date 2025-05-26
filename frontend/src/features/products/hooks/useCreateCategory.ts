@@ -1,8 +1,8 @@
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {Category} from "../types/categories.types.ts";
+import {Category} from "../../../common/types/categories.types.ts";
 import {createCategory} from "../api/categoriesFetchers.ts";
 import { CATEGORIES_KEY} from "../queryKeys.ts";
-import {Brand} from "../types/brands.types.ts";
+import {Brand} from "../../../common/types/brands.types.ts";
 import {CustomError} from "../../../common/types/customError.types.ts";
 
 export const useCreateCategory = () => {

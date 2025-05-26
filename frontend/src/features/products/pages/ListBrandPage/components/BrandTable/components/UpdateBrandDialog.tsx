@@ -11,7 +11,7 @@ import {
 } from "@mui/material";
 import {Controller, useForm} from "react-hook-form";
 import {useUpdateBrand} from "../../../../../hooks/useUpdateBrand.ts";
-import {Brand} from "../../../../../types/brands.types.ts";
+import {Brand} from "../../../../../../../common/types/brands.types.ts";
 import {useNotifications} from "../../../../../../../common/hooks/useNotifications.ts";
 
 export const UpdateBrandDialog = ({ row, table }) => {

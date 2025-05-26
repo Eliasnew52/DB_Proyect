@@ -1,4 +1,4 @@
-export interface ApiError {
+export interface ApiErrorTypes {
     success: false;
     message: string;
     errors?: Record<string, string | string[]>;

@@ -5,6 +5,8 @@ import {ListProductPage} from "./pages/ListProductPage/ListProductPage.tsx";
 import {ListCategoryPage} from "./pages/ListCategoryPage/ListCategoryPage.tsx";
 import {ListBrandPage} from "./pages/ListBrandPage/ListBrandPage.tsx";
 import {PATHS, RouteKey} from "../../common/router/routes.ts";
+import {CreateProviderPage} from "./pages/CreateProviderPage/CreateProviderPage.tsx";
+import {ListProviderPage} from "./pages/ListProviderPage/ListProviderPage.tsx";
 
 export const productsRoutes: RouteObject[] = [
     {
@@ -30,5 +32,13 @@ export const productsRoutes: RouteObject[] = [
     {
         path: PATHS[RouteKey.BRAND_LIST],
         element: <ListBrandPage />
+    },
+    {
+        path: PATHS[RouteKey.NEW_PROVIDER],
+        element: <CreateProviderPage />
+    },
+    {
+        path: PATHS[RouteKey.PROVIDER_LIST],
+        element: <ListProviderPage />
     }
 ];

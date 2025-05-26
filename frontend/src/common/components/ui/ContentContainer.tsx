@@ -1,38 +1,38 @@
 import React, { ReactNode } from 'react';
-import {Container, Box, Grid} from '@mui/material';
+import {Grid, GridProps, SxProps, Theme} from '@mui/material';
 
-interface ContentContainerProps {
+interface ContentContainerProps extends GridProps {
     children: ReactNode;
-    maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-    padding?: number;
-    marginTop?: number;
-    borderRadius?: number;
-    borderColor?: string;
 }
 
 export const ContentContainer: React.FC<ContentContainerProps> = ({
   children,
-  maxWidth = 'xl',
-  padding = 4,
-  marginTop = 4,
-  borderRadius = 2,
-  borderColor = 'grey.300',
-}) => (
-    <Grid maxWidth={maxWidth}>
-        <Box
-            sx={{
-                border: '1px solid',
-                borderColor,
-                borderRadius,
-                p: padding,
-                mt: marginTop,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 3,
-                backgroundColor: 'background.paper',
-            }}
+  sx: sxProp,
+  ...gridProps
+  }) => {
+    const defaultSx: SxProps<Theme> = {
+        border: '1px solid',
+        borderColor: 'grey.300',
+        borderRadius: 2,
+        p: 4,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 3,
+        backgroundColor: 'background.paper',
+    };
+
+    const mergedSx: SxProps<Theme> = Array.isArray(sxProp)
+        ? [defaultSx, ...sxProp]
+        : sxProp
+            ? [defaultSx, sxProp]
+            : defaultSx;
+
+    return (
+        <Grid
+            {...gridProps}
+            sx={mergedSx}
         >
             {children}
-        </Box>
-    </Grid>
-);
+        </Grid>
+    )
+};

@@ -10,7 +10,7 @@ import {
     Typography
 } from "@mui/material";
 import {ContentContainer} from "../../../../../../common/components/ui/ContentContainer.tsx";
-import {Category, EnumProperty} from "../../../../types/categories.types.ts";
+import {Category, EnumProperty} from "../../../../../../common/types/categories.types.ts";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SaveIcon from '@mui/icons-material/Save';

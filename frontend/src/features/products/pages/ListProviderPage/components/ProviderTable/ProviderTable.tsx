@@ -1,7 +1,7 @@
 import {useMemo} from "react";
 import {MaterialReactTable, useMaterialReactTable} from "material-react-table";
 import {MRT_Localization_ES} from "material-react-table/locales/es";
-import {useProviders} from "../../../../api/useProviders.ts";
+import {useProviders} from "../../../../hooks/useProviders.ts";
 import {ProviderTableColumns} from "./components/ProviderTableColumns.tsx";
 
 export const ProviderTable = () => {
