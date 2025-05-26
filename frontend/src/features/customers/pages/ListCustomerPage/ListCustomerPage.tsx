@@ -1,9 +1,9 @@
 import {Grid} from "@mui/material";
 
-export const ListProviderPage = () => {
+export const ListCustomerPage = () => {
     return (
         <Grid>
-            ListProviderPage
+            ListClientPage
         </Grid>
     )
 }
