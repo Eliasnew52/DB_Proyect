@@ -1,0 +1,45 @@
+export enum RouteKey {
+    LOGIN           = 'login',
+    DASHBOARD       = 'dashboard',
+    PROFILE         = 'profile',
+    NEW_SALE        = 'new_sale',
+    SALE_LIST       = 'sale_list',
+    INVENTORY_REPORT= 'inventory_report',
+    INVOICE_REPORT  = 'invoice_report',
+    NEW_PURCHASE    = 'new_purchase',
+    PURCHASE_LIST   = 'purchase_list',
+    NEW_CLIENT      = 'new_client',
+    CLIENT_LIST     = 'client_list',
+    NEW_PROVIDER    = 'new_provider',
+    PROVIDER_LIST   = 'provider_list',
+    NEW_PRODUCT     = 'new_product',
+    NEW_CATEGORY    = 'new_category',
+    PRODUCT_LIST    = 'product_list',
+    CATEGORY_LIST   = 'category_list',
+    BRAND_LIST      = 'brand_list',
+    // NEW_BRAND    = 'new_brand', // Descomenta si tienes esta ruta
+}
+
+export const PATHS: Record<RouteKey, string> = {
+    [RouteKey.LOGIN]:            '/auth/login',
+    [RouteKey.DASHBOARD]:        '/',
+    [RouteKey.PROFILE]:          '/profile/:userId',
+    [RouteKey.NEW_SALE]:         '/new-sale',
+    [RouteKey.SALE_LIST]:        '/sale-list',
+    [RouteKey.INVENTORY_REPORT]: '/inventory-report',
+    [RouteKey.INVOICE_REPORT]:   '/invoice-report',
+    [RouteKey.NEW_PURCHASE]:     '/new-purchase',
+    [RouteKey.PURCHASE_LIST]:    '/purchase-list',
+    [RouteKey.NEW_CLIENT]:       '/new-client',
+    [RouteKey.CLIENT_LIST]:      '/client-list',
+    [RouteKey.NEW_PROVIDER]:     '/new-provider',
+    [RouteKey.PROVIDER_LIST]:    '/provider-list',
+    [RouteKey.NEW_PRODUCT]:      '/new-product',
+    [RouteKey.NEW_CATEGORY]:     '/new-category',
+    [RouteKey.PRODUCT_LIST]:     '/product-list',
+    [RouteKey.CATEGORY_LIST]:    '/category-list',
+    [RouteKey.BRAND_LIST]:       '/brand-list',
+    // [RouteKey.NEW_BRAND]:     '/new-brand',
+} as const;
+
+export type RoutePathKey = keyof typeof PATHS;

@@ -8,8 +8,11 @@ import {salesRoutes} from "../../features/sales/routes.tsx";
 import {providersRoutes} from "../../features/providers/routes.tsx";
 import {clientsRoutes} from "../../features/clients/routes.tsx";
 import {MainLayout} from "../components/MainLayout/MainLayout.tsx";
+import {reportsRoutes} from "../../features/reports/routes.tsx";
+import {RequiredAuth} from "../components/RequiredAuth/RequiredAuth.tsx";
 
 export const AppRouter = () => {
+
     return (
         <Routes>
             <Route element={<AuthLayout />}>
@@ -17,7 +20,12 @@ export const AppRouter = () => {
                     <Route key={path} path={path} element={element} />
                 ))}
             </Route>
-            <Route element={<MainLayout />}>
+            <Route element={<RequiredAuth />}>
+                <Route element={<MainLayout />}>
+                {clientsRoutes.map(({ path, element }) => (
+                    <Route key={path} path={path} element={element} />
+                ))}
+
                 {dashboardRoutes.map(({ path, element }) => (
                     <Route key={path} path={path} element={element} />
                 ))}
@@ -26,21 +34,22 @@ export const AppRouter = () => {
                     <Route key={path} path={path} element={element} />
                 ))}
 
+                {providersRoutes.map(({ path, element }) => (
+                    <Route key={path} path={path} element={element} />
+                ))}
+
                 {purchasesRoutes.map(({ path, element }) => (
+                    <Route key={path} path={path} element={element} />
+                ))}
+
+                {reportsRoutes.map(({ path, element }) => (
                     <Route key={path} path={path} element={element} />
                 ))}
 
                 {salesRoutes.map(({ path, element }) => (
                     <Route key={path} path={path} element={element} />
                 ))}
-
-                {providersRoutes.map(({ path, element }) => (
-                    <Route key={path} path={path} element={element} />
-                ))}
-
-                {clientsRoutes.map(({ path, element }) => (
-                    <Route key={path} path={path} element={element} />
-                ))}
+            </Route>
             </Route>
         </Routes>
     )

@@ -19,13 +19,15 @@ export const useCreateCategory = () => {
                 ...(old || []),
                 {
                     ...newCategory,
+                    id: new Date().getTime(),
+                    active: true,
                 } as Category
             ])
 
             return { previous }
         },
 
-        onError: (error: CustomError, _newBrand, context) => {
+        onError: (_error: CustomError, _newCategory, context) => {
             if (context?.previous) {
                 qc.setQueryData(CATEGORIES_KEY, context.previous)
             }

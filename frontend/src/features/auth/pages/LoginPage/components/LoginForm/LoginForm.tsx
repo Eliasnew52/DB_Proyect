@@ -1,17 +1,36 @@
+import {FormProvider, SubmitHandler, useForm} from "react-hook-form";
 import {Button, Grid, InputAdornment, InputLabel, TextField, Typography} from "@mui/material";
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import {PasswordField} from "../../../../components/PasswordField/PasswordField.tsx";
-import logo from '../../../../assets/images/logo.png';
 import {useLogin} from "../../../../hooks/useLogin.ts";
-import {FormProvider, useForm} from "react-hook-form";
+import logo from '../../../../assets/images/logo.png';
+import {useRouteNavigator} from "../../../../../../common/hooks/useRouteNavigator.ts";
+import {RouteKey} from "../../../../../../common/router/routes.ts";
+import {useNotifications} from "../../../../../../common/hooks/useNotifications.ts";
+import type {LoginFormValues} from "./LoginForm.types.ts";
 
 export const LoginForm = () => {
-    const methods = useForm();
-    const { register, handleSubmit } = methods;
-    const login = useLogin();
+    const methods = useForm<LoginFormValues>({
+        mode: 'onChange',
+        defaultValues: { username: '', password: '' }
+    });
 
-    const onSubmit = (data) => {
-        login.mutate(data);
+    const { register, handleSubmit } = methods;
+
+    const login = useLogin();
+    const { go } = useRouteNavigator();
+    const { showToast } = useNotifications();
+
+
+    const onSubmit: SubmitHandler<LoginFormValues> = (data) => {
+        login.mutate(data, {
+            onSuccess: response => {
+                go(RouteKey.DASHBOARD)
+            },
+            onError: error => {
+                showToast({ icon: 'error', title: error.message })
+            }
+        });
     }
 
     return (

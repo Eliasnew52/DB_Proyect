@@ -1,7 +1,7 @@
 import {RouteObject} from "react-router";
 import {InventoryReportPage} from "./pages/InventoryReportPage/InventoryReportPage.tsx";
 import {InvoiceReportPage} from "./pages/InvoiceReportPage/InvoiceReportPage.tsx";
-import {PATHS, RouteKey} from "../../app/routes/path.ts";
+import {PATHS, RouteKey} from "../../common/router/routes.ts";
 
 export const reportsRoutes: RouteObject[] = [
     {

@@ -1,6 +1,6 @@
 export interface EnumProperty<T extends string = string> {
-    enum: T[];
-    type: 'string';
+    options: T[];
+    type: 'string' | 'number' | 'boolean' | 'enum';
     title: string;
 }
 
@@ -17,6 +17,6 @@ export interface Category {
     description: string;
     last_updated: string;
     image: string;
-    product_schema: ProductSchema;
+    product_schema: string;
     created_by: string | null;
 }

@@ -3,8 +3,9 @@ import {Avatar, Box, Divider, IconButton, ListItemIcon, MenuItem, Tooltip, Menu}
 import PersonAdd from '@mui/icons-material/PersonAdd';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
+import {UserMenuProps} from "./UserMenu.types.ts";
 
-export const UserMenu = () => {
+export const UserMenu = ({ user }: UserMenuProps) => {
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
     const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -26,7 +27,9 @@ export const UserMenu = () => {
                         aria-haspopup="true"
                         aria-expanded={open ? 'true' : undefined}
                     >
-                        <Avatar>M</Avatar>
+                        <Avatar>
+                            {user?.username.charAt(0) ?? "Unknown user"}
+                        </Avatar>
                     </IconButton>
                 </Tooltip>
             </Box>

@@ -21,51 +21,45 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
 import {MenuOption} from "./MainLayout.types.ts";
-import {dashboardRoutes} from "../../../features/dashboard/routes.tsx";
-import {productsRoutes} from "../../../features/products/routes.tsx";
-import {salesRoutes} from "../../../features/sales/routes.tsx";
-import {purchasesRoutes} from "../../../features/purchases/routes.tsx";
-import {providersRoutes} from "../../../features/providers/routes.tsx";
-import {clientsRoutes} from "../../../features/clients/routes.tsx";
-import {reportsRoutes} from "../../../features/reports/routes.tsx";
-import {UserMenu} from "../../../features/dashboard/components/UserMenu.tsx";
+import {UserMenu} from "./components/UserMenu/UserMenu.tsx";
 import {DrawerContent} from "./components/DrawerContent/DrawerContent.tsx";
-
+import {PATHS, RouteKey} from "../../../common/router/routes.ts";
+import {useUser} from "../../../features/auth/hooks/useUser.ts";
 
 const drawerWidth = 240;
 const menuOptions: MenuOption[] = [
-    {label: 'Panel', icon: <SpeedOutlinedIcon fontSize="small" />, path: dashboardRoutes[0].path, subRoutes: []},
+    {label: 'Panel', icon: <SpeedOutlinedIcon fontSize="small" />, path: RouteKey.DASHBOARD, subRoutes: []},
     {
         label: 'Productos',
         icon: <Inventory2OutlinedIcon fontSize="small" />,
         subRoutes: [
             {
-                path: productsRoutes[0].path ?? '',
+                path: PATHS[RouteKey.NEW_PRODUCT] ?? '',
                 label: 'Crear producto',
                 icon: <AddCircleOutlineIcon fontSize="small" />
             },
             {
-                path: productsRoutes[1].path ?? '',
+                path: PATHS[RouteKey.NEW_CATEGORY] ?? '',
                 label: 'Crear categoría',
                 icon: <AddCircleOutlineIcon fontSize="small" />
             },
             // {
-            //     path: productsRoutes[2].path ?? '',
+            //     path: routes[2].path ?? '',
             //     label: 'Crear marca',
             //     icon: <AddCircleOutlineIcon fontSize="small" />
             // },
             {
-                path: productsRoutes[2].path ?? '',
+                path: PATHS[RouteKey.PRODUCT_LIST] ?? '',
                 label: 'Listar productos',
                 icon: <ListAltIcon fontSize="small" />
             },
             {
-                path: productsRoutes[3].path ?? '',
+                path: PATHS[RouteKey.CATEGORY_LIST] ?? '',
                 label: 'Listar categorías',
                 icon: <ListAltIcon fontSize="small" />
             },
             {
-                path: productsRoutes[4].path ?? '',
+                path: PATHS[RouteKey.BRAND_LIST] ?? '',
                 label: 'Listar marcas',
                 icon: <ListAltIcon fontSize="small" />
             },
@@ -76,12 +70,12 @@ const menuOptions: MenuOption[] = [
         icon: <ShoppingCartOutlinedIcon fontSize="small"/>,
         subRoutes: [
             {
-                path: salesRoutes[0].path ?? '',
+                path: PATHS[RouteKey.NEW_SALE] ?? '',
                 label: 'Crear venta',
                 icon: <AddCircleOutlineIcon fontSize="small" />
             },
             {
-                path: salesRoutes[1].path ?? '',
+                path:  PATHS[RouteKey.SALE_LIST] ?? '',
                 label: 'Listar ventas',
                 icon: <ListAltIcon fontSize="small" />
             },
@@ -92,12 +86,12 @@ const menuOptions: MenuOption[] = [
         icon: <ReceiptLongOutlinedIcon fontSize="small"/>,
         subRoutes: [
             {
-                path: purchasesRoutes[0].path ?? '',
+                path:  PATHS[RouteKey.NEW_PURCHASE] ?? '',
                 label: 'Crear compra',
                 icon: <AddCircleOutlineIcon fontSize="small" />
             },
             {
-                path: purchasesRoutes[1].path ?? '',
+                path: PATHS[RouteKey.PURCHASE_LIST] ?? '',
                 label: 'Listar compras',
                 icon: <ListAltIcon fontSize="small" />
             },
@@ -108,12 +102,12 @@ const menuOptions: MenuOption[] = [
         icon: <LocalShippingOutlinedIcon fontSize="small"/>,
         subRoutes: [
             {
-                path: providersRoutes[0].path ?? '',
+                path: PATHS[RouteKey.NEW_PROVIDER] ?? '',
                 label: 'Crear proveedor',
                 icon: <AddCircleOutlineIcon fontSize="small" />
             },
             {
-                path: providersRoutes[1].path ?? '',
+                path: PATHS[RouteKey.PROVIDER_LIST] ?? '',
                 label: 'Listar proveedores',
                 icon: <ListAltIcon fontSize="small" />
             },
@@ -124,12 +118,12 @@ const menuOptions: MenuOption[] = [
         icon: <PermIdentityOutlinedIcon fontSize="small"/>,
         subRoutes: [
             {
-                path: clientsRoutes[0].path ?? '',
+                path: PATHS[RouteKey.NEW_CLIENT] ?? '',
                 label: 'Crear cliente',
                 icon: <AddCircleOutlineIcon fontSize="small" />
             },
             {
-                path: clientsRoutes[1].path ?? '',
+                path: PATHS[RouteKey.CLIENT_LIST] ?? '',
                 label: 'Listar clientes',
                 icon: <ListAltIcon fontSize="small" />
             },
@@ -140,12 +134,12 @@ const menuOptions: MenuOption[] = [
         icon: <AssessmentOutlinedIcon fontSize="small"/>,
         subRoutes: [
             {
-                path: reportsRoutes[0].path ?? '',
+                path: PATHS[RouteKey.INVENTORY_REPORT] ?? '',
                 label: 'Reporte de inventario',
                 icon: <InsertChartOutlinedIcon fontSize="small" />
             },
             {
-                path: reportsRoutes[1].path ?? '',
+                path: PATHS[RouteKey.INVOICE_REPORT] ?? '',
                 label: 'Reporte de facturas',
                 icon: <InsertChartOutlinedIcon fontSize="small" />
             },
@@ -156,6 +150,8 @@ const menuOptions: MenuOption[] = [
 export const MainLayout = () => {
     const [mobileOpen, setMobileOpen] = React.useState(false);
     const [isClosing, setIsClosing] = React.useState(false);
+
+    const { user, isLoading, isError, error } = useUser();
 
     const handleDrawerClose = () => {
         setIsClosing(true);
@@ -195,7 +191,7 @@ export const MainLayout = () => {
                         container
                         marginLeft={'auto'}
                     >
-                        <UserMenu/>
+                        <UserMenu user={user}/>
                     </Grid>
                 </Toolbar>
             </AppBar>

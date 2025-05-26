@@ -4,7 +4,7 @@ import {CreateCategoryPage} from "./pages/CreateCategoryPage/CreateCategoryPage.
 import {ListProductPage} from "./pages/ListProductPage/ListProductPage.tsx";
 import {ListCategoryPage} from "./pages/ListCategoryPage/ListCategoryPage.tsx";
 import {ListBrandPage} from "./pages/ListBrandPage/ListBrandPage.tsx";
-import {PATHS, RouteKey} from "../../app/routes/path.ts";
+import {PATHS, RouteKey} from "../../common/router/routes.ts";
 
 export const productsRoutes: RouteObject[] = [
     {

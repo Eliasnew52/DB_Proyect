@@ -17,8 +17,8 @@ export const useCreateBrand = () => {
             qc.setQueryData<Brand[]>(BRANDS_KEY, old => [
                 ...(old || []),
                 {
-                    id: new Date().getTime(),
                     ...newBrand,
+                    id: new Date().getTime(),
                     active: true,
                 } as Brand
             ])
@@ -27,7 +27,7 @@ export const useCreateBrand = () => {
         },
 
 
-        onError: (error: CustomError, _newBrand, context) => {
+        onError: (_error: CustomError, _newBrand, context) => {
             if (context?.previous) {
                 qc.setQueryData(BRANDS_KEY, context.previous)
             }

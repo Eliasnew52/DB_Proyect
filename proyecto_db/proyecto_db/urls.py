@@ -27,11 +27,7 @@ from backend import views
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path('api/auth/jwt/create/',  views.CookieTokenObtainPairView.as_view(), name='jwt-create'),
-    path('api/auth/jwt/refresh/', views.CookieTokenRefreshView.as_view(), name='jwt-refresh'),
-
-    path('api/auth/', include('djoser.urls')),
-    path('api/auth/', include('djoser.urls.jwt')),
+    path('api/auth/', include('dj_rest_auth.urls')),
     
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),

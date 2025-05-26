@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from backend.models import PaymentMethod
-from djoser.serializers import UserSerializer
+from dj_rest_auth.serializers import UserDetailsSerializer
 
 class PaymentMethodSerializer(serializers.ModelSerializer):
-    created_by = UserSerializer(read_only=True)
+    created_by = UserDetailsSerializer(read_only=True)
     
     class Meta:
         model = PaymentMethod

@@ -28,7 +28,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
 
@@ -46,8 +50,7 @@ INSTALLED_APPS = [
     'backend',
     'registration',
     'rest_framework',
-    'rest_framework.authtoken',
-    'djoser',
+    'dj_rest_auth',
     'drf_spectacular',
     'widget_tweaks',
     'jsoneditor',
@@ -57,7 +60,8 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication', 
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_RENDERER_CLASSES': (
@@ -65,28 +69,32 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
     'EXCEPTION_HANDLER': 'backend.exceptions.custom_exception_handler',
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 
+}
+
+REST_AUTH = {
+    'USE_JWT': True,
+    'TOKEN_MODEL': None,                
+    'JWT_AUTH_COOKIE': 'access_token',           
+    'JWT_AUTH_REFRESH_COOKIE': 'refresh_token', 
+
+    'JWT_AUTH_REFRESH_COOKIE_PATH': '/api/auth/jwt/refresh/',
+    'JWT_AUTH_SECURE': True,
+    'JWT_AUTH_HTTPONLY': True,
+    'JWT_AUTH_SAMESITE': 'Lax',
+    'JWT_AUTH_RETURN_EXPIRATION': False,
+    'JWT_AUTH_COOKIE_USE_CSRF': False,
+    'JWT_AUTH_COOKIE_ENFORCE_CSRF_ON_UNAUTHENTICATED': False,
 }
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(weeks=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(weeks=1),
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    'AUTH_COOKIE':                'access_token',
-    'AUTH_COOKIE_SECURE':         True,
-    'AUTH_COOKIE_HTTP_ONLY':      True,
-    'AUTH_COOKIE_SAMESITE':       'Lax',
-    'AUTH_COOKIE_PATH':           '/',
-    'REFRESH_COOKIE':             'refresh_token',
-    'REFRESH_COOKIE_SECURE':      True,
-    'REFRESH_COOKIE_HTTP_ONLY':   True,
-    'REFRESH_COOKIE_SAMESITE':    'Lax',
-    'REFRESH_COOKIE_PATH':        '/api/auth/jwt/refresh/',
 }
 
-DJOSER = {
-    'LOGIN_FIELD': 'username',
-}
 
 SPECTACULAR_SETTINGS = {
     'TITLE': "Elisa's Stationery API",

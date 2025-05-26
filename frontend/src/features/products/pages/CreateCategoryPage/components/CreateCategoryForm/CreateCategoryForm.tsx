@@ -10,12 +10,16 @@ import {
     Typography
 } from "@mui/material";
 import {ContentContainer} from "../../../../../../common/components/ui/ContentContainer.tsx";
-import {Category} from "../../../../types/categories.types.ts";
+import {Category, EnumProperty} from "../../../../types/categories.types.ts";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SaveIcon from '@mui/icons-material/Save';
 import {AttributeBuilderModal} from "./components/AttributeBuilderModal/AttributeBuilderModal.tsx";
 import {AttributePreview} from "./components/AttributePreview/AttributePreview.tsx";
+import {useCreateCategory} from "../../../../hooks/useCreateCategory.ts";
+import {useRouteNavigator} from "../../../../../../common/hooks/useRouteNavigator.ts";
+import {PATHS, RouteKey} from "../../../../../../common/router/routes.ts";
+import {useNotifications} from "../../../../../../common/hooks/useNotifications.ts";
 
 
 export const CreateCategoryForm = () => {
@@ -49,8 +53,14 @@ export const CreateCategoryForm = () => {
         control,
     } = methods;
 
+    const update = useCreateCategory();
+
+    const { go } = useRouteNavigator();
+
+    const { showToast } = useNotifications();
+
     const onSubmit = useCallback((data: Partial<Category>) => {
-        const properties = attributes.reduce<Record<string, any>>((acc, { key, title, type, options }) => {
+        const properties = attributes.reduce<Record<string, EnumProperty>>((acc, { key, title, type, options }) => {
             acc[key] = {
                 type,
                 title,
@@ -65,16 +75,33 @@ export const CreateCategoryForm = () => {
             required: attributes.map(c => c.key),
             properties
         }
-
-
-        console.log({
-            name: data.name,
-            description: data.description,
-            image: data.image,
+        
+        const newCategory = {
+            ...data,
             product_schema: JSON.stringify(product_schema),
-        })
+        }
 
-    }, [attributes])
+        update.mutate(
+            newCategory as Category,
+            {
+                onSuccess: response => {
+                    showToast({
+                        title: 'Categoría creada exitosamente.',
+                        icon: 'success',
+                    })
+                    go(RouteKey.CATEGORY_LIST)
+                },
+                onError: error => {
+                    showToast({
+                        title: 'Error creando categoría',
+                        text: error.message,
+                        icon: 'error',
+                    })
+                }
+            }
+        )
+
+    }, [attributes, update])
 
     return (
         <FormProvider {...methods}>
@@ -197,7 +224,7 @@ export const CreateCategoryForm = () => {
 
 
                     <Grid alignSelf={'end'}>
-                        <Button type={'submit'} variant={'contained'} startIcon={<SaveIcon />}>
+                        <Button type={'submit'} variant={'contained'} startIcon={<SaveIcon />} loading={update.isPending}>
                             Guardar
                         </Button>
                     </Grid>

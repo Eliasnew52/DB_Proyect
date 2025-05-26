@@ -13,12 +13,12 @@ django-jsoneditor = "*"
 django-jsonform = "*"
 djangorestframework = "*"
 django-filter = "*"
-djoser = "*"
 djangorestframework-simplejwt = "*"
 jsonschema = "*"
 drf-yasg = "*"
 drf-spectacular = "*"
 django-cors-headers = "*"
+dj-rest-auth = "*"
 
 [dev-packages]
 

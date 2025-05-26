@@ -1,7 +1,7 @@
 import {RouteObject} from "react-router";
 import {CreatePurchasePage} from "./CreatePurchasePage/CreatePurchasePage.tsx";
 import {ListPurchasePage} from "./ListPurchasePage/ListPurchasePage.tsx";
-import {PATHS, RouteKey} from "../../app/routes/path.ts";
+import {PATHS, RouteKey} from "../../common/router/routes.ts";
 
 export const purchasesRoutes: RouteObject[] = [
     {

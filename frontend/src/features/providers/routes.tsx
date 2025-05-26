@@ -1,7 +1,7 @@
 import {RouteObject} from "react-router";
 import {CreateProviderPage} from "./pages/CreateProviderPage/CreateProviderPage.tsx";
 import {ListProviderPage} from "./pages/ListProviderPage/ListProviderPage.tsx";
-import {PATHS, RouteKey} from "../../app/routes/path.ts";
+import {PATHS, RouteKey} from "../../common/router/routes.ts";
 
 export const providersRoutes: RouteObject[] = [
     {

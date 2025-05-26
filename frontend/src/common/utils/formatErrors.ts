@@ -1,27 +1,33 @@
-import axios, {AxiosError} from 'axios';
-import type {CustomError} from "../types/customError.types.ts";
+import axios, { AxiosError } from 'axios';
+import type { CustomError } from "../types/customError.types.ts";
 
 export const formatError = (error: AxiosError | Error): CustomError => {
+    const timestamp = new Date().toISOString();
 
     if (axios.isAxiosError(error)) {
-        const { response, code, config } = error;
-        const data = response?.data || {};
+        const { response, code, config, request } = error;
+        const status = response?.status ?? null;
+        const endpoint = config?.url ?? 'unknown';
+        const data = (response?.data as {
+            message?: string;
+            errors?: Record<string, any>;
+        }) || {};
 
         const customError: CustomError = {
             code: code || 'AXIOS_ERROR',
-            status: response?.status ?? null,
-            endpoint: config?.url ?? 'unknown',
-            message: data.message ?? 'Ocurrió un error en el servidor',
-            timestamp: new Date().toISOString(),
+            status,
+            endpoint,
+            message: data.message || 'Ocurrió un error en el servidor',
+            timestamp,
+            fieldErrors: {},
+            messages: [],
         };
 
-        if (data.errors && typeof data.errors === 'object') {
-            customError.fieldErrors = data.errors;
-            const allMsgs = Object.values(data.errors).flat().map(String);
-            customError.messages = allMsgs;
-            customError.message = allMsgs[0];
+        if (request && !response) {
+            customError.code = 'NETWORK_ERROR';
+            customError.message = 'Could not connect to the server. Please try again later.';
+            return customError;
         }
-
 
         if (code === 'ERR_CANCELED' || axios.isCancel(error)) {
             customError.code = 'CANCELED';
@@ -30,13 +36,26 @@ export const formatError = (error: AxiosError | Error): CustomError => {
             return customError;
         }
 
-        if (response && (response.status === 401 || response.status === 403)) {
-            customError.code = 'UNAUTHORIZED';
+        if (response && (status === 401 || status === 403)) {
+            customError.code = 'unauthorized';
         }
 
-        if (error.request && !response) {
-            customError.code = 'NETWORK_ERROR';
-            customError.message = 'Could not connect to the server. Please try again later.';
+        if (data.errors && typeof data.errors === 'object') {
+            const fieldErrors: Record<string, string[]> = {};
+            for (const [field, value] of Object.entries(data.errors)) {
+                if (Array.isArray(value)) {
+                    fieldErrors[field] = value.map(String);
+                } else {
+                    fieldErrors[field] = [String(value)];
+                }
+            }
+            customError.fieldErrors = fieldErrors;
+
+            customError.messages = Object.values(fieldErrors).flat();
+
+            if (customError.messages.length > 0) {
+                customError.message = customError.messages[0];
+            }
         }
 
         return customError;
@@ -48,7 +67,9 @@ export const formatError = (error: AxiosError | Error): CustomError => {
             status: null,
             endpoint: 'client',
             message: error.message,
-            timestamp: new Date().toISOString(),
+            timestamp,
+            fieldErrors: {},
+            messages: [error.message],
         };
     }
 
@@ -57,6 +78,8 @@ export const formatError = (error: AxiosError | Error): CustomError => {
         status: null,
         endpoint: 'unknown',
         message: 'Unexpected error',
-        timestamp: new Date().toISOString(),
+        timestamp,
+        fieldErrors: {},
+        messages: ['Unexpected error'],
     };
-}
+};

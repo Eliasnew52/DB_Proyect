@@ -3,7 +3,7 @@ export interface CustomError {
     status: number | null;
     endpoint: string;
     message: string;
-    messages?: string[];
-    fieldErrors?: Record<string,string[]>;
     timestamp: string;
+    fieldErrors: Record<string,string[]>;
+    messages: string[];
 }
