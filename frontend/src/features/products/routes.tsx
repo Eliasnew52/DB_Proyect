@@ -1,16 +1,34 @@
 import {RouteObject} from "react-router";
 import {CreateProductPage} from "./pages/CreateProductPage/CreateProductPage.tsx";
 import {CreateCategoryPage} from "./pages/CreateCategoryPage/CreateCategoryPage.tsx";
-import {CreateBrandPage} from "./pages/CreateBrandPage/CreateBrandPage.tsx";
 import {ListProductPage} from "./pages/ListProductPage/ListProductPage.tsx";
 import {ListCategoryPage} from "./pages/ListCategoryPage/ListCategoryPage.tsx";
 import {ListBrandPage} from "./pages/ListBrandPage/ListBrandPage.tsx";
+import {PATHS, RouteKey} from "../../app/routes/path.ts";
 
 export const productsRoutes: RouteObject[] = [
-    { path: '/new-product', element: <CreateProductPage /> },
-    { path: '/new-category', element: <CreateCategoryPage /> },
-    // { path: '/new-brand', element: <CreateBrandPage /> },
-    { path: '/product-list', element: <ListProductPage /> },
-    { path: '/category-list', element: <ListCategoryPage /> },
-    { path: '/brand-list', element: <ListBrandPage /> },
-]
+    {
+        path: PATHS[RouteKey.NEW_PRODUCT],
+        element: <CreateProductPage />
+    },
+    {
+        path: PATHS[RouteKey.NEW_CATEGORY],
+        element: <CreateCategoryPage />
+    },
+    // {
+    //     path: PATHS[RouteKey.NEW_BRAND],
+    //     element: <CreateBrandPage />
+    // },
+    {
+        path: PATHS[RouteKey.PRODUCT_LIST],
+        element: <ListProductPage />
+    },
+    {
+        path: PATHS[RouteKey.CATEGORY_LIST],
+        element: <ListCategoryPage />
+    },
+    {
+        path: PATHS[RouteKey.BRAND_LIST],
+        element: <ListBrandPage />
+    }
+];

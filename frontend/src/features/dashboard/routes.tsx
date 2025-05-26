@@ -1,6 +1,10 @@
 import {RouteObject} from "react-router";
 import DashboardPage from "./pages/DashboardPage/DashboardPage.tsx";
+import {PATHS, RouteKey} from "../../app/routes/path.ts";
 
 export const dashboardRoutes: RouteObject[] = [
-    { path: '/', element: <DashboardPage /> },
-]
+    {
+        path: PATHS[RouteKey.DASHBOARD],
+        element: <DashboardPage />
+    }
+];

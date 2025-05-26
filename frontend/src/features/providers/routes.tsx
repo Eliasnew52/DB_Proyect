@@ -1,8 +1,15 @@
 import {RouteObject} from "react-router";
 import {CreateProviderPage} from "./pages/CreateProviderPage/CreateProviderPage.tsx";
 import {ListProviderPage} from "./pages/ListProviderPage/ListProviderPage.tsx";
+import {PATHS, RouteKey} from "../../app/routes/path.ts";
 
 export const providersRoutes: RouteObject[] = [
-    { path: '/new-provider', element: <CreateProviderPage /> },
-    { path: '/provider-list', element: <ListProviderPage /> },
-]
+    {
+        path: PATHS[RouteKey.NEW_PROVIDER],
+        element: <CreateProviderPage />
+    },
+    {
+        path: PATHS[RouteKey.PROVIDER_LIST],
+        element: <ListProviderPage />
+    }
+];

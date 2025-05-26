@@ -1,8 +1,12 @@
 import {RouteObject} from "react-router";
 import {lazy} from "react";
+import {PATHS, RouteKey} from "../../app/routes/path.ts";
 
 const LoginPage = lazy(() => import('./pages/LoginPage/LoginPage.tsx'));
 
 export const authRoutes: RouteObject[] = [
-    { path: 'login', element: <LoginPage /> }
-]
+    {
+        path: PATHS[RouteKey.LOGIN],
+        element: <LoginPage />
+    }
+];
