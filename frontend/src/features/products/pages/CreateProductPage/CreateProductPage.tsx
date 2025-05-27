@@ -5,7 +5,7 @@ import {
     Button,
     FormHelperText,
     Grid,
-    InputLabel,
+    InputLabel, MenuItem, Select,
     TextField,
     Typography
 } from "@mui/material";
@@ -20,6 +20,7 @@ import {useCategories} from "../../hooks/useCategories.ts";
 import {useBrands} from "../../hooks/useBrands.ts";
 import {useProviders} from "../../hooks/useProviders.ts";
 import {Category} from "../../../../common/types/categories.types.ts";
+import {LENGTH_UNITS, MEASUREMENT_NUMERIC_FIELDS, MEASUREMENT_UNIT_FIELDS} from "../../constants/units.ts";
 
 export const CreateProductPage = () => {
     const [showDescriptionField, setShowDescriptionField] = useState(false);
@@ -43,7 +44,6 @@ export const CreateProductPage = () => {
         if (!categories || !selectedCategory || categories.length === 0) {
             return null;
         }
-        
         return categories?.find(c => c.id === selectedCategory?.id)?.product_schema;
     }, [categories, selectedCategory])
 
@@ -144,7 +144,7 @@ export const CreateProductPage = () => {
                                         getOptionLabel={(option) => option?.name}
                                         onChange={(_, newValue) => {
                                             field.onChange(newValue);
-                                            setSelectedCategory(selectedCategory);
+                                            setSelectedCategory(newValue);
                                         }}
                                         value={field.value || null}
                                         renderInput={(params) => (
@@ -309,8 +309,42 @@ export const CreateProductPage = () => {
 
                                 {
                                     currentCategoryProductSchema && (
-                                        Object.entries(currentCategoryProductSchema).map(([ key, value ]) => (
-                                            <></>
+                                        Object.entries(currentCategoryProductSchema.properties).map(([ key, value ]) => (
+                                            <>
+                                                {
+                                                    Object.prototype.hasOwnProperty.call(value, 'enum') ? (
+                                                        <Grid key={key}>
+                                                            <InputLabel htmlFor={key}>
+                                                                {value.title}
+                                                            </InputLabel>
+                                                            <Controller
+                                                                control={control}
+                                                                name={key}
+                                                                rules={{
+                                                                    required: {
+                                                                        value: currentCategoryProductSchema.required.includes(key),
+                                                                        message: `${value.title} es requerido.`
+                                                                    }
+                                                                }}
+                                                                render={({ field, fieldState }) => (
+                                                                    <Select
+                                                                        {...field}
+                                                                        id={key}
+                                                                        size={'small'}
+                                                                        fullWidth
+                                                                    >
+                                                                        {
+                                                                            value.enum.map(item => (
+                                                                                <MenuItem key={item} value={item}>{ item }</MenuItem>
+                                                                            ))
+                                                                        }
+                                                                    </Select>
+                                                                )}
+                                                            />
+                                                        </Grid>
+                                                    ) : (<>no</>)
+                                                }
+                                            </>
                                         ))
                                     )
                                 }
@@ -337,17 +371,92 @@ export const CreateProductPage = () => {
                                     { !showMeasurementsField ? 'Añadir' : 'Ocultar' } especificaciones
                                 </Button>
                             </Grid>
-                            {/*{*/}
-                            {/*    showMeasurementsField && (*/}
-                            {/*        <TextField*/}
-                            {/*            id="description"*/}
-                            {/*            multiline*/}
-                            {/*            placeholder={'Ingresa un descripción detallada del producto'}*/}
-                            {/*            variant="outlined"*/}
-                            {/*            {...register('description')}*/}
-                            {/*        />*/}
-                            {/*    )*/}
-                            {/*}*/}
+                            {
+                                showMeasurementsField && (
+                                    <Grid
+                                        sx={{
+                                            display: 'grid',
+                                            width: '100%',
+                                            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                            gap: 2,
+                                        }}
+                                    >
+                                        <Grid>
+                                            <InputLabel htmlFor={'purchase_price'}>
+                                                Longitud del producto
+                                            </InputLabel>
+                                            <Grid container spacing={1}>
+                                                <Controller
+                                                    control={control}
+                                                    name={'length'}
+                                                    render={({ field, fieldState }) => (
+                                                        <NumericFormat
+                                                            {...field}
+                                                            customInput={TextField}
+                                                            size={'small'}
+                                                            placeholder={'Ingrese la longitud del producto'}
+                                                            variant="outlined"
+                                                        />
+                                                    )}
+                                                />
+                                                <Controller
+                                                    control={control}
+                                                    name={'length_unit'}
+                                                    render={({ field, fieldState }) => (
+                                                        <Select
+                                                            {...field}
+                                                            size={'small'}
+                                                        >
+                                                            {
+                                                                LENGTH_UNITS.map(option => (
+                                                                    <MenuItem key={option.key} value={option.key}>{ option.key }</MenuItem>
+                                                                ))
+                                                            }
+                                                        </Select>
+                                                    )}
+                                                />
+                                            </Grid>
+                                        </Grid>
+                                        <Grid>
+                                            <InputLabel htmlFor={'purchase_price'}>
+                                                Ancho del producto
+                                            </InputLabel>
+                                            <Grid container spacing={1}>
+                                                <Controller
+                                                    control={control}
+                                                    name={'length'}
+                                                    render={({ field, fieldState }) => (
+                                                        <NumericFormat
+                                                            {...field}
+                                                            customInput={TextField}
+                                                            size={'small'}
+                                                            placeholder={'Ingrese la longitud del producto'}
+                                                            variant="outlined"
+                                                        />
+                                                    )}
+                                                />
+                                                <Controller
+                                                    control={control}
+                                                    name={'length_unit'}
+                                                    render={({ field, fieldState }) => (
+                                                        <Select
+                                                            {...field}
+                                                            size={'small'}
+                                                        >
+                                                            {
+                                                                LENGTH_UNITS.map(option => (
+                                                                    <MenuItem key={option.key} value={option.key}>{ option.key }</MenuItem>
+                                                                ))
+                                                            }
+                                                        </Select>
+                                                    )}
+                                                />
+                                            </Grid>
+                                        </Grid>
+
+                                    </Grid>
+                                )
+                            }
                         </Grid>
 
                     </ContentContainer>

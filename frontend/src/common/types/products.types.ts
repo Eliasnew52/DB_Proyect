@@ -20,3 +20,8 @@ export interface Product {
     attributes: string;
     created_by: number;
 }
+
+export interface UnitOption {
+    key: string;
+    label: string;
+}

@@ -70,7 +70,12 @@ class ProductReadSerializer(serializers.ModelSerializer):
     purchase_price = serializers.DecimalField(
         max_digits=10, decimal_places=2, coerce_to_string=False
     )
+    measurement = ProductMeasurementSerializer(read_only=True)
+
 
     class Meta:
         model = Product  
-        fields = '__all__'
+        fields = ['id', 'name', 'description', 'category', 'brand',
+                  'suppliers', 'sale_price', 'purchase_price',
+                  'attributes', 'measurement', 'created_by',
+                  'last_updated', 'creation_date']
