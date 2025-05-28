@@ -10,7 +10,7 @@ import {
     Typography
 } from "@mui/material";
 import {ContentContainer} from "../../../../../../common/components/ui/ContentContainer.tsx";
-import {Category, EnumProperty} from "../../../../../../common/types/categories.types.ts";
+import {Category, ProductSchemaProperty} from "../../../../../../common/types/categories.types.ts";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SaveIcon from '@mui/icons-material/Save';
@@ -18,14 +18,14 @@ import {AttributeBuilderModal} from "./components/AttributeBuilderModal/Attribut
 import {AttributePreview} from "./components/AttributePreview/AttributePreview.tsx";
 import {useCreateCategory} from "../../../../hooks/useCreateCategory.ts";
 import {useRouteNavigator} from "../../../../../../common/hooks/useRouteNavigator.ts";
-import {PATHS, RouteKey} from "../../../../../../common/router/routes.ts";
+import { RouteKey} from "../../../../../../common/router/routes.ts";
 import {useNotifications} from "../../../../../../common/hooks/useNotifications.ts";
 
 
 export const CreateCategoryForm = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [attributes, setAttributes] = useState<
-        { key: string; type: string; title: string; options: any[] }[]
+        { key: string; type: string; title: string; options: string[] }[]
     >([]);
     const [newType, setNewType] = useState("");
     const [newKey, setNewKey] = useState("");
@@ -60,7 +60,7 @@ export const CreateCategoryForm = () => {
     const { showToast } = useNotifications();
 
     const onSubmit = useCallback((data: Partial<Category>) => {
-        const properties = attributes.reduce<Record<string, EnumProperty>>((acc, { key, title, type, options }) => {
+        const properties = attributes.reduce<Record<string, string>>((acc, { key, title, type, options }) => {
             acc[key] = {
                 type,
                 title,

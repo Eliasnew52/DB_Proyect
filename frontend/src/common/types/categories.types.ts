@@ -4,11 +4,18 @@ export interface EnumProperty<T extends string = string> {
     title: string;
 }
 
+export interface ProductSchemaProperty<T extends string = string> {
+    enum: T[];
+    type: 'string' | 'number' | 'boolean';
+    title: string;
+    required: T[];
+}
+
 export interface ProductSchema {
     type: 'object';
     $schema: string;
     required: string[];
-    properties: Record<string, EnumProperty>;
+    properties: Record<string, ProductSchemaProperty>;
 }
 
 export interface Category {
@@ -17,6 +24,6 @@ export interface Category {
     description: string;
     last_updated: string;
     image: string;
-    product_schema: string;
+    product_schema: ProductSchema;
     created_by: string | null;
 }
