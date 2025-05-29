@@ -8,15 +8,14 @@ class ProductWriteSerializer(serializers.ModelSerializer):
         schema=None,
         required=False
     )
-    measurement = ProductMeasurementSerializer(required=False)
-
+    measurements = ProductMeasurementSerializer(required=False)
 
     class Meta:
         model = Product  
         fields = [
             'name', 'description', 'category', 'brand',
             'suppliers', 'sale_price', 'purchase_price', 'attributes',
-            'measurement',
+            'measurements', 'minimum_stock', 'stock', 'image'
         ]
         read_only_fields = ('created_by', 'last_updated', 'creation_date')
     
@@ -32,14 +31,14 @@ class ProductWriteSerializer(serializers.ModelSerializer):
                 self.fields['attributes'].schema = category.product_schema
 
     def create(self, validated_data):
-        meas_data = validated_data.pop('measurement', None)
+        meas_data = validated_data.pop('measurements', None)
         product = super().create(validated_data)
         if meas_data:
             ProductMeasurement.objects.create(product=product, **meas_data)
         return product
 
     def update(self, instance, validated_data):
-        meas_data = validated_data.pop('measurement', None)
+        meas_data = validated_data.pop('measurements', None)
         product = super().update(instance, validated_data)
         if meas_data is not None:
             ProductMeasurement.objects.update_or_create(
@@ -70,12 +69,12 @@ class ProductReadSerializer(serializers.ModelSerializer):
     purchase_price = serializers.DecimalField(
         max_digits=10, decimal_places=2, coerce_to_string=False
     )
-    measurement = ProductMeasurementSerializer(read_only=True)
+    measurements = ProductMeasurementSerializer(read_only=True)
 
 
     class Meta:
         model = Product  
         fields = ['id', 'name', 'description', 'category', 'brand',
                   'suppliers', 'sale_price', 'purchase_price',
-                  'attributes', 'measurement', 'created_by',
-                  'last_updated', 'creation_date']
+                  'attributes', 'measurements', 'created_by',
+                  'last_updated', 'creation_date', 'image', 'stock', 'minimum_stock']

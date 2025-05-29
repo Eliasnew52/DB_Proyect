@@ -2,7 +2,7 @@ import {Controller, useForm} from "react-hook-form";
 import {
     Autocomplete,
     Box,
-    Button, Checkbox,
+    Button, Checkbox, FormControl,
     FormHelperText,
     Grid,
     InputLabel, MenuItem, Select,
@@ -14,7 +14,7 @@ import FileUploadIcon from "@mui/icons-material/FileUpload";
 import {ContentContainer} from "../../../../common/components/ui/ContentContainer.tsx";
 import InfoOutlineIcon from '@mui/icons-material/InfoOutline';
 import AddIcon from '@mui/icons-material/Add';
-import {useCallback, useEffect, useMemo, useState} from "react";
+import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {NumericFormat} from "react-number-format";
 import {useCategories} from "../../hooks/useCategories.ts";
 import {useBrands} from "../../hooks/useBrands.ts";
@@ -26,6 +26,11 @@ import {
     VOLUME_UNITS,
     WEIGHT_UNITS
 } from "../../constants/units.ts";
+import {useCreateProduct} from "../../hooks/useCreateProduct.ts";
+import {Product} from "../../../../common/types/products.types.ts";
+import {useRouteNavigator} from "../../../../common/hooks/useRouteNavigator.ts";
+import {useNotifications} from "../../../../common/hooks/useNotifications.ts";
+import {RouteKey} from "../../../../common/router/routes.ts";
 
 interface FormValues {
     name: string;
@@ -95,7 +100,7 @@ export const CreateProductPage = () => {
     const [showMeasurementsField, setShowMeasurementsField] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
 
-    const { control, register, handleSubmit, watch, formState: { errors } } = useForm({
+    const { control, register, handleSubmit, watch, formState: { errors }, reset } = useForm({
         shouldUnregister: true,
         defaultValues: {
             name: '',
@@ -104,7 +109,7 @@ export const CreateProductPage = () => {
             purchase_price: '',
             category: null,
             brand: null,
-            suppliers: null,
+            suppliers: [],
             description: '',
             minimum_stock: null,
             stock: null,
@@ -123,6 +128,11 @@ export const CreateProductPage = () => {
     const { data: categories, isLoading: isLoadingCategories, isError: isLoadingCategoriesError, error: categoriesError } = useCategories();
     const { data: brands, isLoading: isLoadingBrands, isError: isLoadingBrandsError, error: brandsError } = useBrands();
     const { data: suppliers, isLoading: isLoadingProviders, isError: isLoadingProvidersError, error: suppliersError } = useProviders();
+    
+    const { go } = useRouteNavigator();
+    const { showToast } = useNotifications();
+    
+    const createProduct = useCreateProduct();
 
     const handleToggleDescriptionField = useCallback(() => {
         setShowDescriptionField(!showDescriptionField);
@@ -147,30 +157,50 @@ export const CreateProductPage = () => {
 
         const measurements = extractMeasurements(data);
 
-        const payload = Object.fromEntries(
-            Object.entries({
-                name           : data.name,
-                description    : data.description,
-                image          : data.image,
-                sale_price     : data.sale_price,
-                purchase_price : data.purchase_price,
-                category       : data.category,
-                suppliers      : data.suppliers,
-                brand          : data.brand,
-                stock          : data.stock,
-                minimum_stock  : data.minimum_stock,
-                attributes,
-                measurements,
-            }).filter(([, v]) => v !== undefined && v !== null),
-        );
 
-        console.log(payload);
+        const formData = new FormData()
+        formData.append('active',      'true')
+        formData.append('name',        data.name)
+        if (data.description)  formData.append('description', data.description)
+        formData.append('sale_price',     String(data.sale_price))
+        formData.append('purchase_price', String(data.purchase_price))
+        formData.append('category',       String(data.category))
+        formData.append('brand',          String(data.brand))
+        formData.append('stock',          String(data.stock))
+        formData.append('minimum_stock',  String(data.minimum_stock))
+        if (attributes)    formData.append('attributes',   JSON.stringify(attributes))
+        if (measurements)  formData.append('measurements', JSON.stringify(measurements))
+        formData.append('image', data.image!)
 
-    }, [currentCategoryProductSchema?.product_schema.properties])
+        data.suppliers.forEach(id => {
+            formData.append('suppliers', String(id))
+        })
+
+        createProduct.mutate(formData, {
+            onSuccess: response => {
+                showToast({
+                    title: 'Producto creado exitosamente',
+                    icon: 'success'
+                })
+                
+                go(RouteKey.PRODUCT_LIST);
+
+            },
+            onError: error => {
+                showToast({
+                    title: 'Error creando producto',
+                    text: error.message,
+                    icon: 'error',
+                })
+            }
+        });
+
+    }, [createProduct, currentCategoryProductSchema?.product_schema.properties, go, showToast])
 
     const hasMeasurements = !!watch('length') || !!watch('height') || !!watch('width')
-    const hasSpecifications = !!watch('volume') || !!watch('weight') || !!watch('width')
-
+    const hasVolume = !!watch('volume')
+    const hasWeight = !!watch('weight')
+    
     return (
         <Grid>
             <SectionHeader
@@ -183,8 +213,9 @@ export const CreateProductPage = () => {
                 <Grid container size={12}>
                     <ContentContainer size={{ md: 6, lg: 6, xl: 6 }}>
                         <SectionHeader
-                            title="Imagen del producto *"
+                            title="Imagen del producto"
                             subtitle='Carga una imagen de alta calidad de tu producto'
+                            isRequired
                         />
 
                         <Controller
@@ -239,6 +270,7 @@ export const CreateProductPage = () => {
                         <SectionHeader
                             title="Información básica"
                             Icon={InfoOutlineIcon}
+                            isRequired
                         />
                         <Grid>
                             <InputLabel htmlFor={'name'}>
@@ -265,6 +297,7 @@ export const CreateProductPage = () => {
                                 name={'category'}
                                 control={control}
                                 rules={{ required: 'La categoría es requerida.' }}
+                                defaultValue={null}
                                 render={({ field, fieldState }) => (
                                     <Autocomplete
                                         {...field}
@@ -275,10 +308,12 @@ export const CreateProductPage = () => {
                                         getOptionKey={(option) => option.id}
                                         getOptionLabel={(option) => option?.name}
                                         onChange={(_, newValue) => {
-                                            field.onChange(newValue);
+                                            field.onChange(newValue ? newValue.id : null);
                                             setSelectedCategory(newValue);
                                         }}
-                                        value={field.value || null}
+                                        value={
+                                            categories?.find(c => c.id === field.value) ?? null
+                                        }
                                         renderInput={(params) => (
                                             <TextField
                                                 {...params}
@@ -320,19 +355,20 @@ export const CreateProductPage = () => {
                     </ContentContainer>
                 </Grid>
 
-                <Grid container>
-                    <ContentContainer size={12}>
+                <Grid size={12}>
+                    <ContentContainer>
                         <Grid container flexDirection={'column'} spacing={1}>
                             <SectionHeader
                                 title={'Detalles del producto'}
                                 subtitle={'Especificar información y especificaciones detalladas del producto'}
+                                isRequired
                             />
 
                             <Grid
                                 sx={{
                                     display: 'grid',
                                     width: '100%',
-                                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                                     gap: 2,
                                 }}
                             >
@@ -343,6 +379,7 @@ export const CreateProductPage = () => {
                                     <Controller
                                         name={'brand'}
                                         control={control}
+                                        defaultValue={null}
                                         rules={{ required: 'La marca es requerida.' }}
                                         render={({ field, fieldState }) => (
                                             <Autocomplete
@@ -351,10 +388,15 @@ export const CreateProductPage = () => {
                                                 options={brands || []}
                                                 loading={isLoadingBrands}
                                                 disabled={isLoadingBrandsError}
+                                                getOptionLabel={opt => opt.name}
                                                 getOptionKey={(option) => option.id}
-                                                getOptionLabel={(option) => option?.name}
-                                                onChange={(_, newValue) => field.onChange(newValue)}
-                                                value={field.value || null}
+                                                isOptionEqualToValue={(opt, val) => opt.id === val.id}
+                                                onChange={(_, newValue) =>
+                                                    field.onChange(newValue ? newValue.id : null)
+                                                }
+                                                value={
+                                                    brands?.find(b => b.id === field.value) ?? null
+                                                }
                                                 renderInput={(params) => (
                                                     <TextField
                                                         {...params}
@@ -375,21 +417,22 @@ export const CreateProductPage = () => {
                                     <Controller
                                         name={'suppliers'}
                                         control={control}
+                                        defaultValue={[]}
                                         rules={{ required: 'El proveedor es requerido.' }}
                                         render={({ field, fieldState }) => (
                                             <Autocomplete
                                                 {...field}
-                                                // multiple
-                                                // limitTags={4}
+                                                multiple
                                                 disablePortal
-                                                defaultValue={null}
                                                 options={suppliers || []}
                                                 loading={isLoadingProviders}
                                                 disabled={isLoadingProvidersError}
                                                 isOptionEqualToValue={(opt, val) => opt.id === val.id}
                                                 getOptionLabel={(option) => option ? option.name : ''}
-                                                onChange={(_, newValue) => field.onChange(newValue)}
-                                                value={field.value}
+                                                onChange={(_, newValue) => field.onChange(newValue.map(o => o.id))}
+                                                value={(suppliers || []).filter(s =>
+                                                    (field.value as number[]).includes(s.id)
+                                                )}
                                                 renderInput={(params) => (
                                                     <TextField
                                                         {...params}
@@ -413,11 +456,13 @@ export const CreateProductPage = () => {
                                         name={'sale_price'}
                                         render={({ field, fieldState }) => (
                                             <NumericFormat
-                                                {...field}
+                                                value={field.value}
                                                 fullWidth
                                                 customInput={TextField}
+                                                onValueChange={(vals) => {
+                                                    field.onChange(vals.floatValue)
+                                                }}
                                                 thousandSeparator
-                                                valueIsNumericString
                                                 prefix="$"
                                                 size={'small'}
                                                 placeholder={'Ingrese el precio venta del producto'}
@@ -438,11 +483,13 @@ export const CreateProductPage = () => {
                                       rules={{ required: 'El precio de compra es requerido.' }}
                                       render={({ field, fieldState }) => (
                                           <NumericFormat
-                                              {...field}
+                                              value={field.value}
                                               fullWidth
                                               customInput={TextField}
+                                              onValueChange={(vals) => {
+                                                  field.onChange(vals.floatValue)
+                                              }}
                                               thousandSeparator
-                                              valueIsNumericString
                                               prefix="$"
                                               size={'small'}
                                               placeholder={'Ingrese el precio compra del producto'}
@@ -463,10 +510,12 @@ export const CreateProductPage = () => {
                                         rules={{ required: 'El stock es requerido.' }}
                                         render={({ field, fieldState }) => (
                                             <NumericFormat
-                                                {...field}
+                                                value={field.value}
                                                 fullWidth
                                                 customInput={TextField}
-                                                valueIsNumericString
+                                                onValueChange={(vals) => {
+                                                    field.onChange(vals.floatValue)
+                                                }}
                                                 size={'small'}
                                                 placeholder={'Ingrese el stock del producto'}
                                                 variant="outlined"
@@ -486,10 +535,12 @@ export const CreateProductPage = () => {
                                         rules={{ required: 'El stock mínimo es requerido.' }}
                                         render={({ field, fieldState }) => (
                                             <NumericFormat
-                                                {...field}
+                                                value={field.value}
                                                 fullWidth
                                                 customInput={TextField}
-                                                valueIsNumericString
+                                                onValueChange={(vals) => {
+                                                    field.onChange(vals.floatValue)
+                                                }}
                                                 size={'small'}
                                                 placeholder={'Ingrese el stock mínimo del producto'}
                                                 variant="outlined"
@@ -501,13 +552,13 @@ export const CreateProductPage = () => {
                                 </Grid>
                                 {
                                     currentCategoryProductSchema && (
-                                        Object.entries(currentCategoryProductSchema.product_schema.properties).map(([ key, value ]) => (
-                                            <>
+                                        Object.entries(currentCategoryProductSchema.product_schema.properties).map(([ key, value ], index) => (
+                                            <React.Fragment key={`${key}-${value.title}-${index}`}>
                                                 {
                                                     Object.prototype.hasOwnProperty.call(value, 'enum') ? (
-                                                        <Grid key={key}>
+                                                        <Grid >
                                                             <InputLabel htmlFor={key}>
-                                                                {value.title}
+                                                                {value.title} { currentCategoryProductSchema.product_schema.required.includes(key) ? "*" : '' }
                                                             </InputLabel>
                                                             <Controller
                                                                 control={control}
@@ -519,31 +570,39 @@ export const CreateProductPage = () => {
                                                                         message: `${value.title} es requerido.`
                                                                     }
                                                                 }}
-                                                                render={({ field }) => (
-                                                                    <Select
-                                                                        {...field}
-                                                                        id={key}
-                                                                        size={'small'}
-                                                                        fullWidth
-                                                                        value={field.value}
-                                                                    >
+                                                                render={({ field, fieldState }) => (
+                                                                    <FormControl error={fieldState.invalid} fullWidth>
+                                                                        <Select
+                                                                            {...field}
+                                                                            id={key}
+                                                                            size={'small'}
+                                                                            fullWidth
+                                                                            value={field.value}
+                                                                        >
+                                                                            {
+                                                                                value.enum.map(item => (
+                                                                                    <MenuItem key={item} value={item}>{ item }</MenuItem>
+                                                                                ))
+                                                                            }
+                                                                        </Select>
                                                                         {
-                                                                            value.enum.map(item => (
-                                                                                <MenuItem key={item} value={item}>{ item }</MenuItem>
-                                                                            ))
+                                                                            fieldState.error && (
+                                                                                <FormHelperText>{fieldState.error.message}</FormHelperText>
+                                                                            )
                                                                         }
-                                                                    </Select>
+                                                                    </FormControl>
                                                                 )}
                                                             />
                                                         </Grid>
                                                     ) : value.type === 'string' ? (
-                                                        <Grid key={key}>
+                                                        <Grid>
                                                             <InputLabel htmlFor={key}>
                                                                 {value.title}
                                                             </InputLabel>
                                                             <Controller
                                                                 name={key}
                                                                 control={control}
+                                                                defaultValue=""
                                                                 render={({ field }) => (
                                                                     <TextField
                                                                         {...field}
@@ -554,7 +613,7 @@ export const CreateProductPage = () => {
                                                             />
                                                         </Grid>
                                                     ) : value.type === 'boolean' ? (
-                                                        <Grid key={key}
+                                                        <Grid
                                                             container
                                                             flexDirection={'column'}
                                                             alignItems={'center'}
@@ -575,7 +634,7 @@ export const CreateProductPage = () => {
                                                             />
                                                         </Grid>
                                                     ) : value.type === 'number' ? (
-                                                        <Grid key={key}>
+                                                        <Grid >
                                                             <InputLabel htmlFor={key}>
                                                                 {key}
                                                             </InputLabel>
@@ -584,10 +643,12 @@ export const CreateProductPage = () => {
                                                                 name={key}
                                                                 render={({ field }) => (
                                                                     <NumericFormat
-                                                                        {...field}
+                                                                        value={field.value}
+                                                                        onValueChange={(vals) => {
+                                                                            field.onChange(vals.floatValue)
+                                                                        }}
                                                                         fullWidth
                                                                         customInput={TextField}
-                                                                        valueIsNumericString
                                                                         size={'small'}
                                                                         placeholder={`Ingrese el ${key} del producto`}
                                                                         variant="outlined"
@@ -597,7 +658,7 @@ export const CreateProductPage = () => {
                                                         </Grid>
                                                     ) : null
                                                 }
-                                            </>
+                                            </React.Fragment>
                                         ))
                                     )
                                 }
@@ -607,8 +668,8 @@ export const CreateProductPage = () => {
                     </ContentContainer>
                 </Grid>
 
-                <Grid container>
-                    <ContentContainer size={12}>
+                <Grid size={12}>
+                    <ContentContainer>
                         <Grid container flexDirection={'column'} spacing={1}>
                             <Grid container alignItems={'center'} justifyContent={'space-between'}>
                                 <SectionHeader
@@ -630,7 +691,7 @@ export const CreateProductPage = () => {
                                         sx={{
                                             display: 'grid',
                                             width: '100%',
-                                            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                                            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                                             gap: 2,
                                         }}
                                     >
@@ -638,70 +699,95 @@ export const CreateProductPage = () => {
                                             <InputLabel htmlFor={'length'}>
                                                 Longitud del producto
                                             </InputLabel>
-                                            <Grid container spacing={1}>
-                                                <Controller
-                                                    control={control}
-                                                    name={'length'}
-                                                    render={({ field }) => (
-                                                        <NumericFormat
-                                                            {...field}
-                                                            customInput={TextField}
-                                                            size={'small'}
-                                                            placeholder={'Ingrese la longitud del producto'}
-                                                            variant="outlined"
-                                                            fullWidth
-                                                        />
-                                                    )}
-                                                />
-                                            </Grid>
+                                            <Controller
+                                                control={control}
+                                                name={'length'}
+                                                rules={{
+                                                    required: {
+                                                        value: hasMeasurements,
+                                                        message: 'La longitud es requerida.'
+                                                    },
+                                                }}
+                                                render={({ field, fieldState }) => (
+                                                    <NumericFormat
+                                                        {...field}
+                                                        customInput={TextField}
+                                                        size={'small'}
+                                                        placeholder={'Ingrese la longitud del producto'}
+                                                        variant="outlined"
+                                                        fullWidth
+                                                        helperText={fieldState.error ? fieldState.error.message : ''}
+                                                        error={fieldState.invalid}
+                                                    />
+                                                )}
+                                            />
                                         </Grid>
                                         <Grid>
                                             <InputLabel htmlFor={'width'}>
                                                 Ancho del producto
                                             </InputLabel>
-                                            <Grid container spacing={1}>
-                                                <Controller
-                                                    control={control}
-                                                    name={'width'}
-                                                    render={({ field }) => (
-                                                        <NumericFormat
-                                                            {...field}
-                                                            customInput={TextField}
-                                                            size={'small'}
-                                                            placeholder={'Ingrese el ancho del producto'}
-                                                            variant="outlined"
-                                                            id={'width'}
-                                                            fullWidth
-                                                        />
-                                                    )}
-                                                />
-                                            </Grid>
+                                            <Controller
+                                                control={control}
+                                                name={'width'}
+                                                rules={{
+                                                    required: {
+                                                        value: hasMeasurements,
+                                                        message: 'El ancho es requerido.'
+                                                    },
+                                                }}
+                                                render={({ field, fieldState }) => (
+                                                    <NumericFormat
+                                                        {...field}
+                                                        customInput={TextField}
+                                                        size={'small'}
+                                                        placeholder={'Ingrese el ancho del producto'}
+                                                        variant="outlined"
+                                                        id={'width'}
+                                                        fullWidth
+                                                        helperText={fieldState.error ? fieldState.error.message : ''}
+                                                        error={fieldState.invalid}
+                                                    />
+                                                )}
+                                            />
                                         </Grid>
                                         <Grid>
                                             <InputLabel htmlFor={'height'}>
                                                 Altura del producto
                                             </InputLabel>
-                                            <Grid container spacing={1}>
-                                                <Controller
-                                                    control={control}
-                                                    name={'height'}
-                                                    render={({ field }) => (
-                                                        <NumericFormat
-                                                            {...field}
-                                                            customInput={TextField}
-                                                            size={'small'}
-                                                            placeholder={'Ingrese la altura del producto'}
-                                                            variant="outlined"
-                                                            id={'height'}
-                                                            sx={{ flexGrow: 1 }}
-                                                        />
-                                                    )}
-                                                />
-                                                <Controller
-                                                    control={control}
-                                                    rules={{ required: { value: hasMeasurements, message: 'La unidad de medida es requerida.' } }}
-                                                    name={'length_unit'}
-                                                    render={({ field }) => (
+                                            <Controller
+                                                control={control}
+                                                name={'height'}
+                                                rules={{
+                                                    required: {
+                                                        value: hasMeasurements,
+                                                        message: 'La altura es requerida.'
+                                                    },
+                                                }}
+                                                render={({ field, fieldState }) => (
+                                                    <NumericFormat
+                                                        {...field}
+                                                        customInput={TextField}
+                                                        size={'small'}
+                                                        placeholder={'Ingrese la altura del producto'}
+                                                        variant="outlined"
+                                                        id={'height'}
+                                                        helperText={fieldState.error ? fieldState.error.message : ''}
+                                                        error={fieldState.invalid}
+                                                        fullWidth
+                                                    />
+                                                )}
+                                            />
+                                        </Grid>
+                                        <Grid>
+                                            <InputLabel htmlFor={'length_unit'}>
+                                                Unidad (L × A × H)
+                                            </InputLabel>
+                                            <Controller
+                                                control={control}
+                                                rules={{ required: { value: hasMeasurements, message: 'La unidad de medida es requerida.' } }}
+                                                name={'length_unit'}
+                                                render={({ field, fieldState }) => (
+                                                    <FormControl fullWidth error={fieldState.invalid}>
                                                         <Select
                                                             {...field}
                                                             size={'small'}
@@ -712,34 +798,56 @@ export const CreateProductPage = () => {
                                                                 ))
                                                             }
                                                         </Select>
-                                                    )}
-                                                />
-                                            </Grid>
+                                                        <FormHelperText>{ fieldState.error ? fieldState.error.message : 'La unidad se aplica a Largo, Ancho y Altura.' }</FormHelperText>
+
+                                                    </FormControl>
+                                                )}
+                                            />
                                         </Grid>
+
                                         <Grid>
                                             <InputLabel htmlFor={'weight'}>
                                                 Peso del producto
                                             </InputLabel>
-                                            <Grid container spacing={1}>
-                                                <Controller
-                                                    control={control}
-                                                    name={'weight'}
-                                                    render={({ field }) => (
-                                                        <NumericFormat
-                                                            {...field}
-                                                            customInput={TextField}
-                                                            size={'small'}
-                                                            placeholder={'Ingrese el peso del producto'}
-                                                            variant="outlined"
-                                                            id={'weight'}
-                                                            sx={{ flexGrow: 1 }}
-                                                        />
-                                                    )}
-                                                />
-                                                <Controller
-                                                    control={control}
-                                                    name={'weight_unit'}
-                                                    render={({ field }) => (
+                                            <Controller
+                                                control={control}
+                                                name={'weight'}
+                                                rules={{
+                                                    required: {
+                                                        value: hasWeight,
+                                                        message: 'El peso es requerido.'
+                                                    },
+                                                }}
+                                                render={({ field, fieldState }) => (
+                                                    <NumericFormat
+                                                        {...field}
+                                                        customInput={TextField}
+                                                        size={'small'}
+                                                        placeholder={'Ingrese el peso del producto'}
+                                                        variant="outlined"
+                                                        id={'weight'}
+                                                        helperText={fieldState.error ? fieldState.error.message : ''}
+                                                        error={fieldState.invalid}
+                                                        fullWidth
+                                                    />
+                                                )}
+                                            />
+                                        </Grid>
+                                        <Grid>
+                                            <InputLabel htmlFor={'weight_unit'}>
+                                                Unidad del peso
+                                            </InputLabel>
+                                            <Controller
+                                                control={control}
+                                                name={'weight_unit'}
+                                                rules={{
+                                                    required: {
+                                                        value: hasWeight,
+                                                        message: 'La unidad de medida es requerida.'
+                                                    },
+                                                }}
+                                                render={({ field, fieldState }) => (
+                                                    <FormControl fullWidth error={fieldState.invalid}>
                                                         <Select
                                                             {...field}
                                                             size={'small'}
@@ -750,35 +858,54 @@ export const CreateProductPage = () => {
                                                                 ))
                                                             }
                                                         </Select>
-                                                    )}
-                                                />
-                                            </Grid>
+                                                        {
+                                                            fieldState.error && (
+
+                                                                <FormHelperText>{ fieldState.error.message }</FormHelperText>
+                                                            )
+                                                        }
+                                                    </FormControl>
+                                                )}
+                                            />
                                         </Grid>
                                         <Grid>
                                             <InputLabel htmlFor={'volume'}>
                                                 Volumen del producto
                                             </InputLabel>
-                                            <Grid container spacing={1}>
-                                                <Controller
-                                                    control={control}
-                                                    name={'volume'}
-                                                    render={({ field }) => (
-                                                        <NumericFormat
-                                                            {...field}
-                                                            customInput={TextField}
-                                                            size={'small'}
-                                                            placeholder={'Ingrese el volumen del producto'}
-                                                            variant="outlined"
-                                                            id={'volume'}
-                                                            sx={{ flexGrow: 1 }}
-                                                        />
-                                                    )}
-                                                />
-                                                <Controller
-                                                    control={control}
-                                                    name={'volume_unit'}
-                                                    rules={{ required: { value: hasSpecifications, message: 'La unidad de medida es requerida.' } }}
-                                                    render={({ field }) => (
+                                            <Controller
+                                                control={control}
+                                                name={'volume'}
+                                                rules={{
+                                                    required: {
+                                                        value: hasVolume,
+                                                        message: 'El volumen es requerido'
+                                                    },
+                                                }}
+                                                render={({ field, fieldState }) => (
+                                                    <NumericFormat
+                                                        {...field}
+                                                        customInput={TextField}
+                                                        size={'small'}
+                                                        placeholder={'Ingrese el volumen del producto'}
+                                                        variant="outlined"
+                                                        id={'volume'}
+                                                        fullWidth
+                                                        helperText={fieldState.error ? fieldState.error.message : ''}
+                                                        error={fieldState.invalid}
+                                                    />
+                                                )}
+                                            />
+                                        </Grid>
+                                        <Grid>
+                                            <InputLabel htmlFor={'volume'}>
+                                                Unidad del volumen
+                                            </InputLabel>
+                                            <Controller
+                                                control={control}
+                                                name={'volume_unit'}
+                                                rules={{ required: { value: hasVolume, message: 'La unidad de medida es requerida.' } }}
+                                                render={({ field, fieldState }) => (
+                                                    <FormControl fullWidth error={fieldState.invalid}>
                                                         <Select
                                                             {...field}
                                                             size={'small'}
@@ -789,9 +916,14 @@ export const CreateProductPage = () => {
                                                                 ))
                                                             }
                                                         </Select>
-                                                    )}
-                                                />
-                                            </Grid>
+                                                        {
+                                                            fieldState.error && (
+                                                                <FormHelperText>{fieldState.error.message}</FormHelperText>
+                                                            )
+                                                        }
+                                                    </FormControl>
+                                                )}
+                                            />
                                         </Grid>
 
                                     </Grid>
@@ -799,11 +931,11 @@ export const CreateProductPage = () => {
                             }
                         </Grid>
                     </ContentContainer>
-                    <Grid container width={'100%'} justifyContent={'end'} alignItems={'center'}>
-                        <Button type={'submit'} size={'large'} variant={'contained'} startIcon={<SaveIcon/>}>
-                            Crear producto
-                        </Button>
-                    </Grid>
+                </Grid>
+                <Grid container width={'100%'} justifyContent={'end'} alignItems={'center'}>
+                    <Button loading={createProduct.isPending} type={'submit'} size={'large'} variant={'contained'} startIcon={<SaveIcon/>}>
+                        Crear producto
+                    </Button>
                 </Grid>
             </Grid>
         </Grid>

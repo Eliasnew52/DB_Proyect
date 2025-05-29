@@ -16,6 +16,7 @@ from .serializers.company import CompanySerializer
 from .serializers.sale import SaleReadSerializer, SaleWriteSerializer
 from .serializers.purchase import PurchaseReadSerializer, PurchaseWriteSerializer
 from .serializers.purchase_detail import PurchaseDetailWriteSerializer
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 class CategorySchemaView(GenericAPIView):
     serializer_class = CategorySchemaReadSerializer
@@ -40,6 +41,8 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.select_related('category', 'brand')
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
     filterset_fields = {
         'name': ['icontains'],
         'category': ['exact'],

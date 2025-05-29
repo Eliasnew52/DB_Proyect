@@ -101,7 +101,7 @@ export const CreateCategoryForm = () => {
             }
         )
 
-    }, [attributes, update])
+    }, [attributes, go, showToast, update])
 
     return (
         <FormProvider {...methods}>

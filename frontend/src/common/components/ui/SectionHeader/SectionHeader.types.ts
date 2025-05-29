@@ -5,5 +5,5 @@ export interface SectionHeaderProps {
     title: string;
     subtitle?: string;
     Icon?: ComponentType<SvgIconProps>;
-
+    isRequired?: boolean;
 }
