@@ -10,6 +10,7 @@ from django.utils import timezone
 from .purchase_detail import PurchaseDetailWriteSerializer
 from typing import Dict, Any, List, Optional
 from drf_spectacular.utils import extend_schema_field
+import json
 
 class PurchaseWriteSerializer(serializers.ModelSerializer):
     """
@@ -28,22 +29,34 @@ class PurchaseWriteSerializer(serializers.ModelSerializer):
                          slug_field='code',
                          queryset=PaymentMethod.objects.all()
     )
-    details = PurchaseDetailWriteSerializer(many=True, write_only=True)
-
+    details = serializers.CharField(write_only=True)
     class Meta:
         model = Purchase
         fields = ['supplier', 'status', 'notes', 'invoice_number', 'payment_method', 'details', 'invoice_image']
-        read_only_fields = ['invoice_number']
+
+    def validate(self, data):
+        raw_details = data.pop('details', '[]')
+
+        try:
+            parsed_details = json.loads(raw_details)
+        except json.JSONDecodeError:
+            raise serializers.ValidationError({"details": "Formato inválido. Se esperaba un JSON válido."})
+
+        detail_serializer = PurchaseDetailWriteSerializer(data=parsed_details, many=True)
+        detail_serializer.is_valid(raise_exception=True)
+
+        self._validated_details = detail_serializer.validated_data
+        return data
 
     def create(self, validated_data):
-        details_data = validated_data.pop('details')
+        details_data = getattr(self, '_validated_details', [])
+
         user = self.context['request'].user
 
         total = Decimal('0')
         with transaction.atomic():
             purchase = Purchase.objects.create(
                 created_by=user,
-                invoice_number=uuid.uuid4().hex[:20].upper(),
                 **validated_data
             )
 

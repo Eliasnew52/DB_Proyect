@@ -1,13 +1,15 @@
 import {
     Autocomplete,
     Button,
+    Divider,
     FormControl,
     FormHelperText,
     Grid,
     InputLabel,
     MenuItem,
     Select,
-    TextField, Typography, Box, Divider
+    TextField,
+    Typography
 } from "@mui/material";
 import {ContentContainer} from "../../../../../common/components/ui/ContentContainer.tsx";
 import {SectionHeader} from "../../../../../common/components/ui/SectionHeader/SectionHeader.tsx";
@@ -19,20 +21,40 @@ import {useTransactionStatuses} from "../../../../../common/hooks/useTransaction
 import {usePaymentMethods} from "../../../../../common/hooks/usePaymentMethods.ts";
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
-import { useState, useCallback } from "react";
-import { AddProductDialog } from "./components/AddProductDialog/AddProductDialog.tsx";
+import {useCallback, useEffect, useMemo, useState} from "react";
+import {AddProductDialog} from "./components/AddProductDialog/AddProductDialog.tsx";
 import {PurchaseProductItem} from "./components/PurchaseProductItem/PurchaseProductItem.tsx";
+import {useNotifications} from "../../../../../common/hooks/useNotifications.ts";
+import {useCreatePurchase} from "../../../hooks/useCreatePurchase.ts";
 
 export const CreatePurchaseForm = () => {
     const [openDialog, setOpenDialog] = useState(false);
     const [localProducts, setLocalProducts] = useState([]);
     const methods = useForm();
-    const { control, reset } = methods;
+    const {control, reset} = methods;
+    const {showToast} = useNotifications();
 
-    const { data: suppliers, isLoading: isLoadingProviders, isError: isLoadingProvidersError, error: suppliersError } = useProviders();
-    const { isPending: isLoadingTransactionStatuses, isError: isLoadingTransactionStatusesError, data: transactionStatuses , error: transactionStatusesError } = useTransactionStatuses();
-    const { isPending: isLoadingPaymentMethods, isError: isLoadingPaymentMethodsError, data: paymentMethods , error: paymentMethodsError } = usePaymentMethods();
-    
+    const createPurchase = useCreatePurchase();
+
+    const {
+        data: suppliers,
+        isLoading: isLoadingProviders,
+        isError: isLoadingProvidersError,
+        error: suppliersError
+    } = useProviders();
+    const {
+        isPending: isLoadingTransactionStatuses,
+        isError: isLoadingTransactionStatusesError,
+        data: transactionStatuses,
+        error: transactionStatusesError
+    } = useTransactionStatuses();
+    const {
+        isPending: isLoadingPaymentMethods,
+        isError: isLoadingPaymentMethodsError,
+        data: paymentMethods,
+        error: paymentMethodsError
+    } = usePaymentMethods();
+
     const handleOpenDialog = useCallback(() => setOpenDialog(true), []);
     const handleCloseDialog = useCallback(() => setOpenDialog(false), []);
 
@@ -44,7 +66,7 @@ export const CreatePurchaseForm = () => {
                 updated[idx].quantity += product.quantity;
                 return updated;
             }
-            return [...prev, { ...product, quantity: product.quantity || 1 }];
+            return [...prev, {...product, quantity: product.quantity || 1}];
         });
     }, []);
 
@@ -55,23 +77,71 @@ export const CreatePurchaseForm = () => {
     const updateQuantity = useCallback((id, quantity) => {
         setLocalProducts(prev =>
             prev.map(p =>
-                p.id === id ? { ...p, quantity: quantity > 0 ? quantity : 1 } : p
+                p.id === id ? {...p, quantity: quantity > 0 ? quantity : 1} : p
             )
         );
     }, []);
 
-    // Calcula subtotal y total
-    const subtotal = localProducts.reduce(
-        (acc, item) => acc + (Number(item.price || 0) * Number(item.quantity || 1)),
-        0
+    const subtotal = useMemo(
+        () =>
+            localProducts.reduce(
+                (acc, item) => acc + (Number(item.purchase_price || 0) * Number(item.quantity || 1)),
+                0
+            ),
+        [localProducts]
     );
-    const total = subtotal; // Si hay descuentos o impuestos, ajusta aquí
+    const total = useMemo(() => subtotal, [subtotal]);
+
+
+    const onSubmit = async (data) => {
+        const formData = new FormData();
+        formData.append('supplier', String(data.supplier));
+        formData.append('status', data.status);
+        formData.append('notes', data.notes || '');
+        formData.append('payment_method', data.payment_method);
+
+        formData.append(
+            'details',
+            JSON.stringify(
+                localProducts.map(p => ({
+                    product: p.id,
+                    quantity: p.quantity
+                }))
+            )
+        );
+
+        formData.append('invoice_number', data.invoice_number)
+        console.log('📷 invoice_image:', data.invoice_image);
+
+        if (data.invoice_image) {
+            formData.append('invoice_image', data.invoice_image);
+        }
+
+        createPurchase.mutate(formData, {
+            onSuccess: () => {
+                showToast({
+                    title: 'Compra creada exitosamente',
+                    icon: 'success'
+                });
+                reset();
+                setLocalProducts([]);
+            },
+            onError: (error) => {
+                showToast({
+                    title: 'Error creando compra',
+                    text: error?.message || 'Ocurrió un error',
+                    icon: 'error'
+                });
+            }
+        });
+    };
 
     return (
         <FormProvider {...methods}>
             <Grid
                 container
                 spacing={2}
+                size={12}
             >
                 <ContentContainer
                     container
@@ -107,8 +177,8 @@ export const CreatePurchaseForm = () => {
                                         name={'supplier'}
                                         control={control}
                                         defaultValue={null}
-                                        rules={{ required: 'El proveedor es requerido.' }}
-                                        render={({ field, fieldState }) => (
+                                        rules={{required: 'El proveedor es requerido.'}}
+                                        render={({field, fieldState}) => (
                                             <Autocomplete
                                                 {...field}
                                                 disablePortal
@@ -140,7 +210,7 @@ export const CreatePurchaseForm = () => {
                                     <Controller
                                         control={control}
                                         name={'invoice_number'}
-                                        render={({ field, fieldState }) => (
+                                        render={({field, fieldState}) => (
                                             <TextField
                                                 {...field}
                                                 id={'invoice_number'}
@@ -162,8 +232,8 @@ export const CreatePurchaseForm = () => {
                                         control={control}
                                         name={'status'}
                                         defaultValue={''}
-                                        rules={{ required: 'El estado de la venta es requerido.' }}
-                                        render={({ field, fieldState }) => (
+                                        rules={{required: 'El estado de la venta es requerido.'}}
+                                        render={({field, fieldState}) => (
                                             <FormControl error={fieldState.invalid} fullWidth>
                                                 <Select
                                                     {...field}
@@ -175,10 +245,11 @@ export const CreatePurchaseForm = () => {
                                                 >
                                                     <MenuItem value="">Elige un estado</MenuItem>
                                                     {isLoadingTransactionStatuses && !transactionStatuses?.length ? (
-                                                        <InlineLoading message={'Cargando estados...'} />
+                                                        <InlineLoading message={'Cargando estados...'}/>
                                                     ) : (
                                                         transactionStatuses?.map(item => (
-                                                            <MenuItem key={item.id} value={item.code}>{item.label}</MenuItem>
+                                                            <MenuItem key={item.id}
+                                                                      value={item.code}>{item.label}</MenuItem>
                                                         ))
                                                     )}
                                                 </Select>
@@ -211,8 +282,8 @@ export const CreatePurchaseForm = () => {
                                         name={'date'}
                                         control={control}
                                         defaultValue={null}
-                                        rules={{ required: 'La fecha de compra es requerido.' }}
-                                        render={({ field, fieldState }) => (
+                                        rules={{required: 'La fecha de compra es requerido.'}}
+                                        render={({field, fieldState}) => (
                                             <TextField
                                                 {...field}
                                                 type={'date'}
@@ -232,18 +303,23 @@ export const CreatePurchaseForm = () => {
                                     <Controller
                                         control={control}
                                         name={'invoice_image'}
-                                        render={({ field, fieldState }) => (
-                                            <TextField
-                                                {...field}
-                                                type={'file'}
-                                                id={'invoice_image'}
-                                                variant={'outlined'}
-                                                size={'small'}
-                                                fullWidth
-                                                placeholder={'Ingrese la imagen de la factura'}
-                                                error={!!fieldState.error}
-                                                helperText={fieldState.error?.message}
-                                            />
+                                        render={({field, fieldState}) => (
+                                            <>
+                                                <input
+                                                    id="invoice_image"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => {
+                                                        field.onChange(e.target.files?.[0] || null);
+                                                    }}
+                                                    style={{ display: 'block', marginTop: 8 }}
+                                                />
+                                                {fieldState.error && (
+                                                    <Typography variant="caption" color="error">
+                                                        {fieldState.error.message}
+                                                    </Typography>
+                                                )}
+                                            </>
                                         )}
                                     />
                                 </Grid>
@@ -255,8 +331,8 @@ export const CreatePurchaseForm = () => {
                                         control={control}
                                         name={'payment_method'}
                                         defaultValue={''}
-                                        rules={{ required: 'El método de pago es requerido.' }}
-                                        render={({ field, fieldState }) => (
+                                        rules={{required: 'El método de pago es requerido.'}}
+                                        render={({field, fieldState}) => (
                                             <FormControl error={fieldState.invalid} fullWidth>
                                                 <Select
                                                     {...field}
@@ -269,10 +345,11 @@ export const CreatePurchaseForm = () => {
                                                     <MenuItem value="">Elige un método de pago</MenuItem>
                                                     {
                                                         isLoadingPaymentMethods && !paymentMethods?.length ? (
-                                                            <InlineLoading message={'Cargando métodos de pago'} />
+                                                            <InlineLoading message={'Cargando métodos de pago'}/>
                                                         ) : (
                                                             paymentMethods?.map(item => (
-                                                                <MenuItem key={item.code} value={item.code}>{ item.name }</MenuItem>
+                                                                <MenuItem key={item.code}
+                                                                          value={item.code}>{item.name}</MenuItem>
                                                             ))
                                                         )
                                                     }
@@ -299,7 +376,7 @@ export const CreatePurchaseForm = () => {
                             <Controller
                                 control={control}
                                 name={'notes'}
-                                render={({ field }) => (
+                                render={({field}) => (
                                     <TextField
                                         {...field}
                                         id="description"
@@ -328,7 +405,7 @@ export const CreatePurchaseForm = () => {
                         />
                         <Button
                             variant={'contained'}
-                            startIcon={<AddOutlinedIcon />}
+                            startIcon={<AddOutlinedIcon/>}
                             onClick={handleOpenDialog}
                         >
                             Agregar producto
@@ -336,62 +413,77 @@ export const CreatePurchaseForm = () => {
                     </Grid>
 
                     <Grid
-                        container
                         height={'calc(100vh - 650px)'}
                         sx={{
                             overflowY: 'auto',
-                            gap: 1,
                         }}
-                        width={'100%'}
                     >
-                        {localProducts.map(item => (
-                        <PurchaseProductItem
-                            key={item.id}
-                            item={item}
-                            updateQuantity={updateQuantity}
-                            removeItem={removeProduct}
-                        />
-                    ))}
+                        <Grid
+                            overflow={'hidden'}
+                            width={'100%'}
+                        >
+                            {localProducts.map(item => (
+                                <PurchaseProductItem
+                                    key={item.id}
+                                    item={item}
+                                    updateQuantity={updateQuantity}
+                                    removeItem={removeProduct}
+                                />
+                            ))}
+                        </Grid>
                     </Grid>
 
-                    
-
-                    <AddProductDialog open={openDialog} handleClose={handleCloseDialog} addProduct={addProduct} />
+                    <AddProductDialog open={openDialog} handleClose={handleCloseDialog} addProduct={addProduct}/>
 
                 </ContentContainer>
 
                 <ContentContainer width={'100%'}>
-                <Typography sx={{ fontWeight: "bold", fontSize: 22, mb: 1}}>
-                    Resumen de compra
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
-                <Grid container justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-                    <Grid>
-                        <Typography>Subtotal:</Typography>
+                    <Typography sx={{fontWeight: "bold", fontSize: 22, mb: 1}}>
+                        Resumen de compra
+                    </Typography>
+                    <Divider sx={{mb: 2}}/>
+                    <Grid container justifyContent="space-between" alignItems="center" sx={{mb: 1}}>
+                        <Grid>
+                            <Typography>Subtotal:</Typography>
+                        </Grid>
+                        <Grid>
+                            <Typography sx={{fontWeight: 500, background: "#e0e0e0", px: 1, borderRadius: 1}}>
+                                {subtotal.toLocaleString("es-NI", {style: "currency", currency: "NIO"})}
+                            </Typography>
+                        </Grid>
                     </Grid>
-                    <Grid>
-                        <Typography sx={{ fontWeight: 500, background: "#e0e0e0", px: 1, borderRadius: 1 }}>
-                            {subtotal.toLocaleString("es-NI", { style: "currency", currency: "NIO" })}
-                        </Typography>
+                    <Divider sx={{mb: 1}}/>
+                    <Grid container justifyContent="space-between" alignItems="center">
+                        <Grid>
+                            <Typography sx={{fontWeight: "bold"}}>Total:</Typography>
+                        </Grid>
+                        <Grid>
+                            <Typography sx={{fontWeight: "bold", fontSize: 22}}>
+                                {total.toLocaleString("es-NI", {style: "currency", currency: "NIO"})}
+                            </Typography>
+                        </Grid>
                     </Grid>
+                </ContentContainer>
+
+                <Grid
+                    container
+                    justifyContent={'end'}
+                    width={'100%'}
+                >
+                    <Button
+                        variant="contained"
+                        sx={{mt: 2}}
+                        onClick={methods.handleSubmit(onSubmit)}
+                        loading={createPurchase.isPending}
+                        disabled={!localProducts.length}
+                    >
+                        Crear compra
+                    </Button>
                 </Grid>
-                <Divider sx={{ mb: 1 }} />
-                <Grid container justifyContent="space-between" alignItems="center">
-                    <Grid>
-                        <Typography sx={{ fontWeight: "bold" }}>Total:</Typography>
-                    </Grid>
-                    <Grid >
-                        <Typography sx={{ fontWeight: "bold", fontSize: 22 }}>
-                            {total.toLocaleString("es-NI", { style: "currency", currency: "NIO" })}
-                        </Typography>
-                    </Grid>
-                </Grid>
-            </ContentContainer>
             </Grid>
 
-            
 
         </FormProvider>
-       
+
     )
 }
