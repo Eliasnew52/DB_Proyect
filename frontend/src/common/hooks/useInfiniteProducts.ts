@@ -24,7 +24,7 @@ export const useInfiniteProducts = ({ search, category }: Params) => {
             return Number(url.searchParams.get('page'))
         },
         refetchOnMount: true,
-        refetchOnWindowFocus: false,
+        refetchOnWindowFocus: true,
 
     })
 }

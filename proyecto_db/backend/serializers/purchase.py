@@ -32,7 +32,7 @@ class PurchaseWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Purchase
-        fields = ['supplier', 'status', 'notes', 'invoice_number', 'payment_method', 'details']
+        fields = ['supplier', 'status', 'notes', 'invoice_number', 'payment_method', 'details', 'invoice_image']
         read_only_fields = ['invoice_number']
 
     def create(self, validated_data):
