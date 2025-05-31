@@ -3,6 +3,8 @@ import { styled } from "@mui/material/styles";
 import Tab, { tabClasses } from "@mui/material/Tab";
 import Tabs, { tabsClasses, TabsProps } from "@mui/material/Tabs";
 import {Grid} from "@mui/material";
+import {useCategories} from "../../../../../../../common/hooks/useCategories.ts";
+import {InlineLoading} from "../../../../../../../common/components/ui/InlineLoading/InlineLoading.tsx";
 
 const TabItem = styled(Tab)(({ theme }) => ({
     opacity: 1,
@@ -50,6 +52,8 @@ const TabItem = styled(Tab)(({ theme }) => ({
 
 export const CategoryFilter = ({ sx }: TabsProps) => {
     const [tabIndex, setTabIndex] = React.useState(0);
+    const { isPending: isLoadingCategories, isError: isLoadingCategoriesError, data: categories , error } = useCategories();
+
     return (
         <Grid overflow={'hidden'} width={'100%'}>
             <Tabs
@@ -74,10 +78,16 @@ export const CategoryFilter = ({ sx }: TabsProps) => {
                     },
                 }}
             >
-                <TabItem label={"Specs"} />
-                <TabItem label={"Comparison"} />
-                <TabItem label={"Reviews"} />
-                <TabItem label={"Return Policy"} />
+                {
+                    isLoadingCategories ? (
+                        <InlineLoading message={'Cargando categorías'} />
+                    ) : categories && categories.length > 0 ? (
+                        categories.map(category => (
+                            <TabItem label={category.name} key={category.id} />
+                        ))
+                    ) : null
+                }
+
             </Tabs>
         </Grid>
     );

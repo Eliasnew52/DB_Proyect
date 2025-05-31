@@ -1,6 +1,6 @@
-import axiosClient from "../../../common/api/axiosClient.ts";
-import {ApiResponseTypes} from "../../../common/types/apiResponse.types.ts";
-import {Brand} from "../../../common/types/brands.types.ts";
+import axiosClient from "../axiosClient.ts";
+import {ApiResponseTypes} from "../../types/apiResponse.types.ts";
+import {Brand} from "../../types/brands.types.ts";
 
 export const getBrands = async (signal?: AbortSignal): Promise<Brand[]> => {
     const res = await axiosClient.get<ApiResponseTypes<Brand[]>>('/brands/', { signal });
