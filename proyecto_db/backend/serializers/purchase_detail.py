@@ -26,3 +26,20 @@ class PurchaseDetailWriteSerializer(serializers.ModelSerializer):
         if not product.active:
             raise ValidationError("No se puede comprar un producto inactivo")
         return data
+    
+class PurchaseDetailReadSerializer(serializers.ModelSerializer):
+    product = serializers.SerializerMethodField()
+    line_total = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PurchaseDetail
+        fields = ['product', 'quantity', 'unit_price', 'line_total']
+
+    def get_product(self, obj):
+        return {
+            'id': obj.product.id,
+            'name': obj.product.name
+        }
+
+    def get_line_total(self, obj):
+        return obj.quantity * obj.unit_price
