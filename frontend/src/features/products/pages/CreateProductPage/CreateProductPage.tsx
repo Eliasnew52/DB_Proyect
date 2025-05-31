@@ -16,9 +16,9 @@ import InfoOutlineIcon from '@mui/icons-material/InfoOutline';
 import AddIcon from '@mui/icons-material/Add';
 import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {NumericFormat} from "react-number-format";
-import {useCategories} from "../../hooks/useCategories.ts";
-import {useBrands} from "../../hooks/useBrands.ts";
-import {useProviders} from "../../hooks/useProviders.ts";
+import {useCategories} from "../../../../common/hooks/useCategories.ts";
+import {useBrands} from "../../../../common/hooks/useBrands.ts";
+import {useProviders} from "../../../../common/hooks/useProviders.ts";
 import {Category} from "../../../../common/types/categories.types.ts";
 import SaveIcon from '@mui/icons-material/Save';
 import {

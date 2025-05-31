@@ -1,14 +1,14 @@
 import {ContentContainer} from "../../../../../../../../common/components/ui/ContentContainer.tsx";
 import {Box, Grid, Stack, Typography} from "@mui/material";
-import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
-import {CartItem, CartItems} from "./components/CartItem.tsx";
+import {CartItem} from "./components/CartItem.tsx";
+import {EmpyCart} from "./components/EmpyCart.tsx";
+import {useCartStore} from "../../../../../../store/useCartStore/useCartStore.ts";
 
-export const ShoppingCart = ({ items }) => {
+export const ShoppingCart = () => {
+    const items = useCartStore(state => state.items);
 
     return (
         <Grid
-
-
         >
             <Typography
                 sx={{
@@ -26,36 +26,24 @@ export const ShoppingCart = ({ items }) => {
                 }}
             >
 
-                {/*{*/}
-                {/*    items.length === 0 ? (*/}
-                {/*        <Grid*/}
-                {/*            container*/}
-                {/*            flexDirection={'column'}*/}
-                {/*            justifyContent={'center'}*/}
-                {/*            alignItems={'center'}*/}
-                {/*        >*/}
-                {/*            <ShoppingCartOutlinedIcon />*/}
-                {/*            <Typography>*/}
-                {/*                El carrito está vacío.*/}
-                {/*            </Typography>*/}
-                {/*        </Grid>*/}
-                {/*    ) : (*/}
-                {/*        <></>*/}
-                {/*    )*/}
-                {/*}*/}
-                <Box
-                    sx={{
-                        overflowY: 'auto',
-                    }}
-                >
-                    <Stack spacing={1}>
-                        <CartItem />
-                        <CartItem />
-                        <CartItem />
-                        <CartItem />
-                        <CartItem />
-                    </Stack>
-                </Box>
+                {
+                    items.length === 0 ? (
+                        <EmpyCart />
+                    ) : (
+                        <Box
+                            sx={{
+                                overflowY: 'auto',
+                            }}
+                        >
+                            <Stack spacing={1}>
+                                {items.map(item => (
+                                    <CartItem key={item.id} item={item} />
+                                ))}
+                            </Stack>
+                        </Box>
+                    )
+                }
+
 
             </ContentContainer>
 

@@ -4,7 +4,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.generics import  GenericAPIView
 from rest_framework import status
 from rest_framework.response import Response
-from .models import Category, Product, Customer, Purchase, PurchaseDetail, Company, Brand, Discount, PaymentMethod, Supplier, Sale
+from .models import Category, Product, Customer, Purchase, PurchaseDetail, Company, Brand, Discount, PaymentMethod, Supplier, Sale, TransactionStatus
 from .serializers.category import CategoryWriteSerializer, CategoryReadSerializer, CategorySchemaReadSerializer
 from .serializers.product import ProductWriteSerializer, ProductReadSerializer
 from .serializers.brand import BrandSerializer
@@ -16,7 +16,12 @@ from .serializers.company import CompanySerializer
 from .serializers.sale import SaleReadSerializer, SaleWriteSerializer
 from .serializers.purchase import PurchaseReadSerializer, PurchaseWriteSerializer
 from .serializers.purchase_detail import PurchaseDetailWriteSerializer
+from .serializers.transaction_status import TransactionStatusSerializer
+from .serializers.discount import DiscountSerializer
+from .serializers.discount_type import DiscountTypeSerializer
+from .models import TransactionStatus, Discount, DiscountType
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from .pagination import StandardResultsSetPagination
 
 class CategorySchemaView(GenericAPIView):
     serializer_class = CategorySchemaReadSerializer
@@ -42,6 +47,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.select_related('category', 'brand')
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+    pagination_class = StandardResultsSetPagination
 
     filterset_fields = {
         'name': ['icontains'],
@@ -49,6 +55,12 @@ class ProductViewSet(viewsets.ModelViewSet):
         'stock': ['gte', 'lte'],
         'sale_price': ['gte', 'lte']
     }
+
+    def filter_queryset(self, queryset):
+        search_term = self.request.query_params.get('search')
+        if search_term:
+            queryset = queryset.filter(name__icontains=search_term)
+        return super().filter_queryset(queryset)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -83,7 +95,6 @@ class PurchaseDetailViewSet(viewsets.ModelViewSet):
     serializer_class = PurchaseDetailWriteSerializer
 
 class SaleViewSet(viewsets.ModelViewSet):
-    authentication_classes = [JWTAuthentication]
     queryset = Sale.objects.select_related('created_by', 'customer', 'payment_method').prefetch_related('products', 'saledetail_set').order_by('-date')
     filterset_fields = {
         'status': ['exact'],
@@ -109,16 +120,12 @@ class CustomerViewSet(viewsets.ModelViewSet):
         serializer.save(created_by=self.request.user)
 
 class DiscountViewSet(viewsets.ModelViewSet):
-    queryset = Discount.objects.prefetch_related('products', 'categories')
-    filterset_fields = ['active', 'type', 'scope']
-    
-    def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
-            return DiscountWriteSerializer
-        return DiscountReadSerializer
-    
-    def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+    queryset = Discount.objects.all()
+    serializer_class = DiscountSerializer
+
+class DiscountTypeViewSet(viewsets.ModelViewSet):
+    queryset = DiscountType.objects.all()
+    serializer_class = DiscountTypeSerializer
 
 class PaymentMethodViewSet(viewsets.ModelViewSet):
     queryset = PaymentMethod.objects.all()
@@ -173,3 +180,7 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+class TransactionStatusViewSet(viewsets.ModelViewSet):
+    queryset = TransactionStatus.objects.all()
+    serializer_class = TransactionStatusSerializer

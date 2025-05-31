@@ -1,7 +1,7 @@
 import {useMemo} from "react";
 import {MaterialReactTable, useMaterialReactTable} from "material-react-table";
 import {MRT_Localization_ES} from "material-react-table/locales/es";
-import {useCustomers} from "../../../../hooks/useCustomers.ts";
+import {useCustomers} from "../../../../../../common/hooks/useCustomers.ts";
 import {CustomerTableColumns} from "./components/CustomerTableColumns.tsx";
 
 export const CustomerTable = () => {

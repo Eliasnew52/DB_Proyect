@@ -49,9 +49,10 @@ export const AttributeBuilderModal = ({
         const t = v.trim();
         if (!t) {
             setKeyError("El nombre del campo es obligatorio");
-        } else if (!/^[a-zA-Z0-9]+$/.test(t)) {
-            setKeyError("Sólo letras y números");
-        } else if (attributes.some((a) => a.key === t)) {
+        }
+        // } else if (!/^[a-zA-Z0-9]+$/.test(t)) {
+        //     setKeyError("Sólo letras y números");
+        else if (attributes.some((a) => a.key === t)) {
             setKeyError("Ya existe un campo con esa clave");
         } else {
             setKeyError(undefined);

@@ -1,4 +1,4 @@
-import axiosClient from "../axiosClient.ts";
+import axiosClient from "../../axiosClient.ts";
 
 export const getProviders = async (signal?: AbortSignal) => {
     const res = await axiosClient.get('/suppliers/', { signal });

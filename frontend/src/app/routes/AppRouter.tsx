@@ -21,30 +21,30 @@ export const AppRouter = () => {
             </Route>
             <Route element={<RequiredAuth />}>
                 <Route element={<MainLayout />}>
-                {customerRoutes.map(({ path, element }) => (
-                    <Route key={path} path={path} element={element} />
-                ))}
+                    {customerRoutes.map(({ path, element }) => (
+                        <Route key={path} path={path} element={element} />
+                    ))}
 
-                {dashboardRoutes.map(({ path, element }) => (
-                    <Route key={path} path={path} element={element} />
-                ))}
+                    {dashboardRoutes.map(({ path, element }) => (
+                        <Route key={path} path={path} element={element} />
+                    ))}
 
-                {productsRoutes.map(({ path, element }) => (
-                    <Route key={path} path={path} element={element} />
-                ))}
+                    {productsRoutes.map(({ path, element }) => (
+                        <Route key={path} path={path} element={element} />
+                    ))}
 
-                {purchasesRoutes.map(({ path, element }) => (
-                    <Route key={path} path={path} element={element} />
-                ))}
+                    {purchasesRoutes.map(({ path, element }) => (
+                        <Route key={path} path={path} element={element} />
+                    ))}
 
-                {reportsRoutes.map(({ path, element }) => (
-                    <Route key={path} path={path} element={element} />
-                ))}
+                    {reportsRoutes.map(({ path, element }) => (
+                        <Route key={path} path={path} element={element} />
+                    ))}
 
-                {salesRoutes.map(({ path, element }) => (
-                    <Route key={path} path={path} element={element} />
-                ))}
-            </Route>
+                    {salesRoutes.map(({ path, element }) => (
+                        <Route key={path} path={path} element={element} />
+                    ))}
+                </Route>
             </Route>
         </Routes>
     )

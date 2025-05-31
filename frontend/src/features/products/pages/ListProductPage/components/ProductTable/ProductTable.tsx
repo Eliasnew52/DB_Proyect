@@ -2,7 +2,7 @@ import {useMemo} from "react";
 import {MaterialReactTable, useMaterialReactTable} from "material-react-table";
 import {MRT_Localization_ES} from "material-react-table/locales/es";
 import {ProductTableColumns} from "./components/ProductTableColumns.tsx";
-import {useProducts} from "../../../../hooks/useProducts.ts";
+import {useProducts} from "../../../../../../common/hooks/useProducts.ts";
 
 export const ProductTable = () => {
     const { isPending: isLoadingProducts, isError: isLoadingProductsError, data: products , error } = useProducts();
@@ -11,7 +11,7 @@ export const ProductTable = () => {
 
     const table = useMaterialReactTable({
         columns,
-        data: products || [],
+        data: products?.results || [],
         createDisplayMode: 'modal',
         editDisplayMode: 'modal',
         enableEditing: true,

@@ -1,6 +1,6 @@
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {updateBrand} from "../api/brandsFetchers.ts";
-import {BRAND_KEY, BRANDS_KEY} from "../queryKeys.ts";
+import {updateBrand} from "../../../common/api/fetchers/products/brandsFetchers.ts";
+import {BRAND_KEY, BRANDS_KEY} from "../../../common/api/fetchers/products/queryKeys.ts";
 import {CustomError} from "../../../common/types/customError.types.ts";
 import {Brand} from "../../../common/types/brands.types.ts";
 

@@ -149,7 +149,28 @@ class SaleWriteSerializer(serializers.ModelSerializer):
 class SaleReadSerializer(serializers.ModelSerializer):
     payment_method = PaymentMethodSerializer(read_only=True)
     customer = CustomerSerializer(read_only=True)
+    products = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    created_by = serializers.SerializerMethodField()
 
     class Meta:
         model = Sale
         fields = ['date', 'total', 'payment_method', 'status', 'customer', 'products', 'created_by']
+
+    def get_products(self, obj):
+        return [
+            {
+                "id": detail.product.id,
+                "name": detail.product.name
+            }
+            for detail in obj.saledetail_set.all()
+        ]
+
+    def get_status(self, obj):
+        status = getattr(obj, "status", None)
+        if hasattr(status, "code") and hasattr(status, "label"):
+            return {"code": status.code, "label": status.label}
+        return status
+
+    def get_created_by(self, obj):
+        return getattr(obj.created_by, "get_full_name", lambda: str(obj.created_by))() or str(obj.created_by)

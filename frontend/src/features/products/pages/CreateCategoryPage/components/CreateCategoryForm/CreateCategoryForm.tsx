@@ -62,7 +62,7 @@ export const CreateCategoryForm = () => {
     const onSubmit = useCallback((data: Partial<Category>) => {
         const properties = attributes.reduce<Record<string, string>>((acc, { key, title, type, options }) => {
             acc[key] = {
-                type,
+                type: type === 'enum' ? 'string' : type, 
                 title,
                 ...(type === 'enum' ? { enum: options } : {})
             };

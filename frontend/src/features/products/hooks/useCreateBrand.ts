@@ -1,7 +1,7 @@
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {Brand} from "../../../common/types/brands.types.ts";
-import {createBand,} from "../api/brandsFetchers.ts";
-import {BRANDS_KEY} from "../queryKeys.ts";
+import {createBand,} from "../../../common/api/fetchers/products/brandsFetchers.ts";
+import {BRANDS_KEY} from "../../../common/api/fetchers/products/queryKeys.ts";
 import {CustomError} from "../../../common/types/customError.types.ts";
 
 export const useCreateBrand = () => {

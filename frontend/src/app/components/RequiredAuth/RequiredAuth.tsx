@@ -1,6 +1,7 @@
 import {Navigate, Outlet} from "react-router";
 import {useUser} from "../../../features/auth/hooks/useUser.ts";
 import {OverlayLoading} from "../../../common/components/ui/OverlayLoading/OverlayLoading.tsx";
+import {PATHS, RouteKey} from "../../../common/router/routes.ts";
 
 export const RequiredAuth = () => {
     const {
@@ -15,7 +16,7 @@ export const RequiredAuth = () => {
     }
 
     if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to={PATHS[RouteKey.LOGIN]} replace />;
     }
 
     return <Outlet />;

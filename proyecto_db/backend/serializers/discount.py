@@ -34,4 +34,8 @@ class DiscountReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discount
         fields = '__all__'
-    
+
+class DiscountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Discount
+        fields = '__all__'

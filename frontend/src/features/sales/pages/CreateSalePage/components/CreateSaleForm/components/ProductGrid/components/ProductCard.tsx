@@ -1,9 +1,31 @@
+import {memo, useMemo} from "react";
 import {Button, Card, CardContent, CardMedia, Chip, Grid, Typography} from "@mui/material";
 import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import placeholderImg from '../../../../../../../../../assets/placeholder.svg'
+import {Product} from "../../../../../../../../../common/types/products.types.ts";
+import { useCartStore } from "../../../../../../../store/useCartStore/useCartStore.ts";
 
-export const ProductCard = () => {
+const NEW_PRODUCT_THRESHOLD_DAYS = 30;
+
+export const ProductCard = memo(({ product }: { product: Product }) => {
+    const isProductNew = useMemo(() => {
+        const createdAt = new Date(product.creation_date);
+        const today     = new Date();
+
+        if (isNaN(createdAt.getTime()) || createdAt > new Date()) {
+            return false;
+        }
+
+        const diffMs  = today.getTime() - createdAt.getTime();
+        const msPerDay = 1000 * 60 * 60 * 24;
+        const diffDays = diffMs / msPerDay;
+
+        return diffDays <= NEW_PRODUCT_THRESHOLD_DAYS;
+    }, [product.creation_date]);
+
+    const addItem = useCartStore(state => state.addItem);
+
     return (
         <Card
             sx={{
@@ -14,37 +36,45 @@ export const ProductCard = () => {
             }}
             elevation={0}
         >
-            <Chip
-                label="Nuevo"
-                color="success"
-                variant="filled"
-                size={'small'}
-                sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    m: 1,
-                }}
-            />
+            {
+                isProductNew && (
+                    <Chip
+                        label="Nuevo"
+                        color="success"
+                        variant="filled"
+                        size={'small'}
+                        sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            m: 1,
+                        }}
+                    />
+                )
+            }
 
-            <Chip
-                label="¡Quedan 4!"
-                color="error"
-                variant="filled"
-                size={'small'}
-                sx={{
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    m: 1,
-                }}
-            />
+            {
+                product.stock < product.minimum_stock && (
+                    <Chip
+                        label={`¡Quedan ${product.stock}!`}
+                        color="error"
+                        variant="filled"
+                        size={'small'}
+                        sx={{
+                            position: 'absolute',
+                            top: 0,
+                            right: 0,
+                            m: 1,
+                        }}
+                    />
+                )
+            }
 
             <CardMedia
                 component="img"
-                alt="green iguana"
+                alt={`${product.name} image`}
                 height="140"
-                image={placeholderImg}
+                image={product?.image ?? placeholderImg}
             />
             <CardContent>
 
@@ -60,7 +90,7 @@ export const ProductCard = () => {
                     >
                         <Grid>
                             <Typography fontWeight={'bold'}>
-                                Lizard
+                                {product.name}
                             </Typography>
                         </Grid>
 
@@ -69,13 +99,18 @@ export const ProductCard = () => {
                                 fontWeight={"bold"}
                                 fontSize={15}
                             >
-                                C$ 38.00
+                                {product.sale_price.toLocaleString('es-NI', {
+                                    style:    'currency',
+                                    currency: 'NIO',
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2
+                                })}
                             </Typography>
                         </Grid>
 
                         <Grid>
                             <Typography fontSize={14} fontWeight={600} color={'textDisabled'}>
-                                Stock: 60
+                                Stock: {product.stock}
                             </Typography>
                         </Grid>
                     </Grid>
@@ -105,10 +140,11 @@ export const ProductCard = () => {
                                     margin: 0, padding: 0
                                 }
                             }}
+                            onClick={() => addItem(product, 1)} // <-- agrega al carrito
                         />
                     </Grid>
                 </Grid>
             </CardContent>
         </Card>
     )
-}
+});

@@ -3,8 +3,9 @@ import { styled } from "@mui/material/styles";
 import Tab, { tabClasses } from "@mui/material/Tab";
 import Tabs, { tabsClasses, TabsProps } from "@mui/material/Tabs";
 import {Grid} from "@mui/material";
-import {useCategories} from "../../../../../../../common/hooks/useCategories.ts";
-import {InlineLoading} from "../../../../../../../common/components/ui/InlineLoading/InlineLoading.tsx";
+import {useCategories} from "../../../../../../../../common/hooks/useCategories.ts";
+import {InlineLoading} from "../../../../../../../../common/components/ui/InlineLoading/InlineLoading.tsx";
+import {CategoryFilterProps} from "./CategoryFilter.types.ts";
 
 const TabItem = styled(Tab)(({ theme }) => ({
     opacity: 1,
@@ -50,7 +51,8 @@ const TabItem = styled(Tab)(({ theme }) => ({
     },
 }));
 
-export const CategoryFilter = ({ sx }: TabsProps) => {
+
+export const CategoryFilter = ({ onClick }: CategoryFilterProps) => {
     const [tabIndex, setTabIndex] = React.useState(0);
     const { isPending: isLoadingCategories, isError: isLoadingCategoriesError, data: categories , error } = useCategories();
 
@@ -78,12 +80,20 @@ export const CategoryFilter = ({ sx }: TabsProps) => {
                     },
                 }}
             >
+                <TabItem
+                    label={"Todos"}
+                    onClick={() => onClick(null)}
+                />
                 {
                     isLoadingCategories ? (
                         <InlineLoading message={'Cargando categorías'} />
                     ) : categories && categories.length > 0 ? (
                         categories.map(category => (
-                            <TabItem label={category.name} key={category.id} />
+                            <TabItem
+                                label={category.name}
+                                key={category.id}
+                                onClick={() => onClick(category.id)}
+                            />
                         ))
                     ) : null
                 }

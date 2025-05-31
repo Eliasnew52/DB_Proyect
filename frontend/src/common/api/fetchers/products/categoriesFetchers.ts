@@ -1,6 +1,6 @@
-import axiosClient from "../axiosClient.ts";
-import {Category} from "../../types/categories.types.ts";
-import {ApiResponseTypes} from "../../types/apiResponse.types.ts";
+import axiosClient from "../../axiosClient.ts";
+import {Category} from "../../../types/categories.types.ts";
+import {ApiResponseTypes} from "../../../types/apiResponse.types.ts";
 
 export const getCategories = async(signal?: AbortSignal): Promise<Category[]> => {
     const res = await axiosClient.get<ApiResponseTypes<Category[]>>('/categories/', { signal });
