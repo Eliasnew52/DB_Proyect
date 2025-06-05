@@ -1,11 +1,19 @@
-import {useMemo} from "react";
+import {useMemo, useState} from "react";
 import {MaterialReactTable, useMaterialReactTable} from "material-react-table";
 import {MRT_Localization_ES} from "material-react-table/locales/es";
 import {ProductTableColumns} from "./components/ProductTableColumns.tsx";
 import {useProducts} from "../../../../../../common/hooks/useProducts.ts";
 
 export const ProductTable = () => {
-    const { isPending: isLoadingProducts, isError: isLoadingProductsError, data: products , error } = useProducts();
+    const [pagination, setPagination] = useState({
+        pageIndex: 0,
+        pageSize: 10,
+    })
+
+    const { pageIndex, pageSize } = pagination;
+
+    const { isPending: isLoadingProducts, isError: isLoadingProductsError, data: products , error } = useProducts(pageIndex + 1);
+    console.log({ products: products?.results });
 
     const columns = useMemo(() => ProductTableColumns, [])
 
@@ -15,7 +23,12 @@ export const ProductTable = () => {
         createDisplayMode: 'modal',
         editDisplayMode: 'modal',
         enableEditing: true,
+        manualPagination: true,
+        enableStickyHeader: true,
         getRowId: (row) => String(row.id),
+        initialState: {
+            columnVisibility: { id: false, description: false }
+        },
         muiToolbarAlertBannerProps: isLoadingProductsError
             ? {
                 color: 'error',
@@ -24,8 +37,7 @@ export const ProductTable = () => {
             : undefined,
         muiTableContainerProps: {
             sx: {
-                maxHeight: 'calc(100dhv - 325px)',
-                height: '100%',
+                maxHeight: 'calc(100dvh - 300px)',
             },
         },
         // muiTableBodyRowProps: ({ row }) => ({
@@ -55,11 +67,13 @@ export const ProductTable = () => {
         //         Crear categoría
         //     </Button>
         // ),
+        onPaginationChange: setPagination,
         state: {
             isLoading: isLoadingProducts,
             // isSaving: isCreatingUser || isUpdatingUser || isDeletingUser,
             showAlertBanner: isLoadingProductsError,
             showProgressBars: isLoadingProducts,
+            pagination: pagination
         },
     });
 

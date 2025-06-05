@@ -17,6 +17,7 @@ export enum RouteKey {
     PRODUCT_LIST    = 'product_list',
     CATEGORY_LIST   = 'category_list',
     BRAND_LIST      = 'brand_list',
+    PRODUCT_DETAIL = 'product_detail',
     // NEW_BRAND    = 'new_brand',
 }
 
@@ -32,12 +33,14 @@ export const PATHS: Record<RouteKey, string> = {
     [RouteKey.PURCHASE_LIST]:    '/purchase-list',
     [RouteKey.NEW_CLIENT]:       '/new-client',
     [RouteKey.CLIENT_LIST]:      '/client-list',
-    [RouteKey.NEW_PROVIDER]:     '/new-provider',
-    [RouteKey.PROVIDER_LIST]:    '/provider-list',
+    [RouteKey.NEW_PROVIDER]:     '/new-supplier',
+    [RouteKey.PROVIDER_LIST]:    '/supplier-list',
     [RouteKey.NEW_PRODUCT]:      '/new-product',
     [RouteKey.NEW_CATEGORY]:     '/new-category',
     [RouteKey.PRODUCT_LIST]:     '/product-list',
     [RouteKey.CATEGORY_LIST]:    '/category-list',
     [RouteKey.BRAND_LIST]:       '/brand-list',
+    [RouteKey.PRODUCT_DETAIL]:   '/product/:id',
+
     // [RouteKey.NEW_BRAND]:     '/new-brand',
 } as const;

@@ -1,4 +1,5 @@
-export const PurchaseTableColumns = [
+import { MRT_ColumnDef } from 'material-react-table';
+export const PurchaseTableColumns: MRT_ColumnDef<any>[] = [
     {
         accessorKey: 'date',
         header: 'Fecha',

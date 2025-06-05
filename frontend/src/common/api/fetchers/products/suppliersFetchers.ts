@@ -1,6 +1,8 @@
 import axiosClient from "../../axiosClient.ts";
+import {ApiResponseTypes} from "../../../types/apiResponse.types.ts";
+import {SupplierResponse} from "../../../../features/products/dto/supplier/SupplierResponse.dto.ts";
 
-export const getProviders = async (signal?: AbortSignal) => {
-    const res = await axiosClient.get('/suppliers/', { signal });
+export const getSupplier = async (signal?: AbortSignal): Promise<SupplierResponse[]> => {
+    const res = await axiosClient.get<ApiResponseTypes<SupplierResponse[]>>('/suppliers/', { signal });
     return res.data.result;
 }

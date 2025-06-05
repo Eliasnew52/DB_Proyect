@@ -1,11 +1,11 @@
 import {useMemo} from "react";
 import {MaterialReactTable, useMaterialReactTable} from "material-react-table";
 import {MRT_Localization_ES} from "material-react-table/locales/es";
-import {useProviders} from "../../../../../../common/hooks/useProviders.ts";
+import {useSuppliers} from "../../../../../../common/hooks/useSuppliers.ts";
 import {ProviderTableColumns} from "./components/ProviderTableColumns.tsx";
 
 export const ProviderTable = () => {
-    const { isPending: isLoadingProviders, isError: isLoadingProvidersError, data: suppliers , error } = useProviders();
+    const { isPending: isLoadingProviders, isError: isLoadingProvidersError, data: suppliers , error } = useSuppliers();
 
     const columns = useMemo(() => ProviderTableColumns, [])
 

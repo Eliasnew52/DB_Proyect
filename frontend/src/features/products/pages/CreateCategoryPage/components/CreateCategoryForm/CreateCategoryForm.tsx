@@ -1,5 +1,5 @@
-import {useCallback, useEffect, useState} from "react";
-import {Controller, FormProvider, useFieldArray, useForm} from "react-hook-form";
+import {useCallback, useState} from "react";
+import {Controller, FormProvider, useForm} from "react-hook-form";
 import {
     Box,
     Button,
@@ -10,7 +10,6 @@ import {
     Typography
 } from "@mui/material";
 import {ContentContainer} from "../../../../../../common/components/ui/ContentContainer.tsx";
-import {Category, ProductSchemaProperty} from "../../../../../../common/types/categories.types.ts";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SaveIcon from '@mui/icons-material/Save';
@@ -20,13 +19,13 @@ import {useCreateCategory} from "../../../../hooks/useCreateCategory.ts";
 import {useRouteNavigator} from "../../../../../../common/hooks/useRouteNavigator.ts";
 import { RouteKey} from "../../../../../../common/router/routes.ts";
 import {useNotifications} from "../../../../../../common/hooks/useNotifications.ts";
+import {CategoryAttribute, CategoryFormValues} from "../../types/form.types.ts";
+import {mapCreateCategoryFormToDTO} from "../../../../utils/categoryMappers.ts";
 
 
 export const CreateCategoryForm = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [attributes, setAttributes] = useState<
-        { key: string; type: string; title: string; options: string[] }[]
-    >([]);
+    const [attributes, setAttributes] = useState<CategoryAttribute[]>([]);
     const [newType, setNewType] = useState("");
     const [newKey, setNewKey] = useState("");
 
@@ -39,7 +38,7 @@ export const CreateCategoryForm = () => {
     }, [setIsModalOpen])
 
 
-    const methods = useForm({
+    const methods = useForm<CategoryFormValues>({
         defaultValues: {
             name: '',
             description: '',
@@ -53,38 +52,25 @@ export const CreateCategoryForm = () => {
         control,
     } = methods;
 
-    const update = useCreateCategory();
+    const createCategory = useCreateCategory();
 
     const { go } = useRouteNavigator();
 
     const { showToast } = useNotifications();
 
-    const onSubmit = useCallback((data: Partial<Category>) => {
-        const properties = attributes.reduce<Record<string, string>>((acc, { key, title, type, options }) => {
-            acc[key] = {
-                type: type === 'enum' ? 'string' : type, 
-                title,
-                ...(type === 'enum' ? { enum: options } : {})
-            };
-            return acc;
-        }, {});
+    const onSubmit = useCallback((data: CategoryFormValues) => {
 
-        const product_schema = {
-            type: 'object',
-            $schema: 'https://json-schema.org/draft/2020-12/schema',
-            required: attributes.map(c => c.key),
-            properties
-        }
-        
-        const newCategory = {
+        const updatedData = {
             ...data,
-            product_schema: JSON.stringify(product_schema),
+            attributes: attributes,
         }
 
-        update.mutate(
-            newCategory as Category,
+        const newCategory = mapCreateCategoryFormToDTO(updatedData)
+
+        createCategory.mutate(
+            newCategory,
             {
-                onSuccess: response => {
+                onSuccess: () => {
                     showToast({
                         title: 'Categoría creada exitosamente.',
                         icon: 'success',
@@ -101,7 +87,7 @@ export const CreateCategoryForm = () => {
             }
         )
 
-    }, [attributes, go, showToast, update])
+    }, [attributes, go, showToast, createCategory])
 
     return (
         <FormProvider {...methods}>
@@ -224,7 +210,7 @@ export const CreateCategoryForm = () => {
 
 
                     <Grid alignSelf={'end'}>
-                        <Button type={'submit'} variant={'contained'} startIcon={<SaveIcon />} loading={update.isPending}>
+                        <Button type={'submit'} variant={'contained'} startIcon={<SaveIcon />} loading={createCategory.isPending}>
                             Guardar
                         </Button>
                     </Grid>

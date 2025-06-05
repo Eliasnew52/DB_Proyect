@@ -1,9 +1,10 @@
 import axiosClient from "../../axiosClient.ts";
 import {Product} from "../../../types/products.types.ts";
 import {ApiResponseTypes, PaginatedResponse} from "../../../types/apiResponse.types.ts";
+import {ProductResponse} from "../../../../features/products/dto/product/ProductResponse.dto.ts";
 
-export const getProducts = async (signal?: AbortSignal): Promise<Product> => {
-    const res = await axiosClient.get('/products/', { signal })
+export const getProducts = async (signal?: AbortSignal, page?: number): Promise<PaginatedResponse<ProductResponse>> => {
+    const res = await axiosClient.get<ApiResponseTypes<PaginatedResponse<ProductResponse>>>(`/products/`, { params: { page }, signal })
     return res.data.result;
 }
 
@@ -24,7 +25,12 @@ export const getProductsPaginated = async (search: string, categoryId: number | 
     return res.data.result;
 }
 
-export const createProduct = async (product: Product): Promise<ApiResponseTypes<Product>> => {
+export const createProduct = async (product: FormData): Promise<ApiResponseTypes<Product>> => {
     const res = await axiosClient.post<ApiResponseTypes<Product>>('/products/', product);
     return res.data;
+}
+
+export const getProductById = async (id: number, signal?: AbortSignal): Promise<ProductResponse> => {
+    const res = await axiosClient.get<ApiResponseTypes<ProductResponse>>(`/products/${id}/`, { signal });
+    return res.data.result;
 }

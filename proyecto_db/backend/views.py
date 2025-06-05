@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from .models import Category, Product, Customer, Purchase, PurchaseDetail, Company, Brand, Discount, PaymentMethod, Supplier, Sale, TransactionStatus
 from .serializers.category import CategoryWriteSerializer, CategoryReadSerializer, CategorySchemaReadSerializer
 from .serializers.product import ProductWriteSerializer, ProductReadSerializer
-from .serializers.brand import BrandSerializer
+from .serializers.brand import BrandWriteSerializer, BrandReadSerializer
 from .serializers.supplier import SupplierReadSerializer, SupplierWriteSerializer
 from .serializers.customer import CustomerSerializer
 from .serializers.discount import DiscountReadSerializer, DiscountWriteSerializer
@@ -137,7 +137,6 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
 
 class BrandViewSet(viewsets.ModelViewSet):
     queryset = Brand.objects.all()
-    serializer_class = BrandSerializer
     filterset_fields = ['name', 'created_by']
 
     def perform_create(self, serializer):
@@ -155,6 +154,12 @@ class BrandViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_200_OK
         )
+    
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return BrandWriteSerializer
+        return BrandReadSerializer
+    
 class SupplierViewSet(viewsets.ModelViewSet):
     queryset = Supplier.objects.select_related('company', 'created_by').prefetch_related('brands')
     filterset_fields = ['name', 'created_by', 'email', 'phone']

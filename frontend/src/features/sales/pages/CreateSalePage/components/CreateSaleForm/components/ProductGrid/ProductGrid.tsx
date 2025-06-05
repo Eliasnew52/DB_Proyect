@@ -13,7 +13,7 @@ interface Props {
     category: number | null
 }
 
-export const ProductGrid: React.FC<Props> = memo(({ search, category }) => {
+export const    ProductGrid: React.FC<Props> = memo(({ search, category }) => {
     const {
         data,
         fetchNextPage,

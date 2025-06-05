@@ -1,27 +1,34 @@
-import {Supplier} from "./supplier.types.ts";
-import {Category} from "./categories.types.ts";
-import {Brand} from "./brands.types.ts";
+import {SupplierMini} from "./suppliers.types.ts";
+import {CategoryMini} from "./categories.types.ts";
+import {BrandMini} from "./brands.types.ts";
+import {UserMini} from "./auth.types.ts";
+
+export interface Measurements {
+    length: string;
+    length_unit: string;
+    width: string;
+    height: string;
+    weight: string;
+    weight_unit: string;
+    volume: string;
+    volume_unit: string;
+}
 
 export interface Product {
     id: number;
-    category: Category;
-    brand: Brand;
-    suppliers: Supplier[];
+    name: string;
+    description: string | null;
+    category: CategoryMini;
+    brand: BrandMini;
+    suppliers: SupplierMini[];
     sale_price: number;
     purchase_price: number;
-    name: string;
-    description: string;
-    minimum_stock: number;
-    stock: number;
+    attributes: Record<string, string | number | boolean>
+    measurements: Measurements;
+    created_by: UserMini;
     last_updated: string;
-    image: string;
-    active: boolean;
     creation_date: string;
-    attributes: string;
-    created_by: number;
-}
-
-export interface UnitOption {
-    key: string;
-    label: string;
+    image: string;
+    stock: number;
+    minimum_stock: number;
 }

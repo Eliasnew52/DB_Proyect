@@ -8,3 +8,10 @@ export interface Brand {
     active: boolean;
     created_by: number | null;
 }
+
+export interface BrandMini {
+    id: number;
+    name: string;
+    description: string;
+    image: string;
+}

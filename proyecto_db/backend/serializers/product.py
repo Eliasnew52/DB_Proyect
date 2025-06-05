@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from backend.utils.schema_validation import SchemaValidatedJSONField
 from backend.models import Category, Product, ProductMeasurement
-from .shorts import BrandShortSerializer, CategoryShortSerializer, SupplierShortSerializer
+from .shorts import BrandShortSerializer, CategoryShortSerializer, SupplierShortSerializer, UserShortSerializer
 from .product_measurement import ProductMeasurementSerializer
 class ProductWriteSerializer(serializers.ModelSerializer):        
     attributes = SchemaValidatedJSONField(
@@ -70,11 +70,12 @@ class ProductReadSerializer(serializers.ModelSerializer):
         max_digits=10, decimal_places=2, coerce_to_string=False
     )
     measurements = ProductMeasurementSerializer(read_only=True)
+    created_by = UserShortSerializer(read_only=True)
 
 
     class Meta:
         model = Product  
-        fields = ['id', 'name', 'description', 'category', 'brand',
+        fields = ['id', 'active', 'name', 'description', 'category', 'brand',
                   'suppliers', 'sale_price', 'purchase_price',
                   'attributes', 'measurements', 'created_by',
                   'last_updated', 'creation_date', 'image', 'stock', 'minimum_stock']

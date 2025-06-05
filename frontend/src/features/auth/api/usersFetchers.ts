@@ -1,4 +1,4 @@
-import {User} from "../types/auth.types.ts";
+import {User} from "../../../common/types/auth.types.ts";
 import axiosClient from "../../../common/api/axiosClient.ts";
 
 export const getMe = async (signal?: AbortSignal): Promise<User> => {

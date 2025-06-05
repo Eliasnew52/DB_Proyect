@@ -1,4 +1,4 @@
-import {User} from "../../../../../features/auth/types/auth.types.ts";
+import {User} from "../../../../../common/types/auth.types.ts";
 
 export interface UserMenuProps {
     user: User

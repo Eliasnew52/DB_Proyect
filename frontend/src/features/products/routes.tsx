@@ -7,6 +7,7 @@ import {ListBrandPage} from "./pages/ListBrandPage/ListBrandPage.tsx";
 import {PATHS, RouteKey} from "../../common/router/routes.ts";
 import {CreateProviderPage} from "./pages/CreateProviderPage/CreateProviderPage.tsx";
 import {ListProviderPage} from "./pages/ListProviderPage/ListProviderPage.tsx";
+import {ProductDetailPage} from "./pages/ProductDetailPage/ProductDetailPage.tsx";
 
 export const productsRoutes: RouteObject[] = [
     {
@@ -16,6 +17,10 @@ export const productsRoutes: RouteObject[] = [
     {
         path: PATHS[RouteKey.NEW_CATEGORY],
         element: <CreateCategoryPage />
+    },
+    {
+        path: PATHS[RouteKey.PRODUCT_DETAIL],
+        element: <ProductDetailPage />
     },
     // {
     //     path: PATHS[RouteKey.NEW_BRAND],

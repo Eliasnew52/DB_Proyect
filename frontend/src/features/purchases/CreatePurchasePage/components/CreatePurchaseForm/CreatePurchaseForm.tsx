@@ -16,7 +16,7 @@ import {SectionHeader} from "../../../../../common/components/ui/SectionHeader/S
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import {Controller, FormProvider, useForm} from "react-hook-form";
 import {InlineLoading} from "../../../../../common/components/ui/InlineLoading/InlineLoading.tsx";
-import {useProviders} from "../../../../../common/hooks/useProviders.ts";
+import {useSuppliers} from "../../../../../common/hooks/useSuppliers.ts";
 import {useTransactionStatuses} from "../../../../../common/hooks/useTransactionStatus.ts";
 import {usePaymentMethods} from "../../../../../common/hooks/usePaymentMethods.ts";
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
@@ -41,7 +41,7 @@ export const CreatePurchaseForm = () => {
         isLoading: isLoadingProviders,
         isError: isLoadingProvidersError,
         error: suppliersError
-    } = useProviders();
+    } = useSuppliers();
     const {
         isPending: isLoadingTransactionStatuses,
         isError: isLoadingTransactionStatusesError,

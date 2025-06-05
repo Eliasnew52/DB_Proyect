@@ -1,22 +1,4 @@
-export interface EnumProperty<T extends string = string> {
-    options: T[];
-    type: 'string' | 'number' | 'boolean' | 'enum';
-    title: string;
-}
-
-export interface ProductSchemaProperty<T extends string = string> {
-    enum: T[];
-    type: 'string' | 'number' | 'boolean';
-    title: string;
-    required: T[];
-}
-
-export interface ProductSchema {
-    type: 'object';
-    $schema: string;
-    required: string[];
-    properties: Record<string, ProductSchemaProperty>;
-}
+import {ProductSchema} from "./productSchema.types.ts";
 
 export interface Category {
     id: number;
@@ -26,4 +8,11 @@ export interface Category {
     image: string;
     product_schema: ProductSchema;
     created_by: string | null;
+}
+
+export interface CategoryMini {
+    id: number;
+    name: string;
+    description: string;
+    image: string;
 }

@@ -1,9 +1,9 @@
 import { MRT_ColumnDef } from 'material-react-table'
-import {SupplierWithBrands} from "../../../../../../../common/types/supplier.types.ts";
+import {Supplier} from "../../../../../../../common/types/suppliers.types.ts";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DoDisturbOnIcon from "@mui/icons-material/DoDisturbOn";
 
-export const ProviderTableColumns: MRT_ColumnDef<SupplierWithBrands>[] = [
+export const ProviderTableColumns: MRT_ColumnDef<Supplier>[] = [
     {
         header: 'ID',
         accessorKey: 'id',
@@ -33,7 +33,7 @@ export const ProviderTableColumns: MRT_ColumnDef<SupplierWithBrands>[] = [
     {
         accessorKey: 'active',
         header: 'Activo',
-        Cell: ({ renderedCellValue, row }) => (
+        Cell: ({ renderedCellValue }) => (
             renderedCellValue ?  <CheckCircleIcon color={'success'} /> : <DoDisturbOnIcon color={'error'} />
         )
     },

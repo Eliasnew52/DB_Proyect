@@ -20,7 +20,7 @@ def default_product_schema():
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
-    creation_date = models.DateField(auto_now_add=True)
+    creation_date = models.DateField(default='2000-01-01')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
@@ -38,7 +38,7 @@ class Company(models.Model):
     name = models.CharField(max_length=100, unique=True)
     last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    creation_date = models.DateField(auto_now_add=True)
+    creation_date = models.DateField(default='2000-01-01')
     active = models.BooleanField(default=True)
 
     class Meta: 
@@ -54,7 +54,7 @@ class Supplier(models.Model):
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     brands = models.ManyToManyField('Brand')
     last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    creation_date = models.DateField(auto_now_add=True)
+    creation_date = models.DateField(default='2000-01-01')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     active = models.BooleanField(default=True)
 
@@ -130,7 +130,7 @@ class InvoiceBase(models.Model):
     subtotal        = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], blank=True, null=True)
     discount        = models.DecimalField(max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)], blank=True, null=True)
     total_amount    = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], blank=True, null=True)
-    creation_date = models.DateField(auto_now_add=True)
+    creation_date = models.DateField(default='2000-01-01')
     notes           = models.TextField(blank=True, null=True)
     created_by      = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     last_updated    = models.DateTimeField(auto_now=True, blank=True, null=True)
@@ -180,7 +180,7 @@ class Purchase(models.Model):
     )
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True) 
     last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    creation_date = models.DateField(auto_now_add=True)
+    creation_date = models.DateField(default='2000-01-01')
     
     def clean(self):
         if self.total < 0:
@@ -194,7 +194,7 @@ class PurchaseDetail(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-    creation_date = models.DateField(auto_now_add=True)
+    creation_date = models.DateField(default='2000-01-01')
     purchase_attributes = models.JSONField(
         default=dict,
         help_text="Atributos del producto al momento de la compra"
@@ -231,7 +231,7 @@ class Customer(models.Model):
     address = models.TextField(blank=True, null=True)
     email = models.EmailField(max_length=255, blank=True, null=True, unique=True)
     phone = models.CharField(max_length=15, blank=True, null=True)
-    creation_date = models.DateField(auto_now_add=True)
+    creation_date = models.DateField(default='2000-01-01')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
@@ -276,7 +276,7 @@ class Discount(models.Model):
     )
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    creation_date = models.DateField(auto_now_add=True)
+    creation_date = models.DateField(default='2000-01-01')
 
     def __str__(self):
         return f"{self.name}"
@@ -326,13 +326,13 @@ class Discount(models.Model):
             
         return min(self.value, original_price)    
 class PaymentMethod(models.Model):
-    code        = models.CharField(max_length=2, unique=True, primary_key=True)
+    code        = models.CharField(max_length=2, unique=True, primary_key=True, default='CA')
     name        = models.CharField(max_length=50)
     description = models.TextField(blank=True, null=True)
     active      = models.BooleanField(default=True)
     created_by  = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     last_updated= models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    creation_date = models.DateField(auto_now_add=True)
+    creation_date = models.DateField(default='2000-01-01')
 
     def __str__(self):
         return self.name
@@ -346,7 +346,7 @@ class Sale(models.Model):
     customer = models.ForeignKey('Customer', on_delete=models.CASCADE)
     products = models.ManyToManyField(Product, through='SaleDetail')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    creation_date = models.DateField(auto_now_add=True)
+    creation_date = models.DateField(default='2000-01-01')
 
     class Meta:
         ordering = ['-date']
@@ -367,7 +367,7 @@ class SaleDetail(models.Model):
     discount_type = models.PositiveIntegerField(choices=DiscountTypeEnum.choices, blank=True, null=True)
     discount_value = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    creation_date = models.DateField(auto_now_add=True)
+    creation_date = models.DateField(default='2000-01-01')
 
     sale_attributes = models.JSONField(
         default=dict,
@@ -448,7 +448,7 @@ class StockMovement(models.Model):
     movement_type = models.ForeignKey(MovementType, on_delete=models.PROTECT, related_name='stock_movements')
     date = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='stock_movements_created')
-    creation_date = models.DateField(auto_now_add=True)
+    creation_date = models.DateField(default='2000-01-01')
 
     purchase = models.ForeignKey(
         'Purchase', 
@@ -532,7 +532,7 @@ class PurchaseReturn(models.Model):
     status = models.ForeignKey(TransactionStatus, on_delete=models.PROTECT)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     last_updated = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    creation_date = models.DateField(auto_now_add=True)
+    creation_date = models.DateField(default='2000-01-01')
 
     def save(self, *args, **kwargs):
         if self.quantity > self.purchase.purchasedetail_set.get(product=self.product).quantity:
@@ -563,7 +563,7 @@ class SaleReturn(models.Model):
         ('REJECTED', 'Rejected')
     ], default='PENDING')
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
-    creation_date = models.DateField(auto_now_add=True)
+    creation_date = models.DateField(default='2000-01-01')
 
     def save(self, *args, **kwargs):
         original_detail = self.sale.saledetail_set.get(product=self.product)
@@ -608,20 +608,26 @@ class ProductMeasurement(models.Model):
     UNITS_LENGTH = [
         ('cm', 'Centimeters'),
         ('in', 'Inches'),
+        ('m', 'Meters'),
+        ('mm', 'Millimeters'),
     ]
     UNITS_WEIGHT = [
         ('kg', 'Kilograms'),
         ('lb', 'Pounds'),
+        ('g', 'Grams'),
+        ('mg', 'Milligrams'),
     ]
     UNITS_VOLUME = [
         ('L', 'Liters'),
         ('m3', 'Cubic meters'),
+        ('ml', 'Milliliters'),
+        ('cm3', 'Cubic centimeters'),
     ]
 
     product = models.OneToOneField(
         'Product',
         on_delete=models.CASCADE,
-        related_name='measurement',
+        related_name='measurements',
         help_text="Medidas y peso del producto, si aplica"
     )
     length       = models.DecimalField(max_digits=7, decimal_places=2, null=True, blank=True)

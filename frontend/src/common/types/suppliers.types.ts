@@ -12,3 +12,11 @@ export interface Supplier {
     active: boolean;
     company: CompanyMini;
 }
+
+export interface SupplierMini {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+    company: CompanyMini;
+}

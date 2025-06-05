@@ -2,11 +2,18 @@ import React from "react";
 import { SxProps, Theme } from "@mui/material/styles";
 import Tab, { tabClasses } from "@mui/material/Tab";
 import Tabs, { tabsClasses, TabsProps } from "@mui/material/Tabs";
+import {DescriptionTabPanel} from "./DescriptionTabPanel.tsx";
+import type {Product} from "../../../../../../../../common/types/products.types.ts";
+import {AttributesTabPanel} from "./AttributesTabPanel.tsx";
+import {SuppliersTabPanel} from "./SuppliersTabPanel.tsx";
+import {DetailsTabPanel} from "./DetailsTabPanel.tsx";
+import {Box, Grid} from "@mui/material";
+import {DimensionsTabPanel} from "./DimensionsTabPanel.tsx";
 
-const tabsStyles = () => ({
+const tabsStyles = (theme: Theme) => ({
     root: {
-        backgroundColor: "#eee",
-        borderRadius: "10px",
+        backgroundColor: theme.palette.grey["200"],
+        borderRadius: 2,
         minHeight: 44,
     },
     flexContainer: {
@@ -19,7 +26,7 @@ const tabsStyles = () => ({
         bottom: 3,
         right: 3,
         height: "auto",
-        borderRadius: "8px",
+        borderRadius: "6px",
         backgroundColor: "#fff",
         boxShadow: "0 4px 12px 0 rgba(0,0,0,0.16)",
     },
@@ -63,18 +70,68 @@ function toSx<ClassKey extends string>(
     } as SxProps<Theme>;
 }
 
-export const TabList = ({ sx }: TabsProps) => {
+interface ProductTabs extends TabsProps {
+    product?: Product;
+}
+
+export const ProductTabs = ({ product, sx }: ProductTabs) => {
     const [tabIndex, setTabIndex] = React.useState(0);
     const tabItemSx = toSx(tabItemStyles, tabClasses);
     return (
-        <Tabs
-            value={tabIndex}
-            onChange={(e, index) => setTabIndex(index)}
-            sx={[toSx(tabsStyles, tabsClasses), ...(Array.isArray(sx) ? sx : [sx])]}
+        <Box
+            sx={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+            }}
         >
-            <Tab disableRipple label={"All"} sx={tabItemSx} />
-            <Tab disableRipple label={"Missed"} sx={tabItemSx} />
-            <Tab disableRipple label={"Calls"} sx={tabItemSx} />
-        </Tabs>
+            <Tabs
+                value={tabIndex}
+                onChange={(e, index) => setTabIndex(index)}
+                sx={[toSx(tabsStyles, tabsClasses), ...(Array.isArray(sx) ? sx : [sx])]}
+            >
+                <Tab disableRipple label={"Descripción"} sx={tabItemSx} />
+                <Tab disableRipple label={"Características"} sx={tabItemSx} />
+                <Tab disableRipple label={"Dimensiones"} sx={tabItemSx} />
+                <Tab disableRipple label={"Proveedores"} sx={tabItemSx} />
+                <Tab disableRipple label={"Detalles"} sx={tabItemSx} />
+            </Tabs>
+
+            <>
+                {
+                    tabIndex === 0 && (
+                        <DescriptionTabPanel product={product}  />
+                    )
+                }
+
+                {
+                    tabIndex === 1 && (
+                        <AttributesTabPanel product={product} />
+                    )
+                }
+
+                {
+                    tabIndex === 2 && (
+                        <DimensionsTabPanel measurements={product?.measurements} />
+                    )
+                }
+
+                {
+                    tabIndex === 3 && (
+                        <SuppliersTabPanel suppliers={product?.suppliers} />
+                    )
+                }
+
+                {
+                    tabIndex === 4 && (
+                        <DetailsTabPanel
+                            createdAt={product?.creation_date}
+                            lastUpdatedAt={product?.last_updated}
+                            createdBy={product?.created_by?.username}
+                        />
+                    )
+                }
+            </>
+        </Box>
     );
 }

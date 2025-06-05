@@ -4,12 +4,14 @@ import {createCategory} from "../../../common/api/fetchers/products/categoriesFe
 import { CATEGORIES_KEY} from "../../../common/api/fetchers/products/queryKeys.ts";
 import {Brand} from "../../../common/types/brands.types.ts";
 import {CustomError} from "../../../common/types/customError.types.ts";
+import {CreateCategoryDTO} from "../dto/category/CreateCategory.dto.ts";
+import {mapCreateDTOToCategory} from "../utils/categoryMappers.ts";
 
 export const useCreateCategory = () => {
     const qc = useQueryClient();
 
     return useMutation({
-        mutationFn: (newCategory: Category)=> createCategory(newCategory),
+        mutationFn: (newCategory: CreateCategoryDTO)=> createCategory(newCategory),
 
         onMutate: async newCategory => {
             await qc.cancelQueries({ queryKey: CATEGORIES_KEY });
@@ -17,11 +19,7 @@ export const useCreateCategory = () => {
 
             qc.setQueryData<Category[]>(CATEGORIES_KEY, old => [
                 ...(old || []),
-                {
-                    ...newCategory,
-                    id: new Date().getTime(),
-                    active: true,
-                } as Category
+                mapCreateDTOToCategory(newCategory),
             ])
 
             return { previous }

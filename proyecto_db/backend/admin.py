@@ -14,7 +14,7 @@ from .models import (
     StockMovement, PurchaseDetail, Purchase,
     Brand, Company, PaymentMethod, Discount,
     Sale, SaleDetail, SaleInvoice, TransactionStatus,
-    MovementType, DiscountType, ScopeType, PurchaseInvoice
+    MovementType, DiscountType, ScopeType, PurchaseInvoice, ProductMeasurement
 )
 
 
@@ -79,6 +79,27 @@ class ProductForm(forms.ModelForm):
             self.fields['attributes'].widget = JSONFormWidget(schema=category.product_schema)
 
 
+class ProductMeasurementInline(admin.StackedInline):
+    model = ProductMeasurement
+    extra = 0
+    min_num = 0
+    max_num = 1
+    can_delete = True
+    verbose_name = "Medidas y peso"
+    verbose_name_plural = "Medidas y peso"
+    fieldsets = (
+        (None, {
+            'fields': (
+                ('length', 'length_unit'),
+                ('width', 'height'),
+                ('weight', 'weight_unit'),
+                ('volume', 'volume_unit'),
+            ),
+            'description': 'Medidas y peso del producto (opcional)'
+        }),
+    )
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('name', 'sale_price', 'stock', 'category', 'attribute_preview', 'active', 'id')
@@ -87,6 +108,7 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description', 'attributes')
     readonly_fields = ('created_by', 'last_updated', 'creation_date', 'schema_help')
     filter_horizontal = ('suppliers',)
+    inlines = [ProductMeasurementInline]
 
     def get_fieldsets(self, request, obj=None):
         return [
@@ -753,3 +775,18 @@ admin.site.site_header = "Administración de Librería"
 admin.site.site_title = "Sistema de Inventario"
 admin.site.index_title = "Panel de Control"
 admin.site.enable_nav_sidebar = False
+
+
+@admin.register(ProductMeasurement)
+class ProductMeasurementAdmin(admin.ModelAdmin):
+    list_display = (
+        'product',
+        'length', 'length_unit',
+        'width', 'height',
+        'weight', 'weight_unit',
+        'volume', 'volume_unit',
+    )
+    search_fields = ('product__name',)
+    list_filter = ('length_unit', 'weight_unit', 'volume_unit')
+    autocomplete_fields = ('product',)
+    readonly_fields = ()
