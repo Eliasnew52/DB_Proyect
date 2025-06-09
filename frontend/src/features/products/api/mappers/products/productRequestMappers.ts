@@ -1,7 +1,7 @@
-import {ProductFormValues} from "../pages/CreateProductPage/types/form.types.ts";
-import {extractAttributes} from "../pages/CreateProductPage/helpers/extractAttributes.ts";
-import {extractMeasurements} from "../pages/CreateProductPage/helpers/extractMeasurements.ts";
-import {Category} from "../../../common/types/categories.types.ts";
+import {ProductFormValues} from "../../pages/CreateProductPage/types/form.types.ts";
+import {extractAttributes} from "../../pages/CreateProductPage/helpers/extractAttributes.ts";
+import {extractMeasurements} from "../../pages/CreateProductPage/helpers/extractMeasurements.ts";
+import {Category} from "../../../../common/domain/products/categories.types.ts";
 
 export const mapCreateProductFormToDTO = (data: ProductFormValues, selectedCategory: Category | null): FormData => {
 

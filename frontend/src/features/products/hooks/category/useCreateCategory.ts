@@ -1,11 +1,11 @@
 import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {Category} from "../../../common/types/categories.types.ts";
+import {Category} from "../../../common/domain/products/categories.types.ts";
 import {createCategory} from "../../../common/api/fetchers/products/categoriesFetchers.ts";
-import { CATEGORIES_KEY} from "../../../common/api/fetchers/products/queryKeys.ts";
-import {Brand} from "../../../common/types/brands.types.ts";
+import { CATEGORIES_KEY} from "../../../common/hooks/products/queryKeys.ts";
+import {Brand} from "../../../common/domain/products/brands.types.ts";
 import {CustomError} from "../../../common/types/customError.types.ts";
-import {CreateCategoryDTO} from "../dto/category/CreateCategory.dto.ts";
-import {mapCreateDTOToCategory} from "../utils/categoryMappers.ts";
+import {CreateCategoryDTO} from "../api/dto/category/CreateCategory.dto.ts";
+import {mapCreateDTOToCategory} from "../api/mappers/categoryMappers.ts";
 
 export const useCreateCategory = () => {
     const qc = useQueryClient();

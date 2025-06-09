@@ -1,5 +1,5 @@
 import {CategoryFormValues} from "../pages/CreateCategoryPage/types/form.types.ts";
-import {CreateCategoryDTO} from "../dto/category/CreateCategory.dto.ts";
+import {CreateCategoryDTO} from "../api/dto/category/CreateCategory.dto.ts";
 import {Category} from "../../../common/types/categories.types.ts";
 
 interface MappedAttribute {

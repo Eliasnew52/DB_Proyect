@@ -1,0 +1,1 @@
+export const SALES_INSIGHTS_KEY = (productId: number) => ["salesInsights", productId] as const;
