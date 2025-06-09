@@ -1,9 +1,10 @@
 import {Grid, Typography} from "@mui/material";
 import {ContentContainer} from "../../../../../../../../common/components/ui/ContentContainer.tsx";
-import {Measurements} from "../../../../../../../../common/types/products.types.ts";
+import {Measurements} from "../../../../../../../../common/domain/products/products.types.ts";
 import StraightenOutlinedIcon from '@mui/icons-material/StraightenOutlined';
 import FitnessCenterOutlinedIcon from '@mui/icons-material/FitnessCenterOutlined';
 import {MeasurementCard} from "./MeasurementCard.tsx";
+import HeightIcon from '@mui/icons-material/Height';
 
 export const DimensionsTabPanel = ({ measurements }: { measurements?: Measurements }) => {
 

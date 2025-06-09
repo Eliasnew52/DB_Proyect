@@ -1,6 +1,6 @@
 import {useQuery} from "@tanstack/react-query";
-import {CUSTOMERS_KEY} from "../api/fetchers/customers/queryKeys.ts";
-import {getCustomers} from "../api/fetchers/customers/customersFetchers.ts";
+import {getCustomers} from "../../api/fetchers/sales/customersFetchers.ts";
+import {CUSTOMERS_KEY} from "../products/queryKeys.ts";
 
 export const useCustomers = () => {
     return useQuery({ queryKey: CUSTOMERS_KEY, queryFn: ({ signal }) => getCustomers(signal) })

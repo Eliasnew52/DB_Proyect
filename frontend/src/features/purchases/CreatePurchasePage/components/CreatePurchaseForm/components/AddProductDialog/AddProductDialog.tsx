@@ -19,7 +19,7 @@ import {
     Typography,
 } from "@mui/material";
 import {useForm, Controller, FormProvider} from "react-hook-form";
-import {useInfiniteProducts} from "../../../../../../../common/hooks/useInfiniteProducts.ts";
+import {useInfiniteProducts} from "../../../../../../../common/hooks/products/useInfiniteProducts.ts";
 import { NumericFormat } from "react-number-format";
 
 const Transition = forwardRef(function Transition(props, ref) {

@@ -6,6 +6,9 @@ export const ProductImage = ({ image, alt }: { image?: string, alt?: string }) =
         <Grid
             container
             size={4}
+            border={'1px solid'}
+            borderColor={'grey.300'}
+            borderRadius={2}
         >
             <img
                 src={image ?? placeholderImg}
@@ -13,7 +16,7 @@ export const ProductImage = ({ image, alt }: { image?: string, alt?: string }) =
                 width={'100%'}
                 style={{
                     objectFit: 'contain',
-                    height: '560px'
+                    height: '558px'
                 }}
             />
         </Grid>

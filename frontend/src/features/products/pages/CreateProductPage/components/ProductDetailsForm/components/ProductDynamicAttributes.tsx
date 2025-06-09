@@ -2,7 +2,7 @@ import React from "react";
 import {Controller, useFormContext} from "react-hook-form";
 import {NumericFormat} from "react-number-format";
 import {Checkbox, FormControl, FormHelperText, Grid, InputLabel, MenuItem, Select, TextField} from "@mui/material";
-import {Category} from "../../../../../../../common/types/categories.types.ts";
+import {Category} from "../../../../../../../common/domain/products/categories.types.ts";
 
 export const ProductDynamicAttributes = ({ selectedCategory }: { selectedCategory: Category | null }) => {
     const { control } = useFormContext();

@@ -4,7 +4,7 @@ import {ContentContainer} from "../../../../../../common/components/ui/ContentCo
 import {ProductHeader} from "./components/ProductHeader.tsx";
 import {ProductInfoGrid} from "./components/ProductInfoGrid/ProductInfoGrid.tsx";
 import {ProductTabs} from "./components/ProductTabs/ProductTabs.tsx";
-import {Product} from "../../../../../../common/types/products.types.ts";
+import {Product} from "../../../../../../common/domain/products/products.types.ts";
 import {useMemo} from "react";
 
 export const ProductCard = ({ product }: { product?: Product }) => {
@@ -13,7 +13,7 @@ export const ProductCard = ({ product }: { product?: Product }) => {
     return (
         <Grid
             container
-            spacing={2}
+            spacing={3}
         >
             <ProductImage
                 image={product?.image}
@@ -50,10 +50,6 @@ export const ProductCard = ({ product }: { product?: Product }) => {
                 <ProductTabs product={product} />
 
             </Grid>
-
-
-
-
         </Grid>
     )
 }

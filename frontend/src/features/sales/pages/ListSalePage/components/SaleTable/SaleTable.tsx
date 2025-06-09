@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { MaterialReactTable, useMaterialReactTable } from "material-react-table";
 import { MRT_Localization_ES } from "material-react-table/locales/es";
 import { SaleTableColumns } from "./components/SaleTableColumns";
-import { useSales } from "../../../../../../common/hooks/useSales";
+import { useSales } from "../../../../../../common/hooks/sales/useSales.ts";
 
 export const SaleTable = () => {
     const { isPending: isLoadingSales, isError: isLoadingSalesError, data: sales, error } = useSales();

@@ -1,7 +1,7 @@
-import {CategoryMini} from "../../../../common/types/categories.types.ts";
-import {BrandMini} from "../../../../common/types/brands.types.ts";
-import {SupplierMini} from "../../../../common/types/suppliers.types.ts";
-import {UserMini} from "../../../../common/types/auth.types.ts";
+import {CategoryMini} from "../../../../../common/domain/products/categories.types.ts";
+import {BrandMini} from "../../../../../common/domain/products/brands.types.ts";
+import {SupplierMini} from "../../../../../common/domain/sales/suppliers.types.ts";
+import {UserMini} from "../../../../../common/types/auth.types.ts";
 
 export interface ProductResponse {
     id: number;

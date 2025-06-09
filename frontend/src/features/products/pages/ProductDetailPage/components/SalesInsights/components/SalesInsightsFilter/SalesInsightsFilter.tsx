@@ -1,77 +1,120 @@
-import React from "react";
-import {Button, Grid, InputLabel, MenuItem, Select} from "@mui/material";
-import {TimePeriod} from "../utils/timePeriods.ts";
+import React, {useCallback, useState} from "react";
+import {Button, FormControl, FormHelperText, Grid, InputLabel, MenuItem, Select} from "@mui/material";
+import {TimePeriod, timePeriods} from "../../utils/timePeriods.ts";
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import {NumericFormat} from "react-number-format";
+import {Controller, FormProvider, useForm} from "react-hook-form";
+import {CustomPeriodFilter} from "./components/CustomPeriodFilter.tsx";
+import {DateRangePicker} from "./components/DateRangePicker.tsx";
+import {mapProductSaleInsightsFormToDTO} from "../../../../../../api/mappers/products/productRequestMappers.ts";
+import type {ProductSaleInsightsFormValues} from "../../types/form.types.ts";
 
-export const SalesInsightsFilter = ({ timePeriods, timeFilter, setTimeFilter }: { timePeriods: TimePeriod[], timeFilter: TimePeriod, setTimeFilter: React.Dispatch<React.SetStateAction<string>> }) => {
+export const SalesInsightsFilter = ({ productId, setFilters }: { productId: number, setFilters: React.Dispatch<React.SetStateAction<ProductSaleInsightsFormValues>>}) => {
+    const [selectedValue, setSelectedValue] = useState<null | TimePeriod>(null)
+    const methods = useForm<ProductSaleInsightsFormValues>({
+        defaultValues: {
+            product_id: undefined,
+            amount: 0,
+            from_date: '',
+            to_date: '',
+            period: timePeriods[0].value,
+        },
+        shouldUnregister: true,
+    });
+    
+    const { control, handleSubmit } = methods;
 
+    const onSubmit = useCallback((data: ProductSaleInsightsFormValues) => {
+        const mappedData = mapProductSaleInsightsFormToDTO({
+            ...data,
+            product_id: productId
+        })
+
+        setFilters(mappedData);
+    }, [productId, setFilters])
 
     return (
-        <Grid
-            container
-            flexDirection={'column'}
-        >
+        <FormProvider {...methods}>
             <Grid
                 container
-                flexDirection={'column'}
+                spacing={1}
+                component={'form'}
+                onSubmit={handleSubmit(onSubmit)}
             >
-                <InputLabel
-                    htmlFor={'timeFilter'}
-                >
-                    Periodo de Tiempo
-                </InputLabel>
-                <Grid
-                    container
-                    spacing={2}
-                >
-                    <Select
-                        id={'timeFilter'}
-                        value={timeFilter}
-                        size={'small'}
-                        renderValue={(value: TimePeriod) => value.label}
-                        onChange={(e) => {
-                            setTimeFilter(e.target.value);
-                        }}
-                    >
-                        {
-                            timePeriods.map(({ value, label }) => (
-                                <MenuItem
-                                    key={value}
-                                    value={value}
-                                >
-                                    { label }
-                                </MenuItem>
-                            ))
-                        }
-                    </Select>
-
-                    {
-                        timeFilter.inputType === 'number' && (
-                            <Grid
-                                container
-                                flexDirection='column'
-                                spacing={0}
+                <Grid>
+                    <Controller
+                        name={'period'}
+                        control={control}
+                        defaultValue={timePeriods[0].value}
+                        render={({ field, fieldState }) => (
+                            <FormControl
+                                size={'small'}
+                                variant="outlined"
+                                error={fieldState.invalid}
+                                sx={{
+                                    minWidth: 180
+                                }}
                             >
-                                <InputLabel>
-                                    { timeFilter.label }
-                                </InputLabel>
-                                <NumericFormat
+                                <InputLabel id="period-label">Periodo de tiempo</InputLabel>
+                                <Select
+                                    {...field}
+                                    labelId="period-label"
+                                    id="period-select"
                                     size={'small'}
+                                    label={'Periodo de tiempo'}
+                                    onChange={(e, ) => {
+                                        field.onChange(e.target.value);
+                                        const timePeriod = timePeriods?.find(timePeriod => timePeriod.value === e.target.value);
+                                        setSelectedValue(timePeriod || null)
+                                    }}
+                                >
+                                    {
+                                        timePeriods.map(({ value, label }) => (
+                                            <MenuItem
+                                                key={value}
+                                                value={value}
+                                            >
+                                                { label }
+                                            </MenuItem>
+                                        ))
+                                    }
+                                </Select>
+                                {
+                                    fieldState.error && (
+                                        <FormHelperText>
+                                            { fieldState.error.message }
+                                        </FormHelperText>
+                                    )
+                                }
+                            </FormControl>
+                        )}
+                    />
 
-                                />
-                            </Grid>
-                        )
-                    }
 
-                    <Button
-                        variant={'outlined'}
-                        startIcon={<CalendarTodayIcon />}
-                    >
-                        Aplicar filtro
-                    </Button>
                 </Grid>
+
+
+                {
+                    selectedValue?.inputType === 'number' && (
+                        <CustomPeriodFilter label={selectedValue.label} name={selectedValue.value}  />
+                    )
+                }
+
+                {
+                    selectedValue?.inputType === 'date' && (
+                        <DateRangePicker />
+                    )
+                }
+                <Button
+                    type={'submit'}
+                    variant={'outlined'}
+                    startIcon={<CalendarTodayIcon />}
+                >
+                    Aplicar filtro
+                </Button>
             </Grid>
-        </Grid>
+
+
+        </FormProvider>
+
     )
 }

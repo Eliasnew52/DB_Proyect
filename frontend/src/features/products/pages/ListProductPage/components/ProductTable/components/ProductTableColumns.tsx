@@ -2,7 +2,7 @@ import { MRT_ColumnDef } from 'material-react-table';
 import {Chip, Grid, Typography} from "@mui/material";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import DoDisturbOnIcon from '@mui/icons-material/DoDisturbOn';
-import { Product } from '../../../../../../../common/types/products.types.ts';
+import { Product } from '../../../../../../../common/domain/products/products.types.ts';
 import { formatDate } from '../../../../../../../common/utils/formatDate.ts';
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';

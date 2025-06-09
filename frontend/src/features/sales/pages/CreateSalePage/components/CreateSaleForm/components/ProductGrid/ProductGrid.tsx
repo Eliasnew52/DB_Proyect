@@ -1,8 +1,8 @@
 import React, {memo} from 'react'
 import {Box, Grid, Typography} from '@mui/material'
 import { ProductCard } from './components/ProductCard'
-import {useInfiniteProducts} from "../../../../../../../../common/hooks/useInfiniteProducts.ts";
-import {Product} from "../../../../../../../../common/types/products.types.ts";
+import {useInfiniteProducts} from "../../../../../../../../common/hooks/products/useInfiniteProducts.ts";
+import {Product} from "../../../../../../../../common/domain/products/products.types.ts";
 import {OverlayLoading} from "../../../../../../../../common/components/ui/OverlayLoading/OverlayLoading.tsx";
 import {InlineLoading} from "../../../../../../../../common/components/ui/InlineLoading/InlineLoading.tsx";
 import {useInView} from "react-intersection-observer";

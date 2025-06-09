@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createSale } from "../../../common/api/fetchers/sales/salesFetchers";
-import { PRODUCTS_KEY } from "../../../common/api/fetchers/products/queryKeys";
+import { PRODUCTS_KEY } from "../../../common/hooks/products/queryKeys.ts";
 
 export const useCreateSale = () => {
     const qc = useQueryClient();

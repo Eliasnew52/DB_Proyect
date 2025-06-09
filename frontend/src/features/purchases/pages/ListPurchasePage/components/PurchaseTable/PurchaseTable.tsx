@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { MaterialReactTable, useMaterialReactTable } from "material-react-table";
 import { MRT_Localization_ES } from "material-react-table/locales/es";
 import { PurchaseTableColumns } from "./components/PurchaseTableColumns";
-import { usePurchases } from "../../../../../../common/hooks/usePurchases";
+import { usePurchases } from "../../../../../../common/hooks/purchases/usePurchases.ts";
 
 export const PurchaseTable = () => {
     const { isPending: isLoadingPurchases, isError: isLoadingPurchasesError, data: purchases, error } = usePurchases();

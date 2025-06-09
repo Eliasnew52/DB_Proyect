@@ -1,6 +1,6 @@
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {createProduct} from "../../../common/api/fetchers/products/productsFetchers.ts";
-import {PRODUCTS_KEY} from "../../../common/api/fetchers/products/queryKeys.ts";
+import {PRODUCTS_KEY} from "../../../common/hooks/products/queryKeys.ts";
 
 export const useCreateProduct = () => {
     const qc = useQueryClient();

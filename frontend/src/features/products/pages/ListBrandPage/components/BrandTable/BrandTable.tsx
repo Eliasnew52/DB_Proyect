@@ -1,6 +1,6 @@
 import {useMemo} from "react";
 import {MaterialReactTable, useMaterialReactTable} from "material-react-table";
-import {useBrands} from "../../../../../../common/hooks/useBrands.ts";
+import {useBrands} from "../../../../../../common/hooks/products/useBrands.ts";
 import {BrandTableColumns} from "../BrandTableColumns.tsx";
 import {MRT_Localization_ES} from "material-react-table/locales/es";
 import {UpdateBrandDialog} from "./components/UpdateBrandDialog.tsx";

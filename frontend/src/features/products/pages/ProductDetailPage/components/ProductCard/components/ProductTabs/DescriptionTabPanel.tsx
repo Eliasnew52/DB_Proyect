@@ -1,4 +1,4 @@
-import {Product} from "../../../../../../../../common/types/products.types.ts";
+import {Product} from "../../../../../../../../common/domain/products/products.types.ts";
 import {ContentContainer} from "../../../../../../../../common/components/ui/ContentContainer.tsx";
 import {Typography} from "@mui/material";
 

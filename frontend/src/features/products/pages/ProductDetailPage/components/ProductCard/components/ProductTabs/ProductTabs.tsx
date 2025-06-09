@@ -3,7 +3,7 @@ import { SxProps, Theme } from "@mui/material/styles";
 import Tab, { tabClasses } from "@mui/material/Tab";
 import Tabs, { tabsClasses, TabsProps } from "@mui/material/Tabs";
 import {DescriptionTabPanel} from "./DescriptionTabPanel.tsx";
-import type {Product} from "../../../../../../../../common/types/products.types.ts";
+import type {Product} from "../../../../../../../../common/domain/products/products.types.ts";
 import {AttributesTabPanel} from "./AttributesTabPanel.tsx";
 import {SuppliersTabPanel} from "./SuppliersTabPanel.tsx";
 import {DetailsTabPanel} from "./DetailsTabPanel.tsx";

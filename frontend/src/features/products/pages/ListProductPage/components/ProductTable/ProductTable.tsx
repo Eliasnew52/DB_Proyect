@@ -2,7 +2,7 @@ import {useMemo, useState} from "react";
 import {MaterialReactTable, useMaterialReactTable} from "material-react-table";
 import {MRT_Localization_ES} from "material-react-table/locales/es";
 import {ProductTableColumns} from "./components/ProductTableColumns.tsx";
-import {useProducts} from "../../../../../../common/hooks/useProducts.ts";
+import {useProducts} from "../../../../../../common/hooks/products/useProducts.ts";
 
 export const ProductTable = () => {
     const [pagination, setPagination] = useState({

@@ -4,7 +4,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.generics import  GenericAPIView
 from rest_framework import status
 from rest_framework.response import Response
-from .models import Category, Product, Customer, Purchase, PurchaseDetail, Company, Brand, Discount, PaymentMethod, Supplier, Sale, TransactionStatus
+from .models import Category, Product, Customer, Purchase, PurchaseDetail, Company, Brand, Discount, PaymentMethod, Supplier, Sale, TransactionStatus, SaleDetail
 from .serializers.category import CategoryWriteSerializer, CategoryReadSerializer, CategorySchemaReadSerializer
 from .serializers.product import ProductWriteSerializer, ProductReadSerializer
 from .serializers.brand import BrandWriteSerializer, BrandReadSerializer
@@ -19,9 +19,15 @@ from .serializers.purchase_detail import PurchaseDetailWriteSerializer
 from .serializers.transaction_status import TransactionStatusSerializer
 from .serializers.discount import DiscountSerializer
 from .serializers.discount_type import DiscountTypeSerializer
+from .serializers.product_sale_insights import ProductSalesInsightsInputSerializer
 from .models import TransactionStatus, Discount, DiscountType
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .pagination import StandardResultsSetPagination
+from django.db.models import Sum, F
+from django.db.models.functions import TruncHour, TruncDay, TruncWeek, TruncMonth, TruncYear
+from django.utils.dateparse import parse_date
+from datetime import datetime, timedelta
+from django.utils import timezone
 
 class CategorySchemaView(GenericAPIView):
     serializer_class = CategorySchemaReadSerializer
@@ -69,6 +75,81 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+class ProductSalesInsightsView(GenericAPIView):
+    serializer_class = ProductSalesInsightsInputSerializer
+
+    def get_group_by(self, period):
+        return {
+            'd': TruncHour('sale__date'),
+            'w': TruncDay('sale__date'),
+            'm': TruncWeek('sale__date'),
+            'y': TruncMonth('sale__date'),
+            'custom_hours': TruncHour('sale__date'),
+            'custom_days': TruncDay('sale__date'),
+            'custom_weeks': TruncWeek('sale__date'),
+            'custom_months': TruncMonth('sale__date'),
+            'custom_years': TruncYear('sale__date'),
+            'custom_date': TruncDay('sale__date'),
+        }.get(period, TruncDay('sale__date'))
+
+    def get_range(self, period, amount, from_date, to_date):
+        now = timezone.now()
+        if period == 'custom_date' and from_date and to_date:
+            return from_date, to_date
+
+        if from_date:
+            start = timezone.make_aware(datetime.combine(from_date, datetime.min.time()))
+        else:
+            start = now
+
+        amount = amount or 1
+        delta = {
+            'custom_hours': timedelta(hours=amount),
+            'custom_days': timedelta(days=amount),
+            'custom_weeks': timedelta(weeks=amount),
+            'custom_months': timedelta(days=30 * amount),
+            'custom_years': timedelta(days=365 * amount),
+        }.get(period, timedelta(days=7))
+
+        end = start + delta
+        return start, end
+
+    def post(self, request):
+        data = request.data
+        product_id = data.get('product_id')
+        period = data.get('period')
+        amount = data.get('amount')
+        from_date = parse_date(data.get('from_date')) if data.get('from_date') else None
+        to_date = parse_date(data.get('to_date')) if data.get('to_date') else None
+
+        if not product_id or not period:
+            return Response({"error": "product_id y period son requeridos"}, status=status.HTTP_400_BAD_REQUEST)
+
+        group_by = self.get_group_by(period)
+        start_date, end_date = self.get_range(period, amount, from_date, to_date)
+
+        queryset = SaleDetail.objects.filter(
+            product_id=product_id,
+            sale__date__range=(start_date, end_date)
+        ).annotate(
+            period=group_by
+        ).values('period').annotate(
+            units_sold=Sum('quantity'),
+            total_income=Sum(F('quantity') * F('unit_price'))
+        ).order_by('period')
+
+        total_units = sum(item['units_sold'] for item in queryset)
+        total_income = sum(item['total_income'] for item in queryset)
+        num_periods = len(queryset)
+        avg_income = total_income / num_periods if num_periods else 0
+
+        return Response({
+            "total_units": total_units,
+            "total_income": float(total_income),
+            "average_income": round(float(avg_income), 2),
+            "trend": queryset
+        })
 
 class PurchaseViewSet(viewsets.ModelViewSet):
     """

@@ -15,12 +15,12 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import SaveIcon from '@mui/icons-material/Save';
 import {AttributeBuilderModal} from "./components/AttributeBuilderModal/AttributeBuilderModal.tsx";
 import {AttributePreview} from "./components/AttributePreview/AttributePreview.tsx";
-import {useCreateCategory} from "../../../../hooks/useCreateCategory.ts";
+import {useCreateCategory} from "../../../../hooks/category/useCreateCategory.ts";
 import {useRouteNavigator} from "../../../../../../common/hooks/useRouteNavigator.ts";
 import { RouteKey} from "../../../../../../common/router/routes.ts";
 import {useNotifications} from "../../../../../../common/hooks/useNotifications.ts";
 import {CategoryAttribute, CategoryFormValues} from "../../types/form.types.ts";
-import {mapCreateCategoryFormToDTO} from "../../../../utils/categoryMappers.ts";
+import {mapCreateCategoryFormToDTO} from "../../../../api/mappers/categoryMappers.ts";
 
 
 export const CreateCategoryForm = () => {

@@ -1,7 +1,7 @@
-import {Product} from "../types/products.types.ts";
+import {Product} from "../../domain/products/products.types.ts";
 import {useInfiniteQuery} from "@tanstack/react-query";
-import {PRODUCTS_KEY} from "../api/fetchers/products/queryKeys.ts";
-import {getProductsPaginated} from "../api/fetchers/products/productsFetchers.ts";
+import {PRODUCTS_KEY} from "./queryKeys.ts";
+import {getProductsPaginated} from "../../api/fetchers/products/productsFetchers.ts";
 
 interface PaginatedResponse {
     count: number

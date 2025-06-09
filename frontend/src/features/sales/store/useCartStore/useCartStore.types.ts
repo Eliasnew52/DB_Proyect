@@ -1,4 +1,4 @@
-import { Product } from "../../../../common/types/products.types";
+import { Product } from "../../../../common/domain/products/products.types.ts";
 
 export type CartItem = Product & { quantity: number };
 

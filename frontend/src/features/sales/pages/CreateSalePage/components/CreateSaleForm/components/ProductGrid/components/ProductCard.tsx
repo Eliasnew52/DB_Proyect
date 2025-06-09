@@ -3,7 +3,7 @@ import {Button, Card, CardContent, CardMedia, Chip, Grid, Typography} from "@mui
 import RemoveRedEyeOutlinedIcon from '@mui/icons-material/RemoveRedEyeOutlined';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import placeholderImg from '../../../../../../../../../assets/placeholder.svg'
-import {Product} from "../../../../../../../../../common/types/products.types.ts";
+import {Product} from "../../../../../../../../../common/domain/products/products.types.ts";
 import { useCartStore } from "../../../../../../../store/useCartStore/useCartStore.ts";
 
 const NEW_PRODUCT_THRESHOLD_DAYS = 30;

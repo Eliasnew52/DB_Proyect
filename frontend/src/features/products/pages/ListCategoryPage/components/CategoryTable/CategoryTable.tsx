@@ -1,7 +1,7 @@
 import {useMemo} from "react";
 import {MaterialReactTable, useMaterialReactTable} from "material-react-table";
 import {MRT_Localization_ES} from "material-react-table/locales/es";
-import {useCategories} from "../../../../../../common/hooks/useCategories.ts";
+import {useCategories} from "../../../../../../common/hooks/products/useCategories.ts";
 import {CategoryTableColumns} from "./components/CategoryTableColumns.tsx";
 
 export const CategoryTable = () => {

@@ -1,4 +1,4 @@
-import {BrandMini} from "./brands.types.ts";
+import {BrandMini} from "../products/brands.types.ts";
 import {CompanyMini} from "./company.types.ts";
 
 export interface Supplier {

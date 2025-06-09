@@ -7,7 +7,7 @@ interface PeriodQuantityInputProps {
     name: string
 }
 
-export const CustomPeriodFilter = ({ label, name }: PeriodQuantityInputProps) => {
+export const CustomPeriodFilter = ({ label }: PeriodQuantityInputProps) => {
     const { control } = useFormContext();
 
     return (
@@ -17,11 +17,11 @@ export const CustomPeriodFilter = ({ label, name }: PeriodQuantityInputProps) =>
         >
             <Controller
                 control={control}
-                name={'from'}
+                name={'to_date'}
                 render={({ field, fieldState }) => (
                     <TextField
                         {...field}
-                        id={'startDate'}
+                        id={'to_date'}
                         variant={'outlined'}
                         size={'small'}
                         type={'date'}
@@ -31,17 +31,19 @@ export const CustomPeriodFilter = ({ label, name }: PeriodQuantityInputProps) =>
                                 shrink: true
                             }
                         }}
+                        helperText={fieldState.invalid ? fieldState.error?.message : ''}
+                        error={fieldState.invalid}
                     />
                 )}
 
             />
             <Controller
                 control={control}
-                name={name}
+                name={'amount'}
                 render={({ field, fieldState }) => (
                     <NumericFormat
                         {...field}
-                        id={name}
+                        id={'amount'}
                         label={label}
                         customInput={TextField}
                         size={'small'}

@@ -1,4 +1,4 @@
-import type {Customer} from "../../../types/customer.types.ts";
+import type {Customer} from "../../../domain/sales/customer.types.ts";
 import axiosClient from "../../axiosClient.ts";
 import type {ApiResponseTypes} from "../../../types/apiResponse.types.ts";
 

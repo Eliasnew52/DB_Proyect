@@ -1,4 +1,4 @@
-export interface ProductSaleInsightsDto {
+export interface GetProductSaleInsightsDTO {
     product_id: number;
     period: string;
     amount?: number;

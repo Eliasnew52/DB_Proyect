@@ -1,8 +1,11 @@
-import axiosClient from "../../../common/api/axiosClient.ts";
-import {ProductSaleInsightsResponseDto} from "../dto/product/ProductSaleInsightsResponse.dto.ts";
-import type {ApiResponseTypes} from "../../../common/types/apiResponse.types.ts";
+import axiosClient from "../../../../common/api/axiosClient.ts";
+import {ProductSaleInsightsResponseDTO} from "../dto/product/ProductSaleInsightsResponse.dto.ts";
+import type {ApiResponseTypes} from "../../../../common/types/apiResponse.types.ts";
+import {mapProductSaleInsights} from "../mappers/products/productResponseMappers.ts";
+import {GetProductSaleInsightsDTO} from "../dto/product/GetProductSaleInsights.dto.ts";
+import {ProductSaleInsights} from "../../domain/productSaleInsights.types.ts";
 
-export const getProductSaleInsights = async(signal?: AbortSignal): Promise<ApiResponseTypes<ProductSaleInsightsResponseDto>> => {
-    const res = await axiosClient.post<ApiResponseTypes<ProductSaleInsightsResponseDto>>('/products/sales-insights/', {  }, { signal })
-    return res.data
+export const getProductSaleInsights = async(dto: GetProductSaleInsightsDTO): Promise<ProductSaleInsights> => {
+    const res = await axiosClient.post<ApiResponseTypes<ProductSaleInsightsResponseDTO>>('/products/sales-insights/', dto)
+    return mapProductSaleInsights(res.data.result)
 }

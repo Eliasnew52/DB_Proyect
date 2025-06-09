@@ -1,4 +1,4 @@
-import {UserMini} from "../../../../common/types/auth.types.ts";
+import {UserMini} from "../../../../../common/types/auth.types.ts";
 
 export interface BrandResponse {
     id: number;

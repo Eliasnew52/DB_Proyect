@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { SALES_KEY } from "../api/fetchers/sales/queryKeys";
-import { getSales } from "../api/fetchers/sales/salesFetchers";
+import { SALES_KEY } from "./queryKeys.ts";
+import { getSales } from "../../api/fetchers/sales/salesFetchers.ts";
 
 export const useSales = () => {
     return useQuery({

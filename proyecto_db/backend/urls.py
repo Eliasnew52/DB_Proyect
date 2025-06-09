@@ -17,11 +17,9 @@ router.register(r'purchases', views.PurchaseViewSet)
 router.register(r'purchase-details', views.PurchaseDetailViewSet, basename='purchase-detail')
 router.register(r'transaction-status', views.TransactionStatusViewSet)
 
-
 urlpatterns = [
     path('api/category-schema/<int:category_id>/', views.CategorySchemaView.as_view(), name='get_category_schema'),
-
+    path('api/products/sales-insights/', views.ProductSalesInsightsView.as_view(), name='product_sales_insights'),
     path('api/', include(router.urls)),
-
 
 ]

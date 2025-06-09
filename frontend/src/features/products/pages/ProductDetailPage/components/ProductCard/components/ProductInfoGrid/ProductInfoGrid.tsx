@@ -1,4 +1,4 @@
-import {Product} from "../../../../../../../../common/types/products.types.ts";
+import {Product} from "../../../../../../../../common/domain/products/products.types.ts";
 import {PriceSection} from "./components/PriceSection.tsx";
 import {StockSection} from "./components/StockSection.tsx";
 

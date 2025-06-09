@@ -16,9 +16,9 @@ import {SectionHeader} from "../../../../../common/components/ui/SectionHeader/S
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import {Controller, FormProvider, useForm} from "react-hook-form";
 import {InlineLoading} from "../../../../../common/components/ui/InlineLoading/InlineLoading.tsx";
-import {useSuppliers} from "../../../../../common/hooks/useSuppliers.ts";
+import {useSuppliers} from "../../../../../common/hooks/products/useSuppliers.ts";
 import {useTransactionStatuses} from "../../../../../common/hooks/useTransactionStatus.ts";
-import {usePaymentMethods} from "../../../../../common/hooks/usePaymentMethods.ts";
+import {usePaymentMethods} from "../../../../../common/hooks/sales/usePaymentMethods.ts";
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import {useCallback, useEffect, useMemo, useState} from "react";

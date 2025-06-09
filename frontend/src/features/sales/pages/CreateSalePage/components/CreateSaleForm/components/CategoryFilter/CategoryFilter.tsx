@@ -3,7 +3,7 @@ import { styled } from "@mui/material/styles";
 import Tab, { tabClasses } from "@mui/material/Tab";
 import Tabs, { tabsClasses, TabsProps } from "@mui/material/Tabs";
 import {Grid} from "@mui/material";
-import {useCategories} from "../../../../../../../../common/hooks/useCategories.ts";
+import {useCategories} from "../../../../../../../../common/hooks/products/useCategories.ts";
 import {InlineLoading} from "../../../../../../../../common/components/ui/InlineLoading/InlineLoading.tsx";
 import {CategoryFilterProps} from "./CategoryFilter.types.ts";
 

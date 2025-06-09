@@ -7,7 +7,7 @@ import {BrandField} from "./components/BrandField.tsx";
 import {SuppliersField} from "./components/SuppliersField.tsx";
 import {ProductStockAndPricingFields} from "./components/ProductStockAndPricingFields.tsx";
 import {ProductDynamicAttributes} from "./components/ProductDynamicAttributes.tsx";
-import type {Category} from "../../../../../../common/types/categories.types.ts";
+import type {Category} from "../../../../../../common/domain/products/categories.types.ts";
 
 export const ProductDetailsForm = ({ selectedCategory }: { selectedCategory: Category | null }) => {
 

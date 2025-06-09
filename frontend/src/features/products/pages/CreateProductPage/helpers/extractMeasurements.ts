@@ -1,4 +1,4 @@
-import {MEASUREMENT_MAP} from "../../../constants/measurementMap.ts";
+import {MEASUREMENT_MAP} from "../../../utils/constants/measurementMap.ts";
 import {isFilled} from "./isFilled.ts";
 import type {ProductFormValues} from "../types/form.types.ts";
 

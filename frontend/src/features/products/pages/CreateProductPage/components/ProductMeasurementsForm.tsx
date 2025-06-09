@@ -5,7 +5,7 @@ import {ContentContainer} from "../../../../../common/components/ui/ContentConta
 import {Button, FormControl, FormHelperText, Grid, InputLabel, MenuItem, Select, TextField} from "@mui/material";
 import {SectionHeader} from "../../../../../common/components/ui/SectionHeader/SectionHeader.tsx";
 import AddIcon from "@mui/icons-material/Add";
-import {LENGTH_UNITS, VOLUME_UNITS, WEIGHT_UNITS} from "../../../constants/units.ts";
+import {LENGTH_UNITS, VOLUME_UNITS, WEIGHT_UNITS} from "../../../utils/constants/units.ts";
 
 export const ProductMeasurementsForm = () => {
     const [showMeasurementsField, setShowMeasurementsField] = useState(false);

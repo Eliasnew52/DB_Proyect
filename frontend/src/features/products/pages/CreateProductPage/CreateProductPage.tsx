@@ -5,7 +5,7 @@ import {
     Grid,
 } from "@mui/material";
 import {SectionHeader} from "../../../../common/components/ui/SectionHeader/SectionHeader.tsx";
-import {Category} from "../../../../common/types/categories.types.ts";
+import {Category} from "../../../../common/domain/products/categories.types.ts";
 import SaveIcon from '@mui/icons-material/Save';
 import {useCreateProduct} from "../../hooks/useCreateProduct.ts";
 import {useRouteNavigator} from "../../../../common/hooks/useRouteNavigator.ts";
@@ -16,7 +16,7 @@ import {ProductImageUpload} from "./components/ProductImageUpload.tsx";
 import {ProductBasicInfoForm} from "./components/ProductBasicInfoForm.tsx";
 import {ProductDetailsForm} from "./components/ProductDetailsForm/ProductDetailsForm.tsx";
 import {ProductMeasurementsForm} from "./components/ProductMeasurementsForm.tsx";
-import {mapCreateProductFormToDTO} from "../../utils/productMappers.ts";
+import {mapCreateProductFormToDTO} from "../../api/mappers/products/productRequestMappers.ts";
 
 export const CreateProductPage = () => {
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -73,7 +73,7 @@ export const CreateProductPage = () => {
             }
         });
 
-    }, [createProduct, selectedCategory?.product_schema.properties, go, showToast])
+    }, [selectedCategory, createProduct, showToast, go])
     
     return (
         <FormProvider {...methods}>

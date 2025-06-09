@@ -24,7 +24,10 @@ export const MeasurementCard = ({ label, value, unit, Icon }: MeasurementCardPro
                 </Typography>
             </Grid>
             <Grid>
-                <Typography fontWeight={'bold'}>
+                <Typography
+                    fontSize={14}
+                    fontWeight={'bold'}
+                >
                     {value} {unit}
                 </Typography>
             </Grid>

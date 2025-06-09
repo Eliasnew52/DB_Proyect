@@ -1,7 +1,9 @@
-import {ProductFormValues} from "../../pages/CreateProductPage/types/form.types.ts";
-import {extractAttributes} from "../../pages/CreateProductPage/helpers/extractAttributes.ts";
-import {extractMeasurements} from "../../pages/CreateProductPage/helpers/extractMeasurements.ts";
-import {Category} from "../../../../common/domain/products/categories.types.ts";
+import {ProductFormValues} from "../../../pages/CreateProductPage/types/form.types.ts";
+import {extractAttributes} from "../../../pages/CreateProductPage/helpers/extractAttributes.ts";
+import {extractMeasurements} from "../../../pages/CreateProductPage/helpers/extractMeasurements.ts";
+import {Category} from "../../../../../common/domain/products/categories.types.ts";
+import {ProductSaleInsightsFormValues} from "../../../pages/ProductDetailPage/components/SalesInsights/types/form.types.ts";
+import {GetProductSaleInsightsDTO} from "../../dto/product/GetProductSaleInsights.dto.ts";
 
 export const mapCreateProductFormToDTO = (data: ProductFormValues, selectedCategory: Category | null): FormData => {
 
@@ -33,4 +35,14 @@ export const mapCreateProductFormToDTO = (data: ProductFormValues, selectedCateg
     })
 
     return formData;
+}
+
+export const mapProductSaleInsightsFormToDTO = (data: ProductSaleInsightsFormValues): GetProductSaleInsightsDTO => {
+    return {
+        product_id: data.product_id,
+        period: data.period,
+        amount: data.amount,
+        from_date: data.from_date,
+        to_date: data.to_date,
+    }
 }

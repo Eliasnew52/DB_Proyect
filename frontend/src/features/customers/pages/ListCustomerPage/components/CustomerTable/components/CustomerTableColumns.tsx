@@ -1,5 +1,5 @@
 import { MRT_ColumnDef } from 'material-react-table';
-import {Customer} from "../../../../../../../common/types/customer.types.ts";
+import {Customer} from "../../../../../../../common/domain/sales/customer.types.ts";
 
 export const CustomerTableColumns: MRT_ColumnDef<Customer>[] = [
     {

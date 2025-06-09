@@ -2,7 +2,7 @@ import {useCallback} from "react";
 import {Box, IconButton, Tooltip} from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import {useDeactivateBrand} from "../../../../../hooks/useDeactivateBrand.ts";
+import {useDeactivateBrand} from "../../../../../hooks/brands/useDeactivateBrand.ts";
 import {useNotifications} from "../../../../../../../common/hooks/useNotifications.ts";
 
 export const BrandTableRowActions = ({ row, table }) => {

@@ -1,7 +1,7 @@
 import {useState} from "react";
 import {Controller, useFormContext} from "react-hook-form";
 import {Autocomplete, Grid, InputLabel, TextField} from "@mui/material";
-import {useBrands} from "../../../../../../../common/hooks/useBrands.ts";
+import {useBrands} from "../../../../../../../common/hooks/products/useBrands.ts";
 
 export const BrandField = () => {
     const [open, setOpen] = useState(false);

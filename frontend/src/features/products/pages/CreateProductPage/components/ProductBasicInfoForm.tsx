@@ -1,15 +1,17 @@
 import {Controller, useFormContext} from "react-hook-form";
 import {SectionHeader} from "../../../../../common/components/ui/SectionHeader/SectionHeader.tsx";
 import {ContentContainer} from "../../../../../common/components/ui/ContentContainer.tsx";
-import {Autocomplete, CircularProgress, Grid, InputLabel, TextField} from "@mui/material";
-import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
+import {Autocomplete, Button, CircularProgress, Grid, InputLabel, TextField} from "@mui/material";
 import {useCallback, useState} from "react";
-import {useCategories} from "../../../../../common/hooks/useCategories.ts";
+import {useCategories} from "../../../../../common/hooks/products/useCategories.ts";
+import AddIcon from "@mui/icons-material/Add";
+import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
+
 
 export const ProductBasicInfoForm = ({ setSelectedCategory }) => {
     const [openAutocomplete, setOpenAutocomplete] = useState(false);
     const [showDescriptionField, setShowDescriptionField] = useState(false);
-    const { control } = useFormContext();
+    const { control, register } = useFormContext();
 
     const { data: categories, isLoading: isLoadingCategories, isError: isLoadingCategoriesError, error: categoriesError } = useCategories(openAutocomplete);
 

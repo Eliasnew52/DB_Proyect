@@ -8,9 +8,9 @@ import {
     TextField,
 } from "@mui/material";
 import {Controller, useForm} from "react-hook-form";
-import {Brand} from "../../../../../../../common/types/brands.types.ts";
+import {Brand} from "../../../../../../../common/domain/products/brands.types.ts";
 import {useNotifications} from "../../../../../../../common/hooks/useNotifications.ts";
-import {useCreateBrand} from "../../../../../hooks/useCreateBrand.ts";
+import {useCreateBrand} from "../../../../../hooks/brands/useCreateBrand.ts";
 
 export const CreateBrandDialog = ({ row, table }) => {
 

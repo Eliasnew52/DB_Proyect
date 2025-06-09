@@ -1,7 +1,7 @@
-import {SupplierMini} from "./suppliers.types.ts";
+import {SupplierMini} from "../sales/suppliers.types.ts";
 import {CategoryMini} from "./categories.types.ts";
 import {BrandMini} from "./brands.types.ts";
-import {UserMini} from "./auth.types.ts";
+import {UserMini} from "../auth/user.types.ts";
 
 export interface Measurements {
     length: string;

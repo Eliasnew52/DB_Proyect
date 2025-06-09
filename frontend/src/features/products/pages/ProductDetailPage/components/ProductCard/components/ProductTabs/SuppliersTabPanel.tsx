@@ -1,7 +1,7 @@
 import {ContentContainer} from "../../../../../../../../common/components/ui/ContentContainer.tsx";
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import {Grid, Typography} from "@mui/material";
-import type {SupplierMini} from "../../../../../../../../common/types/suppliers.types.ts";
+import type {SupplierMini} from "../../../../../../../../common/domain/sales/suppliers.types.ts";
 
 export const SuppliersTabPanel = ({ suppliers }: { suppliers?: SupplierMini[] }) => {
 
