@@ -1,7 +1,8 @@
 import {Grid, Typography} from "@mui/material";
 import {ContentContainer} from "../../../../../../../../../common/components/ui/ContentContainer.tsx";
+import CountUp from "react-countup";
 
-export const SalesMetricCard = ({ label, value }: { label: string, value: string | number }) => {
+export const SalesMetricCard = ({ label, value }: { label: string, value: number }) => {
 
     return (
         <ContentContainer>
@@ -15,7 +16,7 @@ export const SalesMetricCard = ({ label, value }: { label: string, value: string
                         fontWeight={'bold'}
                         fontSize={25}
                     >
-                        { value }
+                        <CountUp end={value} />
                     </Typography>
                 </Grid>
                 <Grid>
