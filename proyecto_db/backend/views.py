@@ -28,6 +28,7 @@ from django.db.models.functions import TruncHour, TruncDay, TruncWeek, TruncMont
 from django.utils.dateparse import parse_date
 from datetime import datetime, timedelta
 from django.utils import timezone
+from decimal import Decimal
 
 class CategorySchemaView(GenericAPIView):
     serializer_class = CategorySchemaReadSerializer
@@ -96,23 +97,33 @@ class ProductSalesInsightsView(GenericAPIView):
     def get_range(self, period, amount, from_date, to_date):
         now = timezone.now()
         if period == 'custom_date' and from_date and to_date:
-            return from_date, to_date
-
-        if from_date:
             start = timezone.make_aware(datetime.combine(from_date, datetime.min.time()))
-        else:
-            start = now
+            end = timezone.make_aware(datetime.combine(to_date, datetime.max.time()))
+            return start, end
 
-        amount = amount or 1
-        delta = {
-            'custom_hours': timedelta(hours=amount),
-            'custom_days': timedelta(days=amount),
-            'custom_weeks': timedelta(weeks=amount),
-            'custom_months': timedelta(days=30 * amount),
-            'custom_years': timedelta(days=365 * amount),
-        }.get(period, timedelta(days=7))
+        if period == 'd':
+            today = now.date()
+            start = timezone.make_aware(datetime.combine(today, datetime.min.time()))
+            end = timezone.make_aware(datetime.combine(today, datetime.max.time()))
+            return start, end
 
-        end = start + delta
+        if period == 'w':
+            start = now - timedelta(days=6)
+            end = now
+            return start, end
+
+        if period == 'm':
+            start = now - timedelta(days=29)
+            end = now
+            return start, end
+
+        if period == 'y':
+            start = now - timedelta(days=364)
+            end = now
+            return start, end
+
+        start = now - timedelta(days=6)
+        end = now
         return start, end
 
     def post(self, request):
@@ -139,16 +150,104 @@ class ProductSalesInsightsView(GenericAPIView):
             total_income=Sum(F('quantity') * F('unit_price'))
         ).order_by('period')
 
-        total_units = sum(item['units_sold'] for item in queryset)
-        total_income = sum(item['total_income'] for item in queryset)
-        num_periods = len(queryset)
-        avg_income = total_income / num_periods if num_periods else 0
+        all_periods = generate_periods(start_date, end_date, period)
+
+        ventas_por_periodo = {item['period'].replace(hour=0, minute=0, second=0, microsecond=0): item for item in queryset}
+
+        trend = []
+        for p in all_periods:
+            ventas = ventas_por_periodo.get(p)
+            trend.append({
+                "period": p.isoformat(),
+                "units_sold": ventas['units_sold'] if ventas else 0,
+                "total_income": float(ventas['total_income']) if ventas else 0,
+            })
+
+        total_units = sum(item['units_sold'] for item in trend)
+        total_income = sum(item['total_income'] for item in trend)
+        num_days = (end_date.date() - start_date.date()).days + 1
+        average_income = total_income / num_days if num_days else 0
+        avg_units = total_units / len(trend) if trend else 0
+        zero_days = sum(1 for item in trend if item['units_sold'] == 0)
+        max_point = max(trend, key=lambda x: x['total_income'], default=None)
+        
+        sales_days = sum(1 for item in trend if item['units_sold'] > 0)
+        average_income_sales_days = total_income / sales_days if sales_days > 0 else 0
+
+        max_sale = (
+            SaleDetail.objects
+            .filter(product_id=product_id, sale__date__range=(start_date, end_date))
+            .annotate(total_income=F('quantity') * F('unit_price'))
+            .order_by('-total_income', '-sale__date')
+            .values('sale__date', 'quantity', 'unit_price', 'total_income')
+            .first()
+        )
+
+        last_sale = (
+            SaleDetail.objects
+            .filter(product_id=product_id, sale__date__range=(start_date, end_date))
+            .order_by('-sale__date')
+            .values('sale__date', 'quantity', 'unit_price')
+            .first()
+        )
+
+        num_sales = (
+            SaleDetail.objects
+            .filter(product_id=product_id, sale__date__range=(start_date, end_date))
+            .values('sale_id')
+            .distinct()
+            .count()
+        )
+
+        ticket_promedio = total_income / num_sales if num_sales else 0
+
+        last_sale_obj = (
+            SaleDetail.objects
+            .filter(product_id=product_id)
+            .order_by('-sale__date')
+            .values('sale__date')
+            .first()
+        )
+        if last_sale_obj and last_sale_obj['sale__date']:
+            days_since_last_sale = (timezone.now().date() - last_sale_obj['sale__date'].date()).days
+        else:
+            days_since_last_sale = None
+
+        periods_with_sales = sum(1 for item in trend if item['units_sold'] > 0)
+        percent_periods_with_sales = (periods_with_sales / len(trend) * 100) if trend else 0
+
+        total_cost = SaleDetail.objects.filter(
+            product_id=product_id,
+            sale__date__range=(start_date, end_date)
+        ).aggregate(
+            total_cost=Sum(F('quantity') * F('purchase_price'))
+        )['total_cost'] or 0
+
+        real_profit = Decimal(str(total_income)) - total_cost
 
         return Response({
+            "start_date": start_date.isoformat(),
+            "end_date": end_date.isoformat(),
             "total_units": total_units,
             "total_income": float(total_income),
-            "average_income": round(float(avg_income), 2),
-            "trend": queryset
+            "real_profit": round(float(real_profit), 2),
+            "ticket_average": round(float(ticket_promedio), 2),
+            "num_sales": num_sales,
+            "days_since_last_sale": days_since_last_sale,
+            "percent_periods_with_sales": round(percent_periods_with_sales, 2),
+            "zero_sales_periods": zero_days,
+            "max_sales_period": max_point,
+            "max_sale": {
+                "date": max_sale['sale__date'] if max_sale else None,
+                "units_sold": max_sale['quantity'] if max_sale else 0,
+                "total_income": float(max_sale['total_income']) if max_sale else 0
+            },
+            "last_sale": {
+                "date": last_sale['sale__date'] if last_sale else None,
+                "units_sold": last_sale['quantity'] if last_sale else 0,
+                "total_income": float(last_sale['unit_price']) * last_sale['quantity'] if last_sale else 0
+            },
+            "trend": trend,
         })
 
 class PurchaseViewSet(viewsets.ModelViewSet):
@@ -270,3 +369,33 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
 class TransactionStatusViewSet(viewsets.ModelViewSet):
     queryset = TransactionStatus.objects.all()
     serializer_class = TransactionStatusSerializer
+
+def generate_periods(start, end, period):
+    periods = []
+    current = start
+
+    increments = {
+        'd': lambda dt: (dt.replace(minute=0, second=0, microsecond=0), timedelta(hours=1)),
+        'w': lambda dt: (dt.replace(hour=0, minute=0, second=0, microsecond=0), timedelta(days=1)),
+        'm': lambda dt: (
+            (dt - timedelta(days=dt.weekday())).replace(hour=0, minute=0, second=0, microsecond=0), timedelta(weeks=1)
+        ),
+        'y': lambda dt: (dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0), 'month'),
+    }
+    normalize_func = increments.get(period, increments['w'])
+
+    if period == 'y':
+        current, _ = normalize_func(current)
+        while current <= end:
+            periods.append(current)
+            if current.month == 12:
+                current = current.replace(year=current.year + 1, month=1)
+            else:
+                current = current.replace(month=current.month + 1)
+    else:
+        current, delta = normalize_func(current)
+        while current <= end:
+            periods.append(current)
+            current += delta
+
+    return periods

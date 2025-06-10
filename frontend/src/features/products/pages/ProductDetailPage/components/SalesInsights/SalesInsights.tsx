@@ -1,3 +1,4 @@
+import {useState} from "react";
 import {ContentContainer} from "../../../../../../common/components/ui/ContentContainer.tsx";
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import {SectionHeader} from "../../../../../../common/components/ui/SectionHeader/SectionHeader.tsx";
@@ -6,11 +7,10 @@ import {SalesInsightsMetricsPanel} from "./components/SalesInsightsMetricsPanel/
 import {SalesInsightsChartPanel} from "./components/SalesInsightsChartPanel/SalesInsightsChartPanel.tsx";
 import {Grid} from "@mui/material";
 import {useProductSalesInsights} from "../../../../hooks/useProductSalesInsights.ts";
-import {useState} from "react";
 import {ProductSaleInsightsFormValues} from "./types/form.types.ts";
 
 export const SalesInsights = ({ productId }: { productId?: number }) => {
-    const [filters, setFilters] = useState<ProductSaleInsightsFormValues>({ product_id: productId, period: 'd' })
+    const [filters, setFilters] = useState<ProductSaleInsightsFormValues>({ product_id: productId, period: 'm' })
     const { data, isLoading } = useProductSalesInsights(filters);
 
     return (
@@ -34,7 +34,7 @@ export const SalesInsights = ({ productId }: { productId?: number }) => {
 
             <SalesInsightsMetricsPanel data={data} isLoading={isLoading} />
 
-            <SalesInsightsChartPanel />
+            <SalesInsightsChartPanel data={data} loading={isLoading}  />
         </ContentContainer>
     )
 }

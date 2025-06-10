@@ -70,6 +70,7 @@ class SaleWriteSerializer(serializers.ModelSerializer):
                     product       = product,
                     quantity      = qty,
                     unit_price    = unit_price,
+                    purchase_price=product.purchase_price,
                     discount_name = disc_name,
                     discount_type = disc_type,
                     discount_value= disc_value,

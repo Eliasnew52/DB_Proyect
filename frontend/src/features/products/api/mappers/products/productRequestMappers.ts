@@ -41,8 +41,8 @@ export const mapProductSaleInsightsFormToDTO = (data: ProductSaleInsightsFormVal
     return {
         product_id: data.product_id,
         period: data.period,
-        amount: data.amount,
         from_date: data.from_date,
         to_date: data.to_date,
+        group_by: data.group_by,
     }
 }

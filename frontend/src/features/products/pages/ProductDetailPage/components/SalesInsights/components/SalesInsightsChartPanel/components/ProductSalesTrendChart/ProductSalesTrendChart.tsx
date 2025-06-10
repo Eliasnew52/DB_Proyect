@@ -1,35 +1,12 @@
 import {Grid, Typography} from "@mui/material";
-import {ChartsTooltipProps, LineChart} from "@mui/x-charts";
-import {ProductSaleInsights} from "../../../../../../../domain/productSaleInsights.types.ts";
-
+import {LineChart} from "@mui/x-charts";
+import {ProductSalesTrendChartProps} from "./ProductSalesTrendChart.types.ts";
+import {CustomSalesLegend} from "../CustomSalesLegend/CustomSalesLegend.tsx";
 const margin = { right: 24 };
-type saleData = {
-    x: string,
-    y: number,
-}
 
-interface ProductSalesTrendChartProps {
-    salesData: saleData[];
-}
 
-const CustomSalesTooltip = ({ axisData, series }: ChartsTooltipProps) => {
-    if (!axisData || !axisData.x) return null;
 
-    const index = axisData.index;
-    const point = series[0].data[index];
-    const maxValue = Math.max(...series[0].data);
-
-    return (
-        <div style={{ padding: '8px', background: 'white', border: '1px solid #ccc' }}>
-            <strong>{axisData.x}</strong>
-            <br />
-            {point === maxValue && <span>🔥 Máxima venta<br /></span>}
-            Unidades vendidas: {point}
-        </div>
-    );
-};
-
-export const ProductSalesTrendChart = ({ salesData }: ProductSalesTrendChartProps ) => {
+export const ProductSalesTrendChart = ({ salesData, loading }: ProductSalesTrendChartProps ) => {
 
     return (
         <Grid
@@ -48,6 +25,7 @@ export const ProductSalesTrendChart = ({ salesData }: ProductSalesTrendChartProp
 
             <LineChart
                 height={300}
+                loading={loading}
                 xAxis={[{ data: salesData.map(item => item.x), scaleType: 'band' }]}
                 series={[
                     {

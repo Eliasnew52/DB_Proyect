@@ -3,7 +3,6 @@ import {Button, FormControl, FormHelperText, Grid, InputLabel, MenuItem, Select}
 import {TimePeriod, timePeriods} from "../../utils/timePeriods.ts";
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import {Controller, FormProvider, useForm} from "react-hook-form";
-import {CustomPeriodFilter} from "./components/CustomPeriodFilter.tsx";
 import {DateRangePicker} from "./components/DateRangePicker.tsx";
 import {mapProductSaleInsightsFormToDTO} from "../../../../../../api/mappers/products/productRequestMappers.ts";
 import type {ProductSaleInsightsFormValues} from "../../types/form.types.ts";
@@ -16,7 +15,7 @@ export const SalesInsightsFilter = ({ productId, setFilters }: { productId: numb
             amount: 0,
             from_date: '',
             to_date: '',
-            period: timePeriods[0].value,
+            period: timePeriods[2].value,
         },
         shouldUnregister: true,
     });
@@ -91,13 +90,6 @@ export const SalesInsightsFilter = ({ productId, setFilters }: { productId: numb
 
 
                 </Grid>
-
-
-                {
-                    selectedValue?.inputType === 'number' && (
-                        <CustomPeriodFilter label={selectedValue.label} name={selectedValue.value}  />
-                    )
-                }
 
                 {
                     selectedValue?.inputType === 'date' && (

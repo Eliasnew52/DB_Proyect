@@ -368,6 +368,10 @@ class SaleDetail(models.Model):
     discount_value = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     creation_date = models.DateField(default='2000-01-01')
+    purchase_price = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text="Precio de compra del producto al momento de la venta"
+    )
 
     sale_attributes = models.JSONField(
         default=dict,

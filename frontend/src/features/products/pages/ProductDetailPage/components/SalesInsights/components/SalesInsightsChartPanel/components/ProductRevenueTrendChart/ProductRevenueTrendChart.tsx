@@ -1,7 +1,8 @@
 import {Grid, Typography} from "@mui/material";
 import { BarChart } from '@mui/x-charts/BarChart';
+import {ProductRevenueTrendChartProps} from "./ProductRevenueTrendChart.types.ts";
 
-export const ProductRevenueTrendChart = () => {
+export const ProductRevenueTrendChart = ({ revenueData, loading }: ProductRevenueTrendChartProps) => {
   return (
       <Grid
           container
@@ -18,8 +19,15 @@ export const ProductRevenueTrendChart = () => {
           </Grid>
 
           <BarChart
-              xAxis={[{ data: ['group A', 'group B', 'group C'] }]}
-              series={[{ data: [4, 3, 5] }, { data: [1, 6, 3] }, { data: [2, 5, 6] }]}
+              loading={loading}
+              xAxis={[{ data: revenueData.map(item => item.x), scaleType: 'band' }]}
+              series={[
+                  {
+                      id: 'revenues',
+                      label: 'Ingresos totales',
+                      data: revenueData.map(item => item.y)
+                  }
+              ]}
               height={300}
           />
       </Grid>

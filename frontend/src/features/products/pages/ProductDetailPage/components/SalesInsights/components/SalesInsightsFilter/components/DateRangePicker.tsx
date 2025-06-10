@@ -1,5 +1,6 @@
 import {Controller, useFormContext} from "react-hook-form";
-import {Grid, TextField} from "@mui/material";
+import {FormControl, FormHelperText, Grid, InputLabel, MenuItem, Select, TextField} from "@mui/material";
+import {timePeriods} from "../../../utils/timePeriods.ts";
 
 export const DateRangePicker = () => {
   const { control } = useFormContext();
@@ -46,6 +47,63 @@ export const DateRangePicker = () => {
                           }
                       }}
                   />
+              )}
+          />
+
+          <Controller
+              name={'group_by'}
+              control={control}
+              render={({ field, fieldState }) => (
+                  <FormControl
+                      size={'small'}
+                      variant="outlined"
+                      error={fieldState.invalid}
+                      sx={{
+                          minWidth: 180
+                      }}
+                  >
+                      <InputLabel id="group_by-label">Agrupar por</InputLabel>
+                      <Select
+                          {...field}
+                          labelId="group_by-label"
+                          id="group_by-select"
+                          size={'small'}
+                          label={'Agrupar por'}
+                      >
+                          <MenuItem
+                              value={'hour'}
+                          >
+                            Horas
+                          </MenuItem>
+                          <MenuItem
+                            value={'day'}
+                          >
+                            Días
+                          </MenuItem>
+                          <MenuItem
+                            value={'week'}
+                          >
+                            Semana
+                          </MenuItem>
+                          <MenuItem
+                            value={'month'}
+                          >
+                            Mes
+                          </MenuItem>
+                          <MenuItem
+                            value={'year'}
+                          >
+                            Año
+                          </MenuItem>
+                      </Select>
+                      {
+                          fieldState.error && (
+                              <FormHelperText>
+                                  { fieldState.error.message }
+                              </FormHelperText>
+                          )
+                      }
+                  </FormControl>
               )}
           />
       </Grid>
