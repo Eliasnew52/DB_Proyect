@@ -16,6 +16,34 @@ from .models import (
     Sale, SaleDetail, SaleInvoice, TransactionStatus,
     MovementType, DiscountType, ScopeType, PurchaseInvoice, ProductMeasurement
 )
+from simple_history.admin import SimpleHistoryAdmin
+from simple_history.utils import update_change_reason
+
+
+PRODUCT_LABELS = {
+    'name'           : 'Cambio de Nombre',
+    'sale_price'     : 'Cambio de Precio de Venta',
+    'purchase_price' : 'Cambio de Precio de Compra',
+    'minimum_stock'  : 'Cambio de Stock Mínimo',
+    'stock'          : 'Ajuste de Stock',
+    'description'    : 'Cambio de Descripción',
+    'category'       : 'Cambio de Categoría',
+    'brand'          : 'Cambio de Marca',
+    'suppliers'      : 'Cambio de Proveedores',
+    'image'          : 'Cambio de Imagen',
+    'active'         : 'Cambio de Estado',
+}
+
+MEASUREMENT_LABELS = {
+    'length'       : 'Cambio de Longitud',
+    'length_unit'  : 'Cambio Unidad Longitud',
+    'width'        : 'Cambio de Ancho',
+    'height'       : 'Cambio de Altura',
+    'weight'       : 'Cambio de Peso',
+    'weight_unit'  : 'Cambio Unidad Peso',
+    'volume'       : 'Cambio de Volumen',
+    'volume_unit'  : 'Cambio Unidad Volumen',
+}
 
 
 class SchemaAwareJSONEditor(JSONFormWidget):
@@ -31,7 +59,7 @@ class SchemaAwareJSONEditor(JSONFormWidget):
 
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(SimpleHistoryAdmin):
     list_display = ('name', 'schema_preview', 'created_by', 'last_updated', 'id')
     search_fields = ('name', 'description')
     list_filter = ('created_by',)
@@ -101,7 +129,7 @@ class ProductMeasurementInline(admin.StackedInline):
 
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(SimpleHistoryAdmin):
     list_display = ('name', 'sale_price', 'stock', 'category', 'attribute_preview', 'active', 'id')
     list_editable = ('active',)
     list_filter = ('category', 'suppliers', 'active')
@@ -109,6 +137,8 @@ class ProductAdmin(admin.ModelAdmin):
     readonly_fields = ('created_by', 'last_updated', 'creation_date', 'schema_help')
     filter_horizontal = ('suppliers',)
     inlines = [ProductMeasurementInline]
+    history_list_per_page = 100
+
 
     def get_fieldsets(self, request, obj=None):
         return [
@@ -158,6 +188,39 @@ class ProductAdmin(admin.ModelAdmin):
         )
     attribute_preview.short_description = "Atributos"
 
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.save_without_historical_record()
+        else:
+            super().save_model(request, obj, form, change)
+
+    def save_related(self, request, form, formsets, change):
+
+        super().save_related(request, form, formsets, change)
+
+        obj     = form.instance
+        reasons = []
+
+        for field_name in form.changed_data:
+            fld = obj._meta.get_field(field_name)
+            if not getattr(fld, 'many_to_many', False) and field_name in PRODUCT_LABELS:
+                reasons.append(PRODUCT_LABELS[field_name])
+
+        for m2m in obj._meta.many_to_many:
+            name = m2m.name
+            if name not in form.changed_data:
+                continue
+
+            old = set(form.initial.get(name, []))
+            new = set(o.pk for o in form.cleaned_data.get(name, []))
+            if old != new:
+                reasons.append(PRODUCT_LABELS.get(name, f"Cambio en {name}"))
+
+        if not reasons:
+            return
+
+        if reasons:
+            update_change_reason(obj, "; ".join(reasons))
     class Media:
         js = ('js/product_admin.js',)
 
@@ -199,7 +262,7 @@ class CustomerAdmin(admin.ModelAdmin):
 class StockMovementInline(admin.TabularInline):
     model = StockMovement
     extra = 0
-    readonly_fields = ('movement_type', 'quantity', 'date', 'related_transaction')
+    readonly_fields = ('movement_type', 'quantity', 'creation_date', 'related_transaction')
 
     def related_transaction(self, obj):
         if obj.purchase:
@@ -212,9 +275,9 @@ class StockMovementInline(admin.TabularInline):
 
 @admin.register(StockMovement)
 class StockMovementAdmin(admin.ModelAdmin):
-    list_display = ('product', 'movement_type', 'quantity', 'date')
+    list_display = ('product', 'movement_type', 'quantity', 'creation_date')
     list_filter = ('movement_type', ('product__category', admin.RelatedFieldListFilter))
-    readonly_fields = ('date',)
+    readonly_fields = ('creation_date',)
     search_fields = ('product__name',)
 
 
@@ -235,23 +298,23 @@ class PurchaseDetailInline(admin.TabularInline):
 
 @admin.register(Purchase)
 class PurchaseAdmin(admin.ModelAdmin):
-    list_display    = ('date', 'status_badge', 'supplier', 'payment_method', 'total_display', 'id')
+    list_display    = ('creation_date', 'status_badge', 'supplier', 'payment_method', 'total_display', 'id')
     list_filter     = (
         'status',
-        ('date', DateFieldListFilter),
+        ('creation_date', DateFieldListFilter),
         'supplier',
         'payment_method',
     )
     search_fields   = ('invoice_number', 'supplier__name')
     raw_id_fields   = ('supplier', 'payment_method')
-    date_hierarchy  = 'date'
+    date_hierarchy  = 'creation_date'
     inlines         = [PurchaseDetailInline]
     actions         = ['mark_as_received', 'cancel_purchase']
-    readonly_fields = ('created_by', 'date', 'total')
+    readonly_fields = ('created_by', 'creation_date', 'total')
     fieldsets       = (
         (None, {
             'fields': (
-                ('date', 'created_by'),
+                ('creation_date', 'created_by'),
                 ('supplier', 'payment_method'),
                 'status',
             )
@@ -513,18 +576,18 @@ class SaleDetailInline(admin.TabularInline):
 
 @admin.register(Sale)
 class SaleAdmin(admin.ModelAdmin):
-    list_display = ('date', 'status_badge', 'payment_method', 'total_display', 'products_count', 'id')
-    list_filter = ('status', ('date', admin.DateFieldListFilter), 'payment_method')
+    list_display = ('creation_date', 'status_badge', 'payment_method', 'total_display', 'products_count', 'id')
+    list_filter = ('status', ('creation_date', admin.DateFieldListFilter), 'payment_method')
     search_fields = ('customer__name', 'customer__email', 'payment_method__name', 'status__label')
     raw_id_fields = ('customer', 'payment_method')
-    date_hierarchy = 'date'
+    date_hierarchy = 'creation_date'
     inlines = [SaleDetailInline]
     actions = ['mark_as_paid', 'cancel_sale']
-    readonly_fields = ('created_by', 'date', 'subtotal', 'total')
+    readonly_fields = ('created_by', 'creation_date', 'subtotal', 'total')
     fieldsets = (
         (None, {
             'fields': (
-                ('date', 'created_by'),
+                ('creation_date', 'created_by'),
                 ('customer', 'payment_method'),
                 'status',
             )
@@ -790,3 +853,12 @@ class ProductMeasurementAdmin(admin.ModelAdmin):
     list_filter = ('length_unit', 'weight_unit', 'volume_unit')
     autocomplete_fields = ('product',)
     readonly_fields = ()
+
+    def save_model(self, request, obj, form, change):
+        if change:
+            changed = [f for f in form.changed_data if f in MEASUREMENT_LABELS]
+            reason = ", ".join(MEASUREMENT_LABELS[f] for f in changed)
+
+            super().save_model(request, obj, form, change)
+            update_change_reason(obj, reason)
+

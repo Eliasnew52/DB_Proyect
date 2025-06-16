@@ -1,5 +1,5 @@
-import {BrandMini} from "../products/brands.types.ts";
-import {CompanyMini} from "./company.types.ts";
+import {BrandMini} from "./brands.types.ts";
+import {CompanyMini} from "../sales/company.types.ts";
 
 export interface Supplier {
     id: number;

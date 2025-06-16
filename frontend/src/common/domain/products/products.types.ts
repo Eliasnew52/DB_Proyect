@@ -1,4 +1,4 @@
-import {SupplierMini} from "../sales/suppliers.types.ts";
+import {SupplierMini} from "./suppliers.types.ts";
 import {CategoryMini} from "./categories.types.ts";
 import {BrandMini} from "./brands.types.ts";
 import {UserMini} from "../auth/user.types.ts";
@@ -31,4 +31,12 @@ export interface Product {
     image: string;
     stock: number;
     minimum_stock: number;
+}
+
+export interface ProductMini {
+    id: number;
+    name: string;
+    sale_price: number;
+    purchase_price: number;
+    stock: number;
 }

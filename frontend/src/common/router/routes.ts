@@ -36,9 +36,9 @@ export const PATHS: Record<RouteKey, string> = {
     [RouteKey.NEW_PROVIDER]:     '/new-supplier',
     [RouteKey.PROVIDER_LIST]:    '/supplier-list',
     [RouteKey.NEW_PRODUCT]:      '/new-product',
-    [RouteKey.NEW_CATEGORY]:     '/new-category',
+    [RouteKey.NEW_CATEGORY]:     '/new-categories',
     [RouteKey.PRODUCT_LIST]:     '/product-list',
-    [RouteKey.CATEGORY_LIST]:    '/category-list',
+    [RouteKey.CATEGORY_LIST]:    '/categories-list',
     [RouteKey.BRAND_LIST]:       '/brand-list',
     [RouteKey.PRODUCT_DETAIL]:   '/product/:id',
 

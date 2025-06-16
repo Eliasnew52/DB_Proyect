@@ -1,7 +1,9 @@
-export const formatPrice = (price?: number): string => {
-    if (!price || isNaN(price)) return '—';
+export const formatPrice = (price: number | string | undefined): string => {
+    const formattedNumber = Number(price);
 
-    return price.toLocaleString('es-NI', {
+    if (!formattedNumber || isNaN(formattedNumber)) return '—';
+
+    return formattedNumber.toLocaleString('es-NI', {
         style: 'currency',
         currency: 'NIO',
     })

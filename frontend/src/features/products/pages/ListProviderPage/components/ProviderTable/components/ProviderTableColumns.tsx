@@ -1,5 +1,5 @@
 import { MRT_ColumnDef } from 'material-react-table'
-import {Supplier} from "../../../../../../../common/domain/sales/suppliers.types.ts";
+import {Supplier} from "../../../../../../../common/domain/products/suppliers.types.ts";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DoDisturbOnIcon from "@mui/icons-material/DoDisturbOn";
 

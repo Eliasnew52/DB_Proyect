@@ -1,10 +1,10 @@
 import {Grid} from "@mui/material";
-import {ActivityLogTable} from "./components/ActivityLogTable.tsx";
+import {ActivityLogTable} from "./components/ActivityLogTable/ActivityLogTable.tsx";
 
-export const ActivityLog = () => {
+export const ActivityLog = ({ productId }: { productId: number }) => {
     return (
         <Grid>
-            <ActivityLogTable />
+            <ActivityLogTable productId={productId} />
         </Grid>
     )
 }

@@ -19,6 +19,7 @@ drf-yasg = "*"
 drf-spectacular = "*"
 django-cors-headers = "*"
 dj-rest-auth = "*"
+django-simple-history = "*"
 
 [dev-packages]
 

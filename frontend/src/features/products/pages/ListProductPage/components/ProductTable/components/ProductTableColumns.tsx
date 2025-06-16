@@ -142,7 +142,7 @@ export const ProductTableColumns: MRT_ColumnDef<Product>[] = [
         )
     },
     {
-        accessorKey: 'category.name',
+        accessorKey: 'categories.name',
         header: 'Categoría',
     },
     {

@@ -1,3 +1,5 @@
+import type {UserMini} from "../auth/user.types.ts";
+
 export interface Customer {
     id: number
     name: string
@@ -6,5 +8,5 @@ export interface Customer {
     phone: string
     creation_date: string
     last_updated: string
-    created_by: number
+    created_by: UserMini;
 }

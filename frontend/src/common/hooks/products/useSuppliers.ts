@@ -1,5 +1,5 @@
 import {useQuery} from "@tanstack/react-query";
-import {getSupplier} from "../../api/fetchers/suppliersFetchers.ts";
+import {getSupplier} from "../../api/fetchers/products/suppliersFetchers.ts";
 import {SUPPLIERS_KEY} from "./queryKeys.ts";
 
 export const useSuppliers = (enabled = true) => {

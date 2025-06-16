@@ -13,7 +13,6 @@ export const ProductTable = () => {
     const { pageIndex, pageSize } = pagination;
 
     const { isPending: isLoadingProducts, isError: isLoadingProductsError, data: products , error } = useProducts(pageIndex + 1);
-    console.log({ products: products?.results });
 
     const columns = useMemo(() => ProductTableColumns, [])
 

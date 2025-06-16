@@ -1,10 +1,10 @@
 import {Grid} from "@mui/material";
-import {StockMovementHistoryTable} from "./components/StockMovementHistoryTable.tsx";
+import {StockMovementHistoryTable} from "./components/StockMovementHistoryTable/StockMovementHistoryTable.tsx";
 
-export const StockMovementHistory = () => {
+export const StockMovementHistory = ({ productId }: { productId: number }) => {
     return (
         <Grid>
-            <StockMovementHistoryTable />
+            <StockMovementHistoryTable productId={productId} />
         </Grid>
     )
 }

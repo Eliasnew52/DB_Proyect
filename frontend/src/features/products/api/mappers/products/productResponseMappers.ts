@@ -1,5 +1,7 @@
 import {ProductSaleInsights} from "../../../domain/ProductSaleInsights.types.ts";
 import {ProductSaleInsightsResponseDTO} from "../../dto/product/ProductSaleInsightsResponse.dto.ts";
+import {ProductActivityLogResponseDTO} from "../../dto/product/ProductActivityLogResponse.dto.ts";
+import {ProductActivityLog} from "../../../domain/ProductActivityLog.types.ts";
 
 export const mapProductSaleInsights = (dto: ProductSaleInsightsResponseDTO): ProductSaleInsights => {
     return {
@@ -16,5 +18,18 @@ export const mapProductSaleInsights = (dto: ProductSaleInsightsResponseDTO): Pro
         days_since_last_sale: dto.days_since_last_sale,
         ticket_average: dto.ticket_average,
         trend: dto.trend,
+    }
+}
+
+export const mapProductActivityLogDTOToProductActivityLog = (dto:  ProductActivityLogResponseDTO): ProductActivityLog => {
+    return {
+        id: dto.id,
+        history_id: dto.history_id,
+        history_date: dto.history_date,
+        history_user: dto.history_user,
+        history_type: dto.history_type,
+        history_change_reason: dto.history_change_reason,
+        name: dto.name,
+        changes: dto.changes,
     }
 }

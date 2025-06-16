@@ -1,6 +1,6 @@
 import {ProductMini} from "../../../../../common/domain/products/products.types.ts";
 
-export interface ProductStockMovementResponseDTO {
+export interface GetStockMovementByProductIdResponseDTO {
     id: number,
     product: ProductMini,
     quantity: number,

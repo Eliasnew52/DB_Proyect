@@ -10,7 +10,7 @@ import {useProductSalesInsights} from "../../../../hooks/useProductSalesInsights
 import {ProductSaleInsightsFormValues} from "./types/form.types.ts";
 
 export const SalesInsights = ({ productId }: { productId?: number }) => {
-    const [filters, setFilters] = useState<ProductSaleInsightsFormValues>({ product_id: productId, period: 'm' })
+    const [filters, setFilters] = useState<ProductSaleInsightsFormValues>({ product_id: productId, period: 'd' })
     const { data, isLoading } = useProductSalesInsights(filters);
 
     return (

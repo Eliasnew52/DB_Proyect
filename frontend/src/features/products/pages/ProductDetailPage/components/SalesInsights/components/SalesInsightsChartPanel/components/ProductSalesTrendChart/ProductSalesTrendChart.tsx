@@ -1,10 +1,6 @@
 import {Grid, Typography} from "@mui/material";
 import {LineChart} from "@mui/x-charts";
 import {ProductSalesTrendChartProps} from "./ProductSalesTrendChart.types.ts";
-import {CustomSalesLegend} from "../CustomSalesLegend/CustomSalesLegend.tsx";
-const margin = { right: 24 };
-
-
 
 export const ProductSalesTrendChart = ({ salesData, loading }: ProductSalesTrendChartProps ) => {
 
@@ -40,7 +36,7 @@ export const ProductSalesTrendChart = ({ salesData, loading }: ProductSalesTrend
                     { id: 'left', scaleType: 'linear' },
                     { id: 'right', scaleType: 'linear' },
                 ]}
-                margin={margin}
+                margin={{ right: 24 }}
             />
         </Grid>
     )

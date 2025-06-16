@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from backend.models import Category, Brand, Supplier, Product, User, Company
+from backend.models import Category, Brand, Supplier, Product, User, Company, StockMovement, Sale, TransactionStatus
 
 class CompanyShortSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,9 +24,23 @@ class SupplierShortSerializer(serializers.ModelSerializer):
 class ProductShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['id', 'name', 'sale_price', 'purchase_price']
+        fields = ['id', 'name', 'sale_price', 'purchase_price', 'stock']
 
 class UserShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username']
+    
+class TransactionStatusShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TransactionStatus
+        fields = ['id', 'code', 'label']   
+class StockMovementShortSerializer(serializers.ModelSerializer):
+    product = ProductShortSerializer(read_only=True)
+    created_by = UserShortSerializer(read_only=True)
+    movement_type = serializers.CharField(source='get_movement_type_display', read_only=True)
+    class Meta:
+        model = StockMovement
+        fields = ['id', 'product', 'quantity', 'movement_type', 'created_by', 'creation_date']
+
+

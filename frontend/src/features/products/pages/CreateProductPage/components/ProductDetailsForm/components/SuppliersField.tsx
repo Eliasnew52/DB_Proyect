@@ -1,7 +1,7 @@
 import {useState} from "react";
 import {Controller, useFormContext} from "react-hook-form";
 import {Autocomplete, Grid, InputLabel, TextField} from "@mui/material";
-import type {Supplier} from "../../../../../../../common/domain/sales/suppliers.types.ts";
+import type {Supplier} from "../../../../../../../common/domain/products/suppliers.types.ts";
 import {useSuppliers} from "../../../../../../../common/hooks/products/useSuppliers.ts";
 
 export const SuppliersField = () => {

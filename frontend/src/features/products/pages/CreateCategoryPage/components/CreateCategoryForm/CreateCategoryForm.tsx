@@ -20,7 +20,7 @@ import {useRouteNavigator} from "../../../../../../common/hooks/useRouteNavigato
 import { RouteKey} from "../../../../../../common/router/routes.ts";
 import {useNotifications} from "../../../../../../common/hooks/useNotifications.ts";
 import {CategoryAttribute, CategoryFormValues} from "../../types/form.types.ts";
-import {mapCreateCategoryFormToDTO} from "../../../../api/mappers/categoryMappers.ts";
+import {mapCreateCategoryFormToDTO} from "../../../../api/mappers/./categories/categoryMappers.ts";
 
 
 export const CreateCategoryForm = () => {

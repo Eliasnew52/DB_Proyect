@@ -25,7 +25,7 @@ export const ProductRevenueTrendChart = ({ revenueData, loading }: ProductRevenu
                   {
                       id: 'revenues',
                       label: 'Ingresos totales',
-                      data: revenueData.map(item => item.y)
+                      data: revenueData.map(item => item.y),
                   }
               ]}
               height={300}

@@ -1,12 +1,8 @@
-import {ApiResponseTypes, PaginatedResponse} from "../../../types/apiResponse.types.ts";
-import {StockMovementResponseDTO} from "../../dto/stockMovements/StockMovementResponse.dto.ts";
+import {PaginatedResponse} from "../../../types/apiResponse.types.ts";
+import {StockMovementResponseDTO} from "../../dto/inventory/StockMovementResponse.dto.ts";
+import axiosClient from "../../axiosClient.ts";
 
-// export const getStockMovements = async(): Promise<ApiResponseTypes<PaginatedResponse<StockMovementResponseDTO>>> => {
-//
-// }
-
-
-
-export const getStockMovementsByProductId = async(signal:? AbortSignal, dto): Promise<PaginatedResponse<>> => {
-
+export const getProductStockMovementsById = async(productId: number, page: number, signal?: AbortSignal): Promise<PaginatedResponse<StockMovementResponseDTO>> => {
+   const res = await axiosClient.get(`/stock-movements/product/${productId}/`, { params: { page }, signal})
+    return res.data.result;
 }

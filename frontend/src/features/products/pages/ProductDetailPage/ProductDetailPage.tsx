@@ -37,8 +37,8 @@ export const ProductDetailPage = () => {
 
                 <SalesInsights productId={product?.id} />
 
-                <StockMovementHistory />
-                <ActivityLog />
+                <StockMovementHistory productId={product?.id} />
+                <ActivityLog productId={product?.id} />
             </Grid>
 
         </Grid>

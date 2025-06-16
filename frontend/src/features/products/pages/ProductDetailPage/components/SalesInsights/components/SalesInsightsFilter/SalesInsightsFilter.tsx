@@ -1,8 +1,8 @@
 import React, {useCallback, useState} from "react";
-import {Button, FormControl, FormHelperText, Grid, InputLabel, MenuItem, Select} from "@mui/material";
+import {Controller, FormProvider, useForm} from "react-hook-form";
+import {Button, FormControl, FormHelperText, Grid, InputLabel, MenuItem, Select, Stack} from "@mui/material";
 import {TimePeriod, timePeriods} from "../../utils/timePeriods.ts";
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import {Controller, FormProvider, useForm} from "react-hook-form";
 import {DateRangePicker} from "./components/DateRangePicker.tsx";
 import {mapProductSaleInsightsFormToDTO} from "../../../../../../api/mappers/products/productRequestMappers.ts";
 import type {ProductSaleInsightsFormValues} from "../../types/form.types.ts";
@@ -12,12 +12,13 @@ export const SalesInsightsFilter = ({ productId, setFilters }: { productId: numb
     const methods = useForm<ProductSaleInsightsFormValues>({
         defaultValues: {
             product_id: undefined,
-            amount: 0,
             from_date: '',
             to_date: '',
-            period: timePeriods[2].value,
+            period: timePeriods[0].value,
+            group_by: 'day',
         },
         shouldUnregister: true,
+        mode: 'all'
     });
     
     const { control, handleSubmit } = methods;
@@ -33,8 +34,9 @@ export const SalesInsightsFilter = ({ productId, setFilters }: { productId: numb
 
     return (
         <FormProvider {...methods}>
-            <Grid
-                container
+            <Stack
+                direction={'row'}
+                alignItems="flex-start"
                 spacing={1}
                 component={'form'}
                 onSubmit={handleSubmit(onSubmit)}
@@ -43,6 +45,9 @@ export const SalesInsightsFilter = ({ productId, setFilters }: { productId: numb
                     <Controller
                         name={'period'}
                         control={control}
+                        rules={{
+                            required: 'El periodo es obligatorio.'
+                        }}
                         defaultValue={timePeriods[0].value}
                         render={({ field, fieldState }) => (
                             <FormControl
@@ -96,6 +101,7 @@ export const SalesInsightsFilter = ({ productId, setFilters }: { productId: numb
                         <DateRangePicker />
                     )
                 }
+
                 <Button
                     type={'submit'}
                     variant={'outlined'}
@@ -103,9 +109,8 @@ export const SalesInsightsFilter = ({ productId, setFilters }: { productId: numb
                 >
                     Aplicar filtro
                 </Button>
-            </Grid>
 
-
+            </Stack>
         </FormProvider>
 
     )

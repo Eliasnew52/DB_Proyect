@@ -35,11 +35,11 @@ class PurchaseDetailReadSerializer(serializers.ModelSerializer):
         model = PurchaseDetail
         fields = ['product', 'quantity', 'unit_price', 'line_total']
 
-    def get_product(self, obj):
+    def get_product(self, obj) -> dict:
         return {
             'id': obj.product.id,
             'name': obj.product.name
         }
 
-    def get_line_total(self, obj):
+    def get_line_total(self, obj) -> Decimal:
         return obj.quantity * obj.unit_price
