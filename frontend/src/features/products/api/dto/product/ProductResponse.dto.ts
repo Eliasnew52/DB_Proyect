@@ -1,9 +1,9 @@
-import {CategoryMini} from "../../../../../common/domain/products/categories.types.ts";
-import {BrandMini} from "../../../../../common/domain/products/brands.types.ts";
-import {SupplierMini} from "../../../../../common/domain/sales/suppliers.types.ts";
-import {UserMini} from "../../../../../common/types/auth.types.ts";
+import type {CategoryMini} from "../../../../../common/domain/products/categories.types.ts";
+import type {BrandMini} from "../../../../../common/domain/products/brands.types.ts";
+import type {SupplierMini} from "../../../../../common/domain/sales/suppliers.types.ts";
+import type {UserMini} from "../../../../../common/domain/auth/user.types.ts";
 
-export interface ProductResponse {
+export interface ProductsResponse {
     id: number;
     active: boolean;
     name: string;
@@ -21,14 +21,3 @@ export interface ProductResponse {
     stock: number;
     minimum_stock: number;
 }
-
-// "measurements": {
-//     "length": "14.50",
-//         "length_unit": "cm",
-//         "width": "0.70",
-//         "height": "14.50",
-//         "weight": "72.00",
-//         "weight_unit": "g",
-//         "volume": "1.20",
-//         "volume_unit": "ml"
-// },
