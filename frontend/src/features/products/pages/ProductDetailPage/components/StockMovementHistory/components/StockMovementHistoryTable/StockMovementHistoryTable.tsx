@@ -8,6 +8,9 @@ import {SectionHeader} from "../../../../../../../../common/components/ui/Sectio
 import {Box} from "@mui/material";
 import {StockMovementHistoryTableColumns} from "./components/StockMovementHistoryTableColumns.tsx";
 import {useProductStockMovements} from "../../../../../../hooks/useProductStockMovements.ts";
+import {LocalizationProvider} from "@mui/x-date-pickers";
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import {MRT_Localization_ES} from "material-react-table/locales/es";
 
 export const StockMovementHistoryTable = ({ productId }: { productId: number }) => {
     const [pagination, setPagination] = useState({
@@ -15,9 +18,9 @@ export const StockMovementHistoryTable = ({ productId }: { productId: number }) 
         pageSize: 10,
     });
 
-    const { pageIndex } = pagination;
+    const { pageIndex, pageSize } = pagination;
 
-    const { data: stockMovements, isLoading: isLoadingStockMovements, isError: isLoadingStockMovementsError, error } = useProductStockMovements(productId, pageIndex + 1)
+    const { data: stockMovements, isLoading: isLoadingStockMovements, isError: isLoadingStockMovementsError, error } = useProductStockMovements(productId, pageIndex + 1, pageSize)
 
     const columns = useMemo(
         () => StockMovementHistoryTableColumns,
@@ -28,6 +31,8 @@ export const StockMovementHistoryTable = ({ productId }: { productId: number }) 
         columns,
         data: stockMovements?.results || [],
         enableStickyHeader: true,
+        manualPagination: true,
+        rowCount: stockMovements?.count ?? 0,
         renderTopToolbar: () => (
             <Box
                 sx={{
@@ -53,7 +58,8 @@ export const StockMovementHistoryTable = ({ productId }: { productId: number }) 
                 border: '1px solid',
                 borderColor: 'grey.300',
             }
-},
+        },
+        localization: MRT_Localization_ES,
         onPaginationChange: setPagination,
         state: {
             isLoading: isLoadingStockMovements,
@@ -64,5 +70,9 @@ export const StockMovementHistoryTable = ({ productId }: { productId: number }) 
         },
     });
 
-    return <MaterialReactTable table={table} />;
+    return (
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <MaterialReactTable table={table} />
+        </LocalizationProvider>
+    );
 };

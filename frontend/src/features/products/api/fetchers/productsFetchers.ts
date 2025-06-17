@@ -15,8 +15,8 @@ export const getProductSaleInsights = async(dto: GetProductSaleInsightsDTO): Pro
     return mapProductSaleInsights(res.data.result)
 }
 
-export const getProductActivityLogById = async(productId: number, page: number, signal?: AbortSignal): Promise<PaginatedResponse<ProductActivityLog>> => {
-    const res = await axiosClient.get<ApiResponseTypes<PaginatedResponse<ProductActivityLogResponseDTO>>>(`/products/${productId}/history/`, { signal, params: { page } })
+export const getProductActivityLogById = async(productId: number, page: number, pageSize: number, signal?: AbortSignal): Promise<PaginatedResponse<ProductActivityLog>> => {
+    const res = await axiosClient.get<ApiResponseTypes<PaginatedResponse<ProductActivityLogResponseDTO>>>(`/products/${productId}/history/`, { signal, params: { page, page_size: pageSize } })
     return {
         ...res.data.result,
         results: res.data.result.results.map(mapProductActivityLogDTOToProductActivityLog)

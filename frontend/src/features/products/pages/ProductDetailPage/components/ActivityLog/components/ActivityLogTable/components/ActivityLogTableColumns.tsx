@@ -1,7 +1,6 @@
 import {MRT_ColumnDef} from "material-react-table";
 import {Grid, Typography} from "@mui/material";
 import {ProductActivityLog} from "../../../../../../../domain/ProductActivityLog.types.ts";
-import {formatDate} from "../../../../../../../../../common/utils/formatDate.ts";
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
@@ -20,7 +19,9 @@ export const ActivityLogTableColumns: MRT_ColumnDef<ProductActivityLog>[] = [
         accessorKey: 'history_date',
         header: 'Fecha',
         size: 150,
-        accessorFn: (row) => formatDate(row.history_date)
+        filterVariant: 'date-range',
+        accessorFn: (row) => new Date(row.history_date),
+        Cell: ({ cell }) => cell.getValue<Date>().toLocaleDateString()
     },
     {
         accessorKey: 'history_change_reason',
@@ -103,12 +104,13 @@ export const ActivityLogTableColumns: MRT_ColumnDef<ProductActivityLog>[] = [
 
 
             return (
-                changes.map(change => {
+                changes.map((change, index) => {
                     const isPrice = change.field === 'purchase_price' ||
                         change.field === 'sale_price';
 
                     return (
                         <Grid
+                            key={`${change.field}-${index}`}
                             container
                             spacing={1}
                         >
@@ -140,8 +142,8 @@ export const ActivityLogTableColumns: MRT_ColumnDef<ProductActivityLog>[] = [
                                         Array.isArray(change.new) ?
                                             change.new.join(', ') :
                                             typeof change.old === 'boolean' ?
-                                                change.old ? 'Activo' : 'Inactivo' :
-                                                change.old
+                                                change.new ? 'Activo' : 'Inactivo' :
+                                                change.new
                                 }
                             </Typography>
                         </Grid>

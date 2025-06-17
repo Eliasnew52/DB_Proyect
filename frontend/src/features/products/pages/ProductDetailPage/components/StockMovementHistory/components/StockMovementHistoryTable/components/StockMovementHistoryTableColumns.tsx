@@ -1,6 +1,5 @@
 import type {MRT_ColumnDef} from "material-react-table";
 import type {StockMovement} from "../../../../../../../../../common/domain/inventory/stockMovements.types.ts";
-import {formatDate} from "../../../../../../../../../common/utils/formatDate.ts";
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import {Grid, Typography} from "@mui/material";
@@ -10,7 +9,9 @@ export const StockMovementHistoryTableColumns: MRT_ColumnDef<StockMovement>[] = 
         accessorKey: 'creation_date',
         header: 'Fecha',
         size: 150,
-        accessorFn: (row) => formatDate(row.creation_date)
+        filterVariant: 'date-range',
+        accessorFn: (row) => new Date(row.creation_date),
+        Cell: ({ cell }) => cell.getValue<Date>().toLocaleDateString()
     },
     {
         accessorKey: 'product.name',

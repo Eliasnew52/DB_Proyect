@@ -7,6 +7,7 @@ export const AttributesTabPanel = ({ product }: { product?: Product }) => {
         <ContentContainer>
             { product?.attributes && Object.entries(product?.attributes).map(([ key, value ]) => (
                 <Grid
+                    key={key}
                     container
                     spacing={1}
                 >

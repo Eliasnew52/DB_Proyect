@@ -8,6 +8,9 @@ import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import {Box} from "@mui/material";
 import {useProductActivityLog} from "../../../../../../hooks/useProductActivityLog.ts";
 import {ActivityLogTableColumns} from "./components/ActivityLogTableColumns.tsx";
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
+import {MRT_Localization_ES} from "material-react-table/locales/es";
 
 export const ActivityLogTable = ({ productId }: { productId: number }) => {
     const [pagination , setPagination] = useState({
@@ -15,9 +18,9 @@ export const ActivityLogTable = ({ productId }: { productId: number }) => {
         pageSize: 10,
     });
 
-    const { pageIndex } = pagination;
+    const { pageIndex, pageSize } = pagination;
 
-    const { data: productActivityLog, isLoading: isLoadingProductActivityLog, isError: isLoadingProductActivityLogError, error } = useProductActivityLog(productId, pageIndex + 1)
+    const { data: productActivityLog, isLoading: isLoadingProductActivityLog, isError: isLoadingProductActivityLogError, error } = useProductActivityLog(productId, pageIndex + 1, pageSize)
 
     const columns = useMemo(
         () => ActivityLogTableColumns,
@@ -54,6 +57,7 @@ export const ActivityLogTable = ({ productId }: { productId: number }) => {
                 children: error.message,
             }
             : undefined,
+        localization: MRT_Localization_ES,
         onPaginationChange: setPagination,
         state: {
             isLoading: isLoadingProductActivityLog,
@@ -64,5 +68,9 @@ export const ActivityLogTable = ({ productId }: { productId: number }) => {
         }
     });
 
-    return <MaterialReactTable table={table} />;
+    return (
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <MaterialReactTable table={table} />
+        </LocalizationProvider>
+    );
 };
