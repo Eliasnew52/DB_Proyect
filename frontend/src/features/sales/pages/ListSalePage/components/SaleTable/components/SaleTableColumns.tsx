@@ -43,6 +43,6 @@ export const SaleTableColumns = [
     {
         accessorKey: 'created_by',
         header: 'Creado por',
-        Cell: ({ row }) => row.original.created_by?.name || row.original.created_by || '—',
+        Cell: ({ row }) => row.original.created_by?.name || '—',
     },
 ];

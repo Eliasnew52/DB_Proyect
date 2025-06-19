@@ -26,7 +26,7 @@ from .serializers.product_measurement_history import ProductMeasurementHistorySe
 from .models import TransactionStatus, Discount, DiscountType, StockMovement, SaleDetail, ProductMeasurement
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .pagination import StandardResultsSetPagination
-from django.db.models import Sum, F
+from django.db.models import Sum, F, FloatField
 from django.db.models.functions import TruncHour, TruncDay, TruncWeek, TruncMonth, TruncYear
 from django.utils.dateparse import parse_date
 from datetime import datetime, timedelta
@@ -35,6 +35,8 @@ from decimal import Decimal
 from itertools import chain
 from operator import attrgetter
 from simple_history.utils import update_change_reason
+from .serializers.product_sales_summary import ProductSalesSummarySerializer, ProductSalesSummaryTotalsSerializer
+from drf_spectacular.utils import extend_schema
 
 HistoricalProduct = Product.history.model
 HistoricalPM = ProductMeasurement.history.model
@@ -48,6 +50,7 @@ class CategorySchemaView(GenericAPIView):
         except Category.DoesNotExist:
             return Response({'error': 'Categoría no encontrada'}, status=status.HTTP_404_NOT_FOUND)
     
+@extend_schema(tags=['Categorías'])
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
     filterset_fields = ['name', 'created_by']
@@ -60,6 +63,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
+@extend_schema(tags=['Productos'])
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.select_related('category', 'brand').order_by('name', 'creation_date')
     parser_classes = [MultiPartParser, FormParser, JSONParser]
@@ -116,6 +120,7 @@ def generate_periods(start, end, period):
 
     return periods
 
+@extend_schema(tags=['Reportes de Ventas'])
 class ProductSalesInsightsView(GenericAPIView):
     serializer_class = ProductSalesInsightsInputSerializer
 
@@ -311,30 +316,7 @@ class ProductSalesInsightsView(GenericAPIView):
             "trend": trend,
         })
 
-class PurchaseViewSet(viewsets.ModelViewSet):
-    """
-    list, retrieve  -> PurchaseReadSerializer
-    create, update  -> PurchaseWriteSerializer
-    """
-    queryset = (
-        Purchase.objects
-        .all()
-        .select_related('supplier', 'status')
-        .prefetch_related('purchasedetail_set')
-    )
-
-    def get_serializer_class(self):
-        if self.action in ('list', 'retrieve'):
-            return PurchaseReadSerializer
-        return PurchaseWriteSerializer
-
-class PurchaseDetailViewSet(viewsets.ModelViewSet):
-    """
-    CRUD sobre PurchaseDetail individual.
-    """
-    queryset = PurchaseDetail.objects.all().select_related('purchase', 'product')
-    serializer_class = PurchaseDetailWriteSerializer
-
+@extend_schema(tags=['Ventas'])
 class SaleViewSet(viewsets.ModelViewSet):
     queryset = Sale.objects.select_related('created_by', 'customer', 'payment_method').prefetch_related('products', 'saledetail_set').order_by('-creation_date')
     filterset_fields = {
@@ -352,6 +334,33 @@ class SaleViewSet(viewsets.ModelViewSet):
             return SaleWriteSerializer
         return SaleReadSerializer
     
+@extend_schema(tags=['Compras'])
+class PurchaseViewSet(viewsets.ModelViewSet):
+    """
+    list, retrieve  -> PurchaseReadSerializer
+    create, update  -> PurchaseWriteSerializer
+    """
+    queryset = (
+        Purchase.objects
+        .all()
+        .select_related('supplier', 'status')
+        .prefetch_related('purchasedetail_set')
+    )
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return PurchaseReadSerializer
+        return PurchaseWriteSerializer
+
+@extend_schema(tags=['Detalles de Compra'])
+class PurchaseDetailViewSet(viewsets.ModelViewSet):
+    """
+    CRUD sobre PurchaseDetail individual.
+    """
+    queryset = PurchaseDetail.objects.all().select_related('purchase', 'product')
+    serializer_class = PurchaseDetailWriteSerializer
+
+@extend_schema(tags=['Clientes'])
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
@@ -360,14 +369,17 @@ class CustomerViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
+@extend_schema(tags=['Descuentos'])
 class DiscountViewSet(viewsets.ModelViewSet):
     queryset = Discount.objects.all()
     serializer_class = DiscountSerializer
 
+@extend_schema(tags=['Tipos de Descuento'])
 class DiscountTypeViewSet(viewsets.ModelViewSet):
     queryset = DiscountType.objects.all()
     serializer_class = DiscountTypeSerializer
 
+@extend_schema(tags=['Métodos de Pago'])
 class PaymentMethodViewSet(viewsets.ModelViewSet):
     queryset = PaymentMethod.objects.all()
     serializer_class = PaymentMethodSerializer
@@ -376,6 +388,7 @@ class PaymentMethodViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
+@extend_schema(tags=['Marcas'])
 class BrandViewSet(viewsets.ModelViewSet):
     queryset = Brand.objects.all()
     filterset_fields = ['name', 'created_by']
@@ -401,6 +414,7 @@ class BrandViewSet(viewsets.ModelViewSet):
             return BrandWriteSerializer
         return BrandReadSerializer
     
+@extend_schema(tags=['Proveedores'])
 class SupplierViewSet(viewsets.ModelViewSet):
     queryset = Supplier.objects.select_related('company', 'created_by').prefetch_related('brands')
     filterset_fields = ['name', 'created_by', 'email', 'phone']
@@ -413,23 +427,18 @@ class SupplierViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
+@extend_schema(tags=['Empresas'])
 class CompanyViewSet(viewsets.ModelViewSet):
     queryset = Company.objects.select_related('created_by')
     serializer_class = CompanySerializer
     filterset_fields = ['name']
 
-class PaymentMethodViewSet(viewsets.ModelViewSet):
-    queryset = PaymentMethod.objects.select_related('created_by')
-    filterset_fields = ['name']
-    serializer_class = PaymentMethodSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
-
+@extend_schema(tags=['Estados de Transacción'])
 class TransactionStatusViewSet(viewsets.ModelViewSet):
     queryset = TransactionStatus.objects.all()
     serializer_class = TransactionStatusSerializer
 
+@extend_schema(tags=['Movimientos de Stock'])
 class StockMovementViewSet(viewsets.ModelViewSet):
     queryset = StockMovement.objects.select_related('product', 'created_by').order_by('-creation_date')
     filterset_fields = ['product', 'movement_type', 'created_by', 'creation_date']
@@ -439,6 +448,7 @@ class StockMovementViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
+@extend_schema(tags=['Movimientos de Stock'])
 class StockMovementByProductView(ListAPIView):
     queryset = StockMovement.objects.all().order_by('-creation_date')
     serializer_class = StockMovementSerializer
@@ -449,6 +459,7 @@ class StockMovementByProductView(ListAPIView):
             product_id=self.kwargs['product_id']
         ).order_by('-creation_date')
     
+@extend_schema(tags=['Historial de Producto'])
 class ProductHistoryListView(ListAPIView):
     queryset = StockMovement.objects.all().order_by('-creation_date')
     serializer_class = ProductHistorySerializer
@@ -490,6 +501,7 @@ class ProductHistoryListView(ListAPIView):
 
         return Response(data)
     
+@extend_schema(tags=['Historial de Producto'])
 class ProductHistoryDetailView(RetrieveAPIView):
     serializer_class = ProductHistorySerializer
     pagination_class = StandardResultsSetPagination
@@ -498,3 +510,85 @@ class ProductHistoryDetailView(RetrieveAPIView):
 
     def get_queryset(self):
         return Product.history.filter(id=self.kwargs['pk'])
+    
+
+@extend_schema(tags=['Reportes de Ventas'])
+class ProductSalesSummaryView(ListAPIView):
+    serializer_class = ProductSalesSummarySerializer
+    pagination_class = StandardResultsSetPagination
+
+    def get_queryset(self):
+        return (
+            SaleDetail.objects
+            .values('product_id', 'product__name')
+            .annotate(
+                quantity_sold=Sum('quantity'),
+                net_revenue=Sum(F('unit_price') * F('quantity'), output_field=FloatField()),
+                total_cost=Sum(F('purchase_price') * F('quantity'), output_field=FloatField()),
+            )
+            .order_by('-quantity_sold')
+        )
+
+    def list(self, request, *args, **kwargs):
+        all_details = SaleDetail.objects.select_related('product')
+        product_map = {}
+        for detail in all_details:
+            pid = detail.product_id
+            if pid not in product_map:
+                product_map[pid] = {
+                    "product": detail.product.name,
+                    "quantity_sold": 0,
+                    "net_revenue": 0.0,
+                    "total_cost": 0.0,
+                }
+            final_price = float(detail.final_price)
+            product_map[pid]["quantity_sold"] += detail.quantity
+            product_map[pid]["net_revenue"] += final_price * detail.quantity
+            product_map[pid]["total_cost"] += float(detail.purchase_price) * detail.quantity
+
+        results = []
+        for prod in product_map.values():
+            margin = prod["net_revenue"] - prod["total_cost"]
+            margin_pct = (margin / prod["net_revenue"] * 100) if prod["net_revenue"] else 0
+            results.append({
+                "product": prod["product"],
+                "quantity_sold": prod["quantity_sold"],
+                "net_revenue": round(prod["net_revenue"], 2),
+                "total_cost": round(prod["total_cost"], 2),
+                "total_margin": round(margin, 2),
+                "margin_pct": round(margin_pct, 1),
+            })
+
+        total_quantity = sum(r["quantity_sold"] for r in results)
+        total_revenue = sum(r["net_revenue"] for r in results)
+        total_cost = sum(r["total_cost"] for r in results)
+        total_margin = sum(r["total_margin"] for r in results)
+        total_margin_pct = (total_margin / total_revenue * 100) if total_revenue else 0
+        total_products = len(results)
+
+        page = self.paginate_queryset(results)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            paginated_response = self.get_paginated_response(serializer.data)
+            paginated_response.data['totals'] = ProductSalesSummaryTotalsSerializer({
+                "quantity_sold": total_quantity,
+                "net_revenue": total_revenue,
+                "total_cost": total_cost,
+                "total_margin": total_margin,
+                "margin_pct": round(total_margin_pct, 1),
+                "total_products": total_products,
+            }).data
+            return paginated_response
+
+        serializer = self.get_serializer(results, many=True)
+        return Response({
+            "results": serializer.data,
+            "totals": {
+                "quantity_sold": total_quantity,
+                "net_revenue": total_revenue,
+                "total_cost": total_cost,
+                "total_margin": total_margin,
+                "margin_pct": round(total_margin_pct, 1),
+                "total_products": total_products,
+            }
+        })

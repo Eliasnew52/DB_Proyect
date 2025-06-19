@@ -143,6 +143,11 @@ const menuOptions: MenuOption[] = [
                 label: 'Reporte de facturas',
                 icon: <InsertChartOutlinedIcon fontSize="small" />
             },
+            {
+                path: PATHS[RouteKey.SALES_BY_PRODUCT_REPORT] ?? '',
+                label: 'Reporte de ventas por producto',
+                icon: <InsertChartOutlinedIcon fontSize="small" />
+            },
         ]
     },
 ]

@@ -1,7 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
-from .views import StockMovementByProductView
 
 router = DefaultRouter()
 router.register(r'categories', views.CategoryViewSet, basename='category')
@@ -22,8 +21,11 @@ router.register(r'stock-movements', views.StockMovementViewSet, basename='stock-
 urlpatterns = [
     path('api/category-schema/<int:category_id>/', views.CategorySchemaView.as_view(), name='get_category_schema'),
     path('api/products/sales-insights/', views.ProductSalesInsightsView.as_view(), name='product_sales_insights'),
-    path('api/', include(router.urls)),
-    path('api/stock-movements/product/<int:product_id>/', StockMovementByProductView.as_view(), name='stock-movements-by-product'),
-    path('api/products/<int:pk>/history/',views. ProductHistoryListView.as_view(), name='product-history-list'),
+    path('api/stock-movements/product/<int:product_id>/', views.StockMovementByProductView.as_view(), name='stock-movements-by-product'),
+    path('api/products/<int:pk>/history/',views.ProductHistoryListView.as_view(), name='product-history-list'),
     path('api/products/<int:pk>/history/<int:history_id>/', views.ProductHistoryDetailView.as_view(), name='product-history-detail'),
+    path('api/reports/products-sales-summary/', views.ProductSalesSummaryView.as_view(), name='product_sales_summary'),
+
+    path('api/', include(router.urls)),
+    
 ]

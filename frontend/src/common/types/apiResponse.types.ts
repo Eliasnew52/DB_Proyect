@@ -10,3 +10,9 @@ export interface PaginatedResponse<T> {
     previous: string | null;
     results: T[];
 }
+
+export type PaginatedResponseWithField<
+    T,
+    K extends string,
+    V
+> = PaginatedResponse<T> & Record<K, V>;

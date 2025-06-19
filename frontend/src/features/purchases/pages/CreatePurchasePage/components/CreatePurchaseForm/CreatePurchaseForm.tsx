@@ -11,21 +11,21 @@ import {
     TextField,
     Typography
 } from "@mui/material";
-import {ContentContainer} from "../../../../../common/components/ui/ContentContainer.tsx";
-import {SectionHeader} from "../../../../../common/components/ui/SectionHeader/SectionHeader.tsx";
+import {ContentContainer} from "../../../../../../common/components/ui/ContentContainer.tsx";
+import {SectionHeader} from "../../../../../../common/components/ui/SectionHeader/SectionHeader.tsx";
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import {Controller, FormProvider, useForm} from "react-hook-form";
-import {InlineLoading} from "../../../../../common/components/ui/InlineLoading/InlineLoading.tsx";
-import {useSuppliers} from "../../../../../common/hooks/products/useSuppliers.ts";
-import {useTransactionStatuses} from "../../../../../common/hooks/useTransactionStatus.ts";
-import {usePaymentMethods} from "../../../../../common/hooks/sales/usePaymentMethods.ts";
+import {InlineLoading} from "../../../../../../common/components/ui/InlineLoading/InlineLoading.tsx";
+import {useSuppliers} from "../../../../../../common/hooks/products/useSuppliers.ts";
+import {useTransactionStatuses} from "../../../../../../common/hooks/useTransactionStatus.ts";
+import {usePaymentMethods} from "../../../../../../common/hooks/sales/usePaymentMethods.ts";
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {AddProductDialog} from "./components/AddProductDialog/AddProductDialog.tsx";
 import {PurchaseProductItem} from "./components/PurchaseProductItem/PurchaseProductItem.tsx";
-import {useNotifications} from "../../../../../common/hooks/useNotifications.ts";
-import {useCreatePurchase} from "../../../hooks/useCreatePurchase.ts";
+import {useNotifications} from "../../../../../../common/hooks/useNotifications.ts";
+import {useCreatePurchase} from "../../../../hooks/useCreatePurchase.ts";
 
 export const CreatePurchaseForm = () => {
     const [openDialog, setOpenDialog] = useState(false);

@@ -1,0 +1,1 @@
+export const SALES_BY_PRODUCT_REPORT = ['salesByProductReport']

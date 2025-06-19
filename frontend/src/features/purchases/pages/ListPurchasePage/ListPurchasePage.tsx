@@ -1,5 +1,5 @@
 import {Grid, Typography} from "@mui/material";
-import {PurchaseTable} from "../pages/ListPurchasePage/components/PurchaseTable/PurchaseTable.tsx";
+import {PurchaseTable} from "./components/PurchaseTable/PurchaseTable.tsx";
 
 export const ListPurchasePage = () => {
     return (
